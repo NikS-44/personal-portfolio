@@ -3,26 +3,26 @@ import LinkedInIcon from "@/app/components/LinkedInIcon";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-dvh font-[family-name:var(--font-geist-sans)]">
-      <header className="bg-black text-white shadow-md sticky top-0 z-50 w-full">
-        <div className="mx-auto flex justify-between items-center p-4 pt-1 flex-wrap max-w-7xl">
-          <nav className="font-bold flex gap-2 space-x-6 pt-3 mr-6 flex-grow">
-            <a href="#about" className="hover:text-cyan-400 transition-colors duration-300">
+    <div className="flex min-h-dvh flex-col items-center justify-center font-[family-name:var(--font-geist-sans)]">
+      <header className="sticky top-0 z-50 w-full bg-black text-white shadow-md">
+        <div className="mx-auto flex flex-wrap items-center justify-between p-4 pt-1">
+          <nav className="mr-6 flex flex-grow justify-center gap-2 space-x-6 pt-3 font-bold">
+            <a href="#about" className="transition-colors duration-300 hover:text-cyan-400">
               About
             </a>
-            <a href="#projects" className="hover:text-cyan-400 transition-colors duration-300">
+            <a href="#projects" className="transition-colors duration-300 hover:text-cyan-400">
               Projects
             </a>
-            <a href="#workHistory" className="hover:text-cyan-400 transition-colors duration-300">
+            <a href="#workHistory" className="transition-colors duration-300 hover:text-cyan-400">
               Skills
             </a>
-            <a href="#contact" className="hover:text-cyan-400 transition-colors duration-300">
+            <a href="#contact" className="transition-colors duration-300 hover:text-cyan-400">
               Contact
             </a>
           </nav>
-          <div className="font-bold pt-3 flex flex-grow flex-row-reverse justify-center gap-2.5">
+          <div className="flex flex-grow flex-row-reverse justify-center gap-2.5 pt-3 font-bold">
             <a
-              className="flex items-center gap-2 hover:underline hover:underline-offset-4 hover:text-cyan-400 transition-colors duration-300 text-nowrap"
+              className="flex items-center gap-2 text-nowrap transition-colors duration-300 hover:text-cyan-400 hover:underline hover:underline-offset-4"
               href="https://www.linkedin.com/in/nik-shah-657ba616/"
               target="_blank"
               rel="noopener noreferrer"
@@ -31,7 +31,7 @@ export default function Home() {
               Hire Me!
             </a>
             <a
-              className="flex items-center gap-2 hover:underline hover:underline-offset-4 hover:text-cyan-400 transition-colors duration-300 text-nowrap mr-2 pr-3 border-r-2 border-gray-300"
+              className="mr-2 flex items-center gap-2 text-nowrap border-r-2 border-gray-300 pr-3 transition-colors duration-300 hover:text-cyan-400 hover:underline hover:underline-offset-4"
               href="https://github.com/NikS-44/personal-portfolio"
               target="_blank"
               rel="noopener noreferrer"
@@ -42,10 +42,10 @@ export default function Home() {
           </div>
         </div>
       </header>
-      <main className="flex-grow w-full bg-gray-100">
+      <main className="w-full flex-grow bg-gray-100">
         <section
           id="about"
-          className="flex flex-col items-center mx-auto justify-center max-w-7xl pt-16 -mt-16 px-8 mb-4 gap-6 h-screen"
+          className="mx-auto -mt-16 mb-4 flex h-screen max-w-7xl flex-col items-center justify-center gap-6 px-8 pt-16"
         >
           <h1 className="mt-4">About Me</h1>
           <p>
@@ -63,14 +63,12 @@ export default function Home() {
             it is paramount to build inclusive and usable websites for all.
           </p>
         </section>
-        <section id="projects" className="flex flex-col items-center justify-center bg-gray-200 py-16 h-screen ">
+        <section id="projects" className="flex h-screen flex-col items-center justify-center bg-gray-200 py-16">
           <h1>Projects:</h1>
-          <p>
-            <ul className="list-disc list-inside">
-              <li>Professional:</li>
-              <li>Hobby:</li>
-            </ul>
-          </p>
+          <ul className="list-inside list-disc">
+            <li>Professional:</li>
+            <li>Hobby:</li>
+          </ul>
           {/*Ideas: Implement some kind of spyglass that showcases the different projects I worked on at shopbop */}
         </section>
         <section id="workHistory" className="h-screen bg-gray-300 pt-16">

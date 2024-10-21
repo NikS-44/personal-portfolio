@@ -28,7 +28,7 @@ export default function RootLayout({
       <head>
         <title>Nik&apos;s Portfolio</title>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-dvh`}>{children}</body>
+      <body className={`${geistSans.variable} ${geistMono.variable} min-h-dvh antialiased`}>{children}</body>
     </html>
   );
 }
