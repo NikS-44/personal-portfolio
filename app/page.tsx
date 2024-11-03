@@ -1,5 +1,7 @@
 import GitHubIcon from "@/app/components/GithubIcon";
 import LinkedInIcon from "@/app/components/LinkedInIcon";
+import Resume from "@/app/components/Resume";
+import Projects from "@/app/components/Projects";
 
 export default function Home() {
   return (
@@ -13,8 +15,8 @@ export default function Home() {
             <a href="#projects" className="transition-colors duration-300 hover:text-cyan-400">
               Projects
             </a>
-            <a href="#workHistory" className="transition-colors duration-300 hover:text-cyan-400">
-              Skills
+            <a href="#resume" className="transition-colors duration-300 hover:text-cyan-400">
+              Resume
             </a>
             <a href="#contact" className="transition-colors duration-300 hover:text-cyan-400">
               Contact
@@ -64,15 +66,11 @@ export default function Home() {
           </p>
         </section>
         <section id="projects" className="flex h-screen flex-col items-center justify-center bg-gray-200 py-16">
-          <h1>Projects:</h1>
-          <ul className="list-inside list-disc">
-            <li>Professional:</li>
-            <li>Hobby:</li>
-          </ul>
+          <Projects />
           {/*Ideas: Implement some kind of spyglass that showcases the different projects I worked on at shopbop */}
         </section>
-        <section id="workHistory" className="h-screen bg-gray-300 pt-16">
-          <h1>Work History</h1>
+        <section id="resume" className="bg-gray-300 px-2.5 pb-16 pt-16">
+          <Resume />
         </section>
         <section id="contact" className="h-screen bg-gray-400 pt-16">
           <h1>Contact Section</h1>
