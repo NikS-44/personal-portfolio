@@ -1,75 +1,83 @@
 "use client";
 import React from "react";
+import { Transition } from "@headlessui/react";
+import TopNavigation from "@/app/components/projects/TopNavigation";
+import Footer from "@/app/components/projects/Footer";
 
 const Projects = () => {
   const projects = [
     {
-      name: "Project 1",
-      description: "This is a project",
-      image: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-      link: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+      label: "shopbop.com Top Navigation",
+      component: <TopNavigation />,
     },
     {
-      name: "Project 2",
-      description: "This is a project",
-      image: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-      link: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    },
-    {
-      name: "Project 3",
-      description: "This is a project",
-      image: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-      link: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    },
-    {
-      name: "Project 4",
-      description: "This is a project",
-      image: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-      link: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    },
-    {
-      name: "Project 5",
-      description: "This is a project",
-      image: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-      link: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    },
-    {
-      name: "Project 6",
-      description: "This is a project",
-      image: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-      link: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+      label: "shopbop.com Footer",
+      component: <Footer />,
     },
   ];
+
   const [selectedProject, setSelectedProject] = React.useState(0);
+
   const projectHandler = (projectIndex: number) => {
     setSelectedProject(projectIndex);
   };
+
   return (
-    <div className="flex w-full max-w-screen-2xl">
-      <nav className="flex flex-col justify-center">
-        {projects.map((project, index) => {
-          return (
+    <div className="relative flex w-full max-w-screen-2xl flex-col px-4 lg:flex-row lg:px-0">
+      <nav className="flex flex-col items-center justify-center lg:items-start">
+        <div className="lg:hidden">
+          <select
+            name="project"
+            onChange={(e) => projectHandler(parseInt(e.target.value))}
+            value={selectedProject}
+            className="mb-4 max-w-fit cursor-pointer rounded-lg bg-black px-10 py-2 text-center text-white outline-offset-2 hover:bg-gray-500 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
+          >
+            {projects.map((project, index) => (
+              <option key={index} value={index}>
+                {project.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        {projects.map((project, index) => (
+          <>
             <div
               key={index}
-              className={`${selectedProject === index ? "bg-white" : ""} ml-3 rounded-l-lg py-3 pr-3 transition-colors duration-200`}
+              className={`${
+                selectedProject === index ? "bg-white" : ""
+              } ml-3 hidden w-full rounded-l-lg py-3 pr-3 transition-colors duration-200 lg:block`}
             >
               <button
                 onClick={() => projectHandler(index)}
-                className="ml-2 flex flex-row rounded-lg bg-black px-10 py-2 text-white hover:bg-gray-500"
+                className="ml-2 flex min-w-52 flex-row rounded-lg bg-black px-10 py-2 text-white outline-offset-2 hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
               >
-                <div className="flex flex-col">
-                  <h1>{project.name}</h1>
-                </div>
+                {project.label}
               </button>
             </div>
-          );
-        })}
+          </>
+        ))}
       </nav>
-      <div className="h-s mr-5 flex min-h-[800px] flex-1 flex-col items-center justify-center rounded-2xl bg-white">
-        <h1>{projects[selectedProject].name}</h1>
-        <p>{projects[selectedProject].description}</p>
-        <img src={projects[selectedProject].image} alt={projects[selectedProject].name} />
-        <a href={projects[selectedProject].link}>Link to project</a>
+
+      <div className="flex flex-1 flex-col items-center">
+        <h2 className="mb-4 text-center text-2xl">Projects!</h2>
+        <div className="h-s max-4 relative flex min-h-[800px] w-full flex-col items-center justify-center rounded-2xl bg-white lg:mx-5">
+          {projects.map((project, index) => (
+            <Transition
+              as="div"
+              key={index}
+              show={selectedProject === index}
+              enter="transition-opacity duration-200"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="transition-opacity duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+              className="absolute inset-0 h-full w-full"
+            >
+              {project.component}
+            </Transition>
+          ))}
+        </div>
       </div>
     </div>
   );

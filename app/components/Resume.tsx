@@ -1,6 +1,6 @@
 const Resume = () => {
   return (
-    <div className="mx-auto max-w-screen-2xl bg-white p-8 shadow-lg">
+    <div className="mx-auto max-w-screen-lg bg-white p-8 shadow-lg">
       <div className="text-center">
         <h1 className="text-4xl font-bold">Nik Shah</h1>
         <a href="mailto:nikshahee@gmail.com" className="text-sm text-gray-600 underline">
