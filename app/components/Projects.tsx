@@ -40,27 +40,28 @@ const Projects = () => {
           </select>
         </div>
         {projects.map((project, index) => (
-          <>
-            <div
-              key={index}
-              className={`${
-                selectedProject === index ? "bg-white" : ""
-              } ml-3 hidden w-full rounded-l-lg py-3 pr-3 transition-colors duration-200 lg:block`}
+          <div
+            key={index}
+            className={`${
+              selectedProject === index ? "bg-white" : ""
+            } ml-3 hidden w-full rounded-l-lg py-3 pr-3 transition-colors duration-200 lg:block`}
+          >
+            <button
+              onClick={() => projectHandler(index)}
+              disabled={selectedProject === index}
+              className={`ml-2 flex min-w-52 flex-row rounded-lg bg-black px-10 py-2 text-white outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-black ${
+                selectedProject !== index ? "hover:bg-neutral-700" : ""
+              } font-bold`}
             >
-              <button
-                onClick={() => projectHandler(index)}
-                className="ml-2 flex min-w-52 flex-row rounded-lg bg-black px-10 py-2 text-white outline-offset-2 hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
-              >
-                {project.label}
-              </button>
-            </div>
-          </>
+              {project.label}
+            </button>
+          </div>
         ))}
       </nav>
 
       <div className="flex flex-1 flex-col items-center">
         <h2 className="mb-4 text-center text-2xl">Projects!</h2>
-        <div className="h-s max-4 relative flex min-h-[800px] w-full flex-col items-center justify-center rounded-2xl bg-white lg:mx-5">
+        <div className="h-s max-4 relative flex min-h-[400px] w-full flex-col items-center justify-center rounded-2xl bg-white lg:mx-5">
           {projects.map((project, index) => (
             <Transition
               as="div"
