@@ -6,8 +6,8 @@ import React from "react";
 
 export default function Home() {
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center font-[family-name:var(--font-geist-sans)]">
-      <header className="sticky top-0 z-50 w-full bg-black text-white shadow-md">
+    <div className="flex min-h-screen flex-col font-[family-name:var(--font-geist-sans)]">
+      <header className="fixed top-0 z-50 w-full bg-black text-white shadow-md">
         <div className="mx-auto flex flex-wrap items-center justify-between p-4 pt-1">
           <nav className="mr-6 flex flex-grow justify-center gap-2 space-x-6 text-nowrap pt-3 font-bold">
             <a href="#about" className="transition-colors duration-300 hover:text-cyan-400">
@@ -26,16 +26,13 @@ export default function Home() {
               rel="noopener noreferrer"
             >
               <GitHubIcon />
-              Source
+              <span className="hidden sm:inline">Source</span>
             </a>
           </nav>
         </div>
       </header>
       <main className="w-full flex-grow bg-black">
-        <section
-          id="about"
-          className="mx-auto -mt-16 mb-4 flex h-screen max-w-2xl flex-col items-center justify-center gap-6 px-8 pt-16 text-white"
-        >
+        <section id="about" className="mx-auto mb-4 flex max-w-2xl flex-col items-center gap-6 px-8 pt-20 text-white">
           <h1 className="text-3xl">Hi, I&apos;m Nik!</h1>
           <p className="mt-5">
             I have a passion for all things tech and love the challenge of solving complex problems. In my free time,
@@ -72,9 +69,8 @@ export default function Home() {
         <section id="resume" className="px-2.5 pb-16 pt-16">
           <Resume />
         </section>
-        <section id="projects" className="flex h-screen flex-col items-center justify-start py-16">
+        <section id="projects" className="flex flex-col items-center justify-start py-16">
           <Projects />
-          {/*Ideas: Implement some kind of spyglass that showcases the different projects I worked on at shopbop */}
         </section>
       </main>
     </div>

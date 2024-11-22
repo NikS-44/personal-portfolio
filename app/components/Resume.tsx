@@ -56,8 +56,8 @@ const UNIVERSITY_SKILLS: Badge[] = [
 
 const Resume = () => {
   return (
-    <div className="mx-auto max-w-screen-lg p-8 text-white shadow-lg">
-      <section className="mt-8">
+    <div className="mx-auto max-w-screen-lg px-8 text-white shadow-lg">
+      <section>
         <h2 className="border-b pb-2 text-2xl font-semibold">Experience</h2>
         <div className="mt-6">
           <h3 className="text-xl font-semibold">Frontend Software Engineer – L5</h3>
