@@ -41,7 +41,7 @@ const Projects = () => {
       </nav>
 
       <div className="flex flex-1 flex-col items-center">
-        <div className="h-s max-4 relative flex min-h-[400px] w-full flex-col items-center justify-center rounded-2xl bg-gray-400 lg:mx-5">
+        <div className="max-4 relative flex w-full flex-col items-center justify-center rounded-2xl bg-gray-400 lg:mx-5">
           {projects.map((project, index) => (
             <Transition
               as="div"
@@ -53,7 +53,7 @@ const Projects = () => {
               leave="transition-opacity duration-200"
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
-              className="absolute inset-0 h-full w-full"
+              className="inset-0 h-full w-full"
             >
               {project.component}
             </Transition>
