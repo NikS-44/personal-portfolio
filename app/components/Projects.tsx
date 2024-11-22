@@ -2,7 +2,7 @@
 import React from "react";
 import { Transition } from "@headlessui/react";
 import TopNavigation from "@/app/components/projects/TopNavigation";
-import Footer from "@/app/components/projects/Footer";
+import Latency from "@/app/components/projects/Latency";
 
 const Projects = () => {
   const projects = [
@@ -11,8 +11,8 @@ const Projects = () => {
       component: <TopNavigation />,
     },
     {
-      label: "shopbop.com Footer",
-      component: <Footer />,
+      label: "shopbop.com Latency Updates",
+      component: <Latency />,
     },
   ];
 
@@ -24,7 +24,7 @@ const Projects = () => {
 
   return (
     <div className="relative flex w-full max-w-screen-2xl flex-col px-4 text-white">
-      <h2 className="mb-4 text-center text-2xl">My Projects!</h2>
+      <h2 className="mb-4 text-center text-2xl">Projects!</h2>
       <nav className="flex flex-col items-center justify-center">
         <select
           name="project"
@@ -41,7 +41,7 @@ const Projects = () => {
       </nav>
 
       <div className="flex flex-1 flex-col items-center">
-        <div className="max-4 relative flex w-full flex-col items-center justify-center rounded-2xl bg-gray-400 lg:mx-5">
+        <div className="max-4 relative flex w-full flex-col items-center justify-center rounded-2xl bg-gray-600 lg:mx-5">
           {projects.map((project, index) => (
             <Transition
               as="div"

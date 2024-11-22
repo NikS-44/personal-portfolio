@@ -21,12 +21,12 @@ export default function Home() {
             </a>
             <a
               className="mr-2 flex items-center gap-2 border-gray-300 transition-colors duration-300 hover:text-cyan-400 hover:underline hover:underline-offset-4"
-              href="https://github.com/NikS-44/personal-portfolio"
+              href="https://github.com/NikS-44/"
               target="_blank"
               rel="noopener noreferrer"
             >
               <GitHubIcon />
-              <span className="hidden sm:inline">Source</span>
+              <span className="hidden sm:inline">Github</span>
             </a>
           </nav>
         </div>
@@ -35,10 +35,10 @@ export default function Home() {
         <section id="about" className="mx-auto mb-4 flex max-w-2xl flex-col items-center gap-6 px-8 pt-20 text-white">
           <h1 className="text-3xl">Hi, I&apos;m Nik!</h1>
           <p className="mt-5">
-            I have a passion for all things tech and love the challenge of solving complex problems. In my free time,
-            you can find me at the climbing gym, in the mountains, or setting up the latest silly home automation. In a
-            former life, I was a senior hardware engineer designing server motherboards, but I gave that all up so I
-            could build websites!
+            I&#39;m a front-end developer with a passion for all things tech and love the challenge of solving complex
+            problems. In my free time, you can find me at the climbing gym, in the mountains, or setting up the latest
+            silly home automation. In a former life, I was a senior hardware engineer designing server motherboards, but
+            I gave that all up so I could build websites!
           </p>
           <p>
             As a frontend developer, I&apos;ve worked professionally with React and Angular, and while I don&apos;t

@@ -12,7 +12,7 @@ const TopNavigation = () => {
       <div className="flex h-full flex-col items-center">
         {isToggled ? (
           <>
-            <div className="flex flex-1 items-center">
+            <div className="flex flex-1 items-center py-2">
               New React Top Navigation on &nbsp;
               <a className="underline" href={"https://www.shopbop.com"}>
                 shopbop.com
@@ -22,7 +22,7 @@ const TopNavigation = () => {
           </>
         ) : (
           <>
-            <div className="flex h-full flex-1 items-center">Legacy Vanilla JS Top Navigation</div>
+            <div className="flex h-full flex-1 items-center py-2">Legacy Vanilla JS Top Navigation</div>
             <Image src={oldTopNav} alt="Old Top Navigation" width={1551} height={811} />
           </>
         )}
