@@ -5,6 +5,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --dark-teal: #0e313e;
 }
 
 /*@media (prefers-color-scheme: dark) {*/
@@ -24,4 +25,12 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+.background-element {
+  background: linear-gradient(
+    to bottom,
+    var(--dark-teal) 10%,
+    /* Dark teal starts at the top */ #000 90% /* Black dominates the bottom */
+  );
 }

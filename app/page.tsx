@@ -7,7 +7,7 @@ import React from "react";
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col font-[family-name:var(--font-geist-sans)]">
-      <header className="fixed z-50 flex w-full justify-center bg-black py-3 text-white shadow-md">
+      <header className="fixed z-50 flex w-full justify-center py-3 text-white">
         <nav className="flex w-fit items-center gap-2 space-x-6 text-nowrap rounded-lg bg-neutral-900 px-4 py-3">
           <a href="#about" className="transition-colors duration-300 hover:text-cyan-400">
             About Me
@@ -29,7 +29,7 @@ export default function Home() {
           </a>
         </nav>
       </header>
-      <main className="w-full flex-grow bg-black">
+      <main className="background-element w-full flex-grow">
         <section
           id="about"
           className="mx-auto mb-4 flex min-h-svh max-w-2xl flex-col items-center justify-center gap-6 px-8 pt-20 text-white"
@@ -50,9 +50,9 @@ export default function Home() {
             it is paramount to build inclusive and usable websites for all.
           </p>
           <div className="flex gap-4">
-            <div className="relative rounded-lg border-2 border-transparent text-white transition-colors hover:border-neutral-500">
+            <div className="relative rounded-lg border-2 border-cyan-800 text-white transition-colors hover:border-cyan-600">
               <a
-                className="relative flex animate-[moving-cyan-black_3s_linear_infinite] items-center gap-2 text-nowrap rounded-md bg-gradient-to-r from-cyan-900 to-black bg-[length:200%_200%] px-4 py-2 transition-colors duration-300"
+                className="relative flex animate-[moving-cyan-black_3s_linear_infinite] items-center gap-2 text-nowrap rounded-md bg-[length:200%_200%] px-4 py-2 transition-colors duration-300"
                 href="https://www.linkedin.com/in/nik-shah-657ba616/"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -61,9 +61,9 @@ export default function Home() {
                 Hire Me!
               </a>
             </div>
-            <div className="relative rounded-lg border-2 border-transparent text-white transition-colors hover:border-cyan-600">
+            <div className="relative rounded-lg border-2 border-cyan-800 text-white transition-colors hover:border-cyan-600">
               <a
-                className="relative flex animate-[moving-cyan-black_3s_linear_infinite] items-center gap-2 text-nowrap rounded-md bg-gradient-to-r from-cyan-900 to-black bg-[length:200%_200%] px-4 py-2 transition-colors duration-300"
+                className="relative flex animate-[moving-cyan-black_3s_linear_infinite] items-center gap-2 text-nowrap rounded-md bg-[length:200%_200%] px-4 py-2 transition-colors duration-300"
                 href="#resume"
                 rel="noopener noreferrer"
               >
@@ -75,7 +75,7 @@ export default function Home() {
         <section id="resume" className="min-h-svh px-2.5 pb-16 pt-16">
           <Resume />
         </section>
-        <section id="projects" className="flex min-h-svh flex-col items-center justify-start py-16">
+        <section id="projects" className="flex min-h-svh flex-col items-center justify-center py-16">
           <Projects />
         </section>
       </main>
