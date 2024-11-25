@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col font-[family-name:var(--font-geist-sans)]">
       <header className="fixed z-50 flex w-full justify-center py-3 text-white">
-        <nav className="flex w-fit items-center gap-2 space-x-6 text-nowrap rounded-lg bg-neutral-900 px-4 py-3">
+        <nav className="flex w-fit items-center gap-2 space-x-6 text-nowrap rounded-lg border border-solid border-cyan-950 bg-neutral-900 px-4 py-3 shadow-xl">
           <a href="#about" className="transition-colors duration-300 hover:text-cyan-400">
             About Me
           </a>
