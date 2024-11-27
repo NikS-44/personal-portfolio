@@ -2,6 +2,8 @@ import GitHubIcon from "@/app/components/GithubIcon";
 import LinkedInIcon from "@/app/components/LinkedInIcon";
 import Resume from "@/app/components/Resume";
 import Projects from "@/app/components/Projects";
+import Image from "next/image";
+import portrait from "@/app/assets/portrait.jpg";
 import React from "react";
 
 export default function Home() {
@@ -35,19 +37,18 @@ export default function Home() {
           className="mx-auto mb-4 flex min-h-svh max-w-2xl flex-col items-center justify-center gap-6 px-8 pt-20 text-white"
         >
           <h1 className="text-6xl">Hi, I&apos;m Nik!</h1>
+          <div className="relative mx-auto aspect-square w-[300px] overflow-hidden rounded-full">
+            <Image src={portrait} alt="Nik's Face" fill className="object-cover" priority />
+          </div>
           <p className="mt-5">
             I&#39;m a front-end developer with a passion for all things tech and love the challenge of solving complex
-            problems. In my free time, you can find me at the climbing gym, in the mountains, or setting up the latest
-            silly home automation. In a former life, I was a senior hardware engineer designing server motherboards, but
-            I gave that all up so I could build websites!
+            problems. I enjoy understanding the low level details of how the web actually works, and my goal is to lead
+            teams in building scalable, reliable, and performant websites. I also have a strong passion for web
+            accessibility, and believe it is paramount to build inclusive and usable websites for all.
           </p>
           <p>
-            As a frontend developer, I&apos;ve worked professionally with React and Angular, and while I don&apos;t
-            favor one or the other, I strongly prefer Typescript in whatever web project I am working on. I excel when
-            working on teams with a strong collaborative culture, and I get the most joy working with others. I enjoy
-            understanding the low level details of how the web actually works, and my goal is to lead teams in building
-            scalable, reliable, and performant websites. I also have a strong passion for web accessibility, and believe
-            it is paramount to build inclusive and usable websites for all.
+            In my free time, you can find me at the climbing gym, in the mountains, or setting up the latest silly home
+            automation.
           </p>
           <div className="flex gap-4">
             <div className="relative rounded-lg border-2 border-cyan-800 text-white transition-colors hover:border-cyan-600">
