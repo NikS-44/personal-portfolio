@@ -23,14 +23,14 @@ const Projects = () => {
   };
 
   return (
-    <div className="relative flex w-full max-w-screen-2xl flex-col px-4 text-white">
-      <h2 className="mb-4 text-center text-2xl">My W!</h2>
+    <div className="relative flex w-full max-w-screen-lg flex-col px-4 text-white">
+      <h2 className="mb-4 text-center text-2xl">My Work!</h2>
       <nav className="flex flex-col items-center justify-center">
         <select
           name="project"
           onChange={(e) => projectHandler(parseInt(e.target.value))}
           value={selectedProject}
-          className="border-1 mb-4 max-w-fit cursor-pointer rounded-lg border-2 border-cyan-600 bg-black px-10 py-2 text-center outline-offset-2 outline-cyan-400 hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+          className="border-1 mb-4 max-w-fit cursor-pointer rounded-lg border-2 border-cyan-600 bg-black px-10 py-2 text-center outline-offset-2 outline-cyan-400 hover:bg-gray-500"
         >
           {projects.map((project, index) => (
             <option key={index} value={index}>

@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import portrait from "@/app/assets/portrait.jpg";
-import LinkedInIcon from "@/app/components/LinkedInIcon";
+import LinkedInIcon from "@/app/components/icons/LinkedInIcon";
 
 const Greeting = () => {
   return (

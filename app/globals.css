@@ -34,3 +34,11 @@ body {
     /* Dark teal starts at the top */ #000 90% /* Black dominates the bottom */
   );
 }
+
+@layer base {
+  a,
+  button,
+  select {
+    @apply outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400;
+  }
+}
