@@ -11,7 +11,7 @@ const Greeting = () => {
         <Image src={portrait} alt="Nik's Face" fill className="object-cover" priority />
       </div>
 
-      <p>
+      <p className="mt-2">
         I&#39;m a front-end developer and hardware engineer with a passion for all things tech! I love the challenge of
         solving complex problems and enjoy understanding the low level details of how the web actually works. My goal is
         to lead teams in building scalable, reliable, and performant websites. I also have a strong passion for web
