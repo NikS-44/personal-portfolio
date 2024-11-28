@@ -24,7 +24,7 @@ const Projects = () => {
 
   return (
     <div className="relative flex w-full max-w-screen-2xl flex-col px-4 text-white">
-      <h2 className="mb-4 text-center text-2xl">Projects!</h2>
+      <h2 className="mb-4 text-center text-2xl">My W!</h2>
       <nav className="flex flex-col items-center justify-center">
         <select
           name="project"
