@@ -32,7 +32,7 @@ const articles: Article[] = [
 
 const Articles = () => {
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto mb-8 max-w-4xl">
       <h2 className="mb-8 text-center text-3xl font-bold text-white">Latest Articles</h2>
       <div className="mx-2 grid gap-8 md:grid-cols-2">
         {articles.map((post) => (

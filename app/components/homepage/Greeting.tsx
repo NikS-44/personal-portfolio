@@ -6,10 +6,11 @@ import LinkedInIcon from "@/app/components/icons/LinkedInIcon";
 const Greeting = () => {
   return (
     <>
-      <h1 className="text-6xl">Hi, I&apos;m Nik!</h1>
-      <div className="relative mx-auto aspect-square w-[300px] overflow-hidden rounded-full">
+      <h1 className="text-[clamp(1.75rem,0.25rem_+_3.75vw,3.75rem)]">Hi, I&apos;m Nik!</h1>
+      <div className="relative mx-auto aspect-square w-[calc(100px+((100vw-300px)*0.427))] min-w-32 overflow-hidden rounded-full md:w-[300px]">
         <Image src={portrait} alt="Nik's Face" fill className="object-cover" priority />
       </div>
+
       <p className="mt-5">
         I&#39;m a front-end developer with a passion for all things tech and love the challenge of solving complex
         problems. I enjoy understanding the low level details of how the web actually works, and my goal is to lead
