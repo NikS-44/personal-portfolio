@@ -12,14 +12,14 @@ const Greeting = () => {
       </div>
 
       <p className="mt-5">
-        I&#39;m a front-end developer with a passion for all things tech and love the challenge of solving complex
-        problems. I enjoy understanding the low level details of how the web actually works, and my goal is to lead
-        teams in building scalable, reliable, and performant websites. I also have a strong passion for web
+        I&#39;m a front-end developer and hardware engineer with a passion for all things tech! I love the challenge of
+        solving complex problems and enjoy understanding the low level details of how the web actually works. My goal is
+        to lead teams in building scalable, reliable, and performant websites. I also have a strong passion for web
         accessibility, and believe it is paramount to build inclusive and usable websites for all.
       </p>
       <p>
-        In my free time, you can find me climbing in the mountains, hanging with my chihuahuas, or annoying my family
-        with the latest silly home automation.
+        In my free time, you can find me climbing in the mountains, hanging with my chihuahuas, proselytizing about
+        bidets, or annoying my family with my latest silly home automation.
       </p>
       <div className="flex gap-4">
         <div className="relative rounded-lg border-2 border-cyan-800 text-white transition-colors hover:border-cyan-600">
