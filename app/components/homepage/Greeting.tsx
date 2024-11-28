@@ -17,8 +17,8 @@ const Greeting = () => {
         accessibility, and believe it is paramount to build inclusive and usable websites for all.
       </p>
       <p>
-        In my free time, you can find me at the climbing gym, in the mountains, or setting up the latest silly home
-        automation.
+        In my free time, you can find me climbing in the mountains, hanging with my chihuahuas, or annoying my family
+        with the latest silly home automation.
       </p>
       <div className="flex gap-4">
         <div className="relative rounded-lg border-2 border-cyan-800 text-white transition-colors hover:border-cyan-600">

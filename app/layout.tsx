@@ -33,7 +33,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} background-element flex min-h-dvh flex-col antialiased focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400`}
       >
         <Header />
-        {children}
+        <main className="[&>*:first-child]:pt-20">{children}</main>
       </body>
     </html>
   );

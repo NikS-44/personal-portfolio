@@ -5,10 +5,10 @@ import Greeting from "@/app/components/homepage/Greeting";
 
 export default function Home() {
   return (
-    <main className="w-full flex-grow">
+    <>
       <section
         id="about"
-        className="mx-auto mb-4 flex min-h-svh max-w-2xl flex-col items-center justify-center gap-6 px-8 pt-20 text-white"
+        className="mx-auto mb-4 flex min-h-svh max-w-2xl flex-col items-center justify-center gap-6 px-8 text-white"
       >
         <Greeting />
       </section>
@@ -18,6 +18,6 @@ export default function Home() {
       <section id="projects" className="flex min-h-svh flex-col items-center justify-center py-16">
         <Projects />
       </section>
-    </main>
+    </>
   );
 }
