@@ -23,8 +23,8 @@ const MarkdownArticle: React.FC<MarkdownArticleProps> = ({ articleId }) => {
   }, [articleId]);
 
   return (
-    <div className="mx-auto">
-      <div className="mx-10 mb-8 min-h-96 max-w-screen-lg rounded-lg border border-cyan-900/30 bg-neutral-900/50 p-10 py-10 text-white">
+    <div className="flex justify-center">
+      <div className="mx-10 mb-8 min-h-96 w-full max-w-screen-lg rounded-lg border border-cyan-900/30 bg-neutral-900/50 p-10 py-10 text-white">
         <ReactMarkdown
           components={{
             // Headings
