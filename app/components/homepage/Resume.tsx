@@ -57,6 +57,7 @@ const UNIVERSITY_SKILLS: Badge[] = [
 ];
 
 const Resume = () => {
+  const experienceRef = useIntersectionObserver();
   const amazonRef = useIntersectionObserver();
   const microfocusRef = useIntersectionObserver();
   const hpeRef = useIntersectionObserver();
@@ -65,7 +66,9 @@ const Resume = () => {
   return (
     <div className="mx-auto max-w-screen-lg px-8 text-white shadow-lg">
       <section>
-        <h2 className="border-b pb-2 text-2xl font-semibold">Experience</h2>
+        <h2 ref={experienceRef} className="border-b pb-2 text-2xl font-semibold opacity-0">
+          Experience
+        </h2>
         <div ref={amazonRef} className="mt-6 opacity-0">
           <h3 className="text-xl font-semibold">Frontend Software Engineer – L5</h3>
           <p className="text-gray-200">

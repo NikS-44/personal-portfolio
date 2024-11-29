@@ -17,7 +17,7 @@ const articles: Article[] = [
       "Diving deep into ARIA attributes, keyboard navigation, and creating truly inclusive web experiences. Learn how to make your websites accessible to everyone.",
     date: "Coming Soon",
     readTime: "8 min read",
-    href: "#accessibility",
+    href: "/articles/accessibility",
   },
   {
     id: 2,
@@ -26,7 +26,7 @@ const articles: Article[] = [
       "Discover powerful terminal commands, aliases, and customizations that will transform your command-line workflow and make you more efficient.",
     date: "Coming Soon",
     readTime: "6 min read",
-    href: "#terminal",
+    href: "/articles/terminal",
   },
 ];
 
