@@ -1,4 +1,6 @@
+"use client";
 import Badges, { Badge } from "@/app/components/Badges";
+import useIntersectionObserver from "@/app/hooks/useIntersectionObserver";
 
 const AMAZON_SKILLS: Badge[] = [
   { text: "Typescript" },
@@ -55,11 +57,16 @@ const UNIVERSITY_SKILLS: Badge[] = [
 ];
 
 const Resume = () => {
+  const amazonRef = useIntersectionObserver();
+  const microfocusRef = useIntersectionObserver();
+  const hpeRef = useIntersectionObserver();
+  const educationRef = useIntersectionObserver();
+  const citizenRef = useIntersectionObserver();
   return (
     <div className="mx-auto max-w-screen-lg px-8 text-white shadow-lg">
       <section>
         <h2 className="border-b pb-2 text-2xl font-semibold">Experience</h2>
-        <div className="mt-6">
+        <div ref={amazonRef} className="mt-6 opacity-0">
           <h3 className="text-xl font-semibold">Frontend Software Engineer – L5</h3>
           <p className="text-gray-200">
             Amazon -{" "}
@@ -98,7 +105,7 @@ const Resume = () => {
           </ul>
           <Badges badges={AMAZON_SKILLS} />
         </div>
-        <div className="mt-6">
+        <div ref={microfocusRef} className="mt-6 opacity-0">
           <h3 className="text-xl font-semibold">Intermediate Frontend Software Engineer</h3>
           <p className="text-gray-200">Microfocus | Fort Collins, CO | July 2021 - April 2022</p>
           <ul className="mt-2 list-inside list-disc space-y-2">
@@ -110,7 +117,7 @@ const Resume = () => {
           </ul>
           <Badges badges={MICROFOCUS_SKILLS} />
         </div>
-        <div className="mt-6">
+        <div ref={hpeRef} className="mt-6 opacity-0">
           <h3 className="text-xl font-semibold">System Engineer / Lead Hardware Engineer</h3>
           <p className="text-gray-200">Hewlett-Packard Enterprise | Fort Collins, CO | Feb 2011 - July 2021</p>
           <ul className="mt-2 list-inside list-disc space-y-2">
@@ -131,7 +138,7 @@ const Resume = () => {
         </div>
         <Badges badges={HPE_SKILLS} />
       </section>
-      <section className="mt-8">
+      <section ref={educationRef} className="mt-8 opacity-0">
         <h2 className="border-b pb-2 text-2xl font-semibold">Education</h2>
         <div className="mt-4">
           <h3 className="text-xl font-semibold">B.S., Computer and Electrical Engineering</h3>
@@ -140,7 +147,7 @@ const Resume = () => {
         </div>
         <Badges badges={UNIVERSITY_SKILLS} />
       </section>
-      <section className="mt-8">
+      <section ref={citizenRef} className="mt-8 opacity-0">
         <p className="text-sm text-gray-200">Work Status: US Citizen</p>
       </section>
     </div>

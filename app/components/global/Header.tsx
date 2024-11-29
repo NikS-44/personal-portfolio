@@ -29,7 +29,7 @@ const Header = () => {
     <header className="fixed z-50 flex w-full justify-center py-3 text-white">
       <nav className="flex w-fit items-center gap-2 space-x-6 text-nowrap rounded-lg border border-solid border-cyan-950 bg-neutral-900 px-4 py-3 shadow-xl">
         <Link
-          href="/"
+          href="/#home"
           className="mr-2 flex items-center gap-2 border-gray-300 transition-colors duration-300 hover:text-cyan-400 hover:underline hover:underline-offset-4"
         >
           <HomeIcon />
