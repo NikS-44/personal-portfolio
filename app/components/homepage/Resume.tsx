@@ -56,6 +56,34 @@ const UNIVERSITY_SKILLS: Badge[] = [
   { text: "Software Engineering" },
 ];
 
+import { useState } from "react";
+
+const ExpandableSection = ({ summary, children }: { summary: string; children: React.ReactNode }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className="mt-4">
+      <p className="mb-4 text-gray-200">{summary}</p>
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center gap-2 rounded-lg bg-cyan-900/30 px-4 py-2 text-sm text-cyan-100 transition-all hover:bg-cyan-800/40"
+      >
+        <span>Job Highlights</span>
+        <svg
+          className={`h-4 w-4 transform transition-transform ${isExpanded ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isExpanded && <ul className="animate-fadeIn mt-4 list-inside list-disc space-y-3">{children}</ul>}
+    </div>
+  );
+};
+
 const Resume = () => {
   const experienceRef = useIntersectionObserver();
   const amazonRef = useIntersectionObserver();
@@ -78,16 +106,28 @@ const Resume = () => {
             </a>{" "}
             | Fort Collins, CO (Remote) | April 2022 - Present
           </p>
-          <ul className="mt-2 list-inside list-disc space-y-2">
-            <li>
-              Owned implementation for new accessible and responsive global features including Top Navigation and Footer
-              as well as maintenance of Search, GDPR, and Legalese features.
-            </li>
+          <ExpandableSection
+            summary={
+              "I owned implementation and maintenance for projects including Top Navigation, our internal Design System, React 18 migration, Homepage Editorial Components, Search, GDPR, Legalese Pages, and Footer. " +
+              "I also drove accessibility and Core Web Vitals (web performance) initiatives and introduced improvements to partner workflows that increased delivery speed of editorial content by 30%. " +
+              "I championed frontend excellence and openness across the organization through pairing/mentorship, empathetic code reviews, and workshops/presentations."
+            }
+          >
             <li>
               Drove efforts to reduce site-wide latency and cumulative layout shift (CLS) by working with
               cross-functional teams to get buy-in for editorial content latency initiatives, implementing image and
               video optimization strategies in Editorial React components, and building an internal Vite/Tailwind/React
               app to generate properly optimized content.
+            </li>
+            <li>
+              Built responsive and accessible shared components for Shopbop&apos;s component library using React/Styled
+              Components/TypeScript
+            </li>
+            <li>
+              Led and implemented a React 16 to React 18 migration across 40+ Microfrontend and framework repos at
+              Shopbop without any downtime. Efforts included upgrading various dependencies, upgrading local development
+              servers, adding Enzyme shims for teams without capacity, and maintaining a parallel React 18 environment
+              for testing our upgrades.
             </li>
             <li>
               Improved internal CMS implementation by developing POCs and driving an initiative to decouple the
@@ -100,30 +140,45 @@ const Resume = () => {
               Elevated frontend expertise across the organization through mentorship, code reviews, accessibility
               workshops, and fostering an open team culture.
             </li>
-            <li>Built React/Styled Components/TypeScript components for Shopbop&apos;s component library.</li>
             <li>
               Delivered projects and participated in on-call rotation for full-stack features including SpringMVC
               applications, APIs (Java), React Micro-Frontends, and Node.js Lambdas.
             </li>
-          </ul>
+          </ExpandableSection>
           <Badges badges={AMAZON_SKILLS} />
         </div>
         <div ref={microfocusRef} className="mt-6 opacity-0">
           <h3 className="text-xl font-semibold">Intermediate Frontend Software Engineer</h3>
           <p className="text-gray-200">Microfocus | Fort Collins, CO | July 2021 - April 2022</p>
-          <ul className="mt-2 list-inside list-disc space-y-2">
-            <li>Implemented frontend designs in Angular 9+ using TypeScript, CSS, and HTML5.</li>
+          <ExpandableSection
+            summary={
+              "I worked on a team migrated our legacy desktop application to a SaaS dashboard written using Angular and SCSS. " +
+              "I was responsible for new UI features, bug fixes, code reviews, and L10n across our whole application."
+            }
+          >
+            <li>Implemented frontend designs in Angular 9+ and SCSS.</li>
             <li>
               Collaborated with UX/UI designers and backend engineers to define and improve new frontend features and
               APIs.
             </li>
-          </ul>
+            <li>
+              Implemented translations for our whole app and become the team&apos;s SME on translation best practices.
+            </li>
+          </ExpandableSection>
           <Badges badges={MICROFOCUS_SKILLS} />
         </div>
         <div ref={hpeRef} className="mt-6 opacity-0">
           <h3 className="text-xl font-semibold">System Engineer / Lead Hardware Engineer</h3>
           <p className="text-gray-200">Hewlett-Packard Enterprise | Fort Collins, CO | Feb 2011 - July 2021</p>
-          <ul className="mt-2 list-inside list-disc space-y-2">
+          <ExpandableSection
+            summary={
+              "I was a lead hardware engineer and system architect on Synergy and C-Class Graphics Sidecars. " +
+              "I lead a team responsible for design and qualification for these projects as well as led efforts with " +
+              "ODM/JDM partners to our define architecture, design, and layout. Prior to that work, I owned the " +
+              "PCB design, layout, and phase 2 qualification for for the FPGA and manageability hardware on SuperdomeX, " +
+              "a x86 mission-critical bladed server."
+            }
+          >
             <li>
               Responsible for system design and architecture on Graphics Workstation Blade products for Synergy and
               C-Class sidecars.
@@ -137,9 +192,9 @@ const Resume = () => {
               for critical customer escalations.
             </li>
             <li>Created a library of Bash and Python scripts for GPU hardware validation.</li>
-          </ul>
+          </ExpandableSection>
+          <Badges badges={HPE_SKILLS} />
         </div>
-        <Badges badges={HPE_SKILLS} />
       </section>
       <section ref={educationRef} className="mt-8 opacity-0">
         <h2 className="border-b pb-2 text-2xl font-semibold">Education</h2>

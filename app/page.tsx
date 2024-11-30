@@ -1,12 +1,27 @@
 "use client";
 import Resume from "@/app/components/homepage/Resume";
 import Projects from "@/app/components/homepage/Projects";
-import React from "react";
+import React, { useState } from "react";
 import Greeting from "@/app/components/homepage/Greeting";
 import useIntersectionObserver from "@/app/hooks/useIntersectionObserver";
+import ImageModal from "@/app/components/homepage/ImageModal";
 
 export default function Home() {
   const projectsRef = useIntersectionObserver();
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [imageSrc, setImageSrc] = useState<string>("");
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [imageWidth, setImageWidth] = useState<number>(800);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [imageHeight, setImageHeight] = useState<number>(600);
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleImageClick = (src: string) => {
+    setImageSrc(src);
+    setModalOpen(true);
+  };
+
   return (
     <>
       <section
@@ -26,6 +41,15 @@ export default function Home() {
       >
         <Projects />
       </section>
+      {modalOpen && imageSrc && (
+        <ImageModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          imageSrc={imageSrc}
+          imageHeight={imageHeight}
+          imageWidth={imageWidth}
+        />
+      )}
     </>
   );
 }
