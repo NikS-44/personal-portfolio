@@ -28,7 +28,7 @@ const AMAZON_PROJECTS: Project[] = [
     id: "latency",
     title: "Shopbop Latency Improvements",
     description:
-      "Reduced real and perceived latency by correcting our srcset/image optimization implementations, adding webp support, enhancing server-side rendering for editorial content, and adding tooling for content schedulers to be able to easily extract and provide height/width to scheduled content to prevent layout shifts.",
+      "Reduced real and perceived latency by correcting our srcset/image optimization implementations, adding webp support, enhancing server-side rendering, and adding workflow scripts that helped content schedulers set aspect ratios to prevent layout shifts.",
     thumbnail: latencyThumbnail,
     details: {
       image: latency,
@@ -142,7 +142,7 @@ const Resume = () => {
   const educationRef = useIntersectionObserver();
   const citizenRef = useIntersectionObserver();
   return (
-    <div className="mx-auto max-w-screen-lg px-8 text-white shadow-lg">
+    <div className="mx-auto max-w-screen-lg px-2 text-white shadow-lg sm:px-8">
       <section>
         <h2 ref={experienceRef} className="border-b pb-2 text-2xl font-semibold opacity-0">
           Experience

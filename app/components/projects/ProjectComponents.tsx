@@ -26,7 +26,7 @@ interface ProjectCardProps {
 const ProjectCard = ({ project, onSelect }: ProjectCardProps) => {
   return (
     <div
-      className={`group relative mx-2 w-80 flex-shrink-0 ${project.details ? "cursor-pointer" : "cursor-default"} overflow-hidden rounded-lg border-2 border-cyan-900/30 bg-neutral-900/50 transition-all duration-300 hover:border-cyan-700/50 hover:bg-neutral-900/80`}
+      className={`group relative mx-2 w-60 flex-shrink-0 lg:w-80 ${project.details ? "cursor-pointer" : "cursor-default"} overflow-hidden rounded-lg border-2 border-cyan-900/30 bg-neutral-900/50 transition-all duration-300 hover:border-cyan-700/50 hover:bg-neutral-900/80`}
       onClick={() => project.details && onSelect(project)}
     >
       {project.details && (
@@ -44,7 +44,9 @@ const ProjectCard = ({ project, onSelect }: ProjectCardProps) => {
         <Image src={project.thumbnail} alt={project.title} fill className="object-cover" />
       </div>
       <div className="p-6">
-        <h3 className="mb-2 text-xl font-semibold text-white group-hover:text-cyan-400">{project.title}</h3>
+        <h3 className="mb-2 text-base font-semibold text-white group-hover:text-cyan-400 lg:text-xl">
+          {project.title}
+        </h3>
         <p className="text-sm text-gray-400">{project.description}</p>
       </div>
     </div>
@@ -59,25 +61,49 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects }) =>
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const scroll = (direction: "left" | "right") => {
+  const scrollToCenter = (index: number) => {
     if (scrollContainerRef.current) {
-      const scrollAmount = 340; // Adjust based on card width + margin
-      const currentScroll = scrollContainerRef.current.scrollLeft;
-      scrollContainerRef.current.scrollTo({
-        left: direction === "left" ? currentScroll - scrollAmount : currentScroll + scrollAmount,
+      const container = scrollContainerRef.current;
+      const cards = container.children;
+
+      if (cards.length > 0) {
+        const card = cards[index] as HTMLElement;
+        const containerWidth = container.offsetWidth;
+        const cardWidth = card.offsetWidth;
+
+        // Calculate the center offset for the card
+        const cardOffsetLeft = card.offsetLeft;
+        const scrollLeft = cardOffsetLeft - (containerWidth - cardWidth) / 2;
+
+        container.scrollTo({
+          left: scrollLeft,
+          behavior: "smooth",
+        });
+      }
+    }
+  };
+
+  const handleScroll = (direction: "left" | "right") => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const cardWidth = container.children[0]?.clientWidth || 0;
+
+      const currentScroll = container.scrollLeft;
+      const scrollAmount = direction === "left" ? -cardWidth : cardWidth;
+
+      container.scrollTo({
+        left: currentScroll + scrollAmount,
         behavior: "smooth",
       });
     }
   };
 
   return (
-    <div className="relative mx-auto my-5 max-w-screen-lg px-4">
-      <div className="mb-2 text-center">
-        <h2 className="mb-3 text-xl font-bold text-white">Featured Projects</h2>
-      </div>
+    <div className="relative mx-auto my-5 max-w-screen-lg">
+      <h2 className="mb-5 text-center text-xl font-bold text-white lg:text-start">Featured Projects</h2>
       <div className="flex items-center">
         <button
-          onClick={() => scroll("left")}
+          onClick={() => handleScroll("left")}
           className="absolute left-0 z-10 rounded-full bg-cyan-900/80 p-2 text-white transition-colors hover:bg-cyan-800"
         >
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -85,14 +111,21 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects }) =>
           </svg>
         </button>
 
-        <div ref={scrollContainerRef} className="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth px-8 py-4">
-          {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} onSelect={(p) => setSelectedProject(p)} />
+        <div ref={scrollContainerRef} className="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth p-4 lg:px-8">
+          {projects.map((project, index) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onSelect={(p) => {
+                setSelectedProject(p);
+                scrollToCenter(index);
+              }}
+            />
           ))}
         </div>
 
         <button
-          onClick={() => scroll("right")}
+          onClick={() => handleScroll("right")}
           className="absolute right-0 z-10 rounded-full bg-cyan-900/80 p-2 text-white transition-colors hover:bg-cyan-800"
         >
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
