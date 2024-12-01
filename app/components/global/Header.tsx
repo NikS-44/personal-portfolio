@@ -35,7 +35,7 @@ const Header = () => {
           <HomeIcon />
         </Link>
         <DropdownMenu
-          title="About Me"
+          title="About"
           items={projects}
           isOpen={activeMenu === "projects"}
           onToggle={() => toggleMenu("projects")}
