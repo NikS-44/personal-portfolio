@@ -8,13 +8,6 @@
   --dark-teal: #0e313e;
 }
 
-/*@media (prefers-color-scheme: dark) {*/
-/*  :root {*/
-/*    --background: #0a0a0a;*/
-/*    --foreground: #ededed;*/
-/*  }*/
-/*}*/
-
 body {
   color: var(--foreground);
   background: var(--background);
@@ -99,4 +92,13 @@ dialog::backdrop {
 
 .list-disclosure-closed {
   list-style-type: disclosure-closed;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

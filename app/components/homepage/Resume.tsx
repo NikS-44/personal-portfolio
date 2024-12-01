@@ -1,6 +1,56 @@
 "use client";
 import Badges, { Badge } from "@/app/components/Badges";
 import useIntersectionObserver from "@/app/hooks/useIntersectionObserver";
+import globalNavThumbnail from "@/app/assets/global-nav-thumbnail.webp";
+import newTopNav from "@/app/assets/new-top-nav.gif";
+import latencyThumbnail from "@/app/assets/latency-thumbnail.webp";
+import latency from "@/app/assets/latency.gif";
+import accessibilityThumbnail from "@/app/assets/accessibility-thumbnail.webp";
+import { Project, ProjectCarousel } from "@/app/components/projects/ProjectComponents";
+import { useState } from "react";
+
+const AMAZON_PROJECTS: Project[] = [
+  {
+    id: "nav-modernization",
+    title: "Global Navigation Modernization Initiative",
+    description:
+      "Migrated our legacy JSP global navigation to React and improved the animations, optimized performance, fixed existing bugs, and made the menu fully responsive.",
+    thumbnail: globalNavThumbnail,
+    details: {
+      image: newTopNav,
+      title: "New React Top Navigation Menu",
+      altText: "Navigation component showcase",
+      width: 1551,
+      height: 811,
+    },
+  },
+  {
+    id: "latency",
+    title: "Shopbop Latency Improvements",
+    description:
+      "Reduced real and perceived latency by correcting our srcset/image optimization implementations, adding webp support, enhancing server-side rendering for editorial content, and adding tooling for content schedulers to be able to easily extract and provide height/width to scheduled content to prevent layout shifts.",
+    thumbnail: latencyThumbnail,
+    details: {
+      image: latency,
+      title: (
+        <div className={"flex"}>
+          <span className={"flex-1"}>Before</span>
+          <span className={"flex-1"}>After</span>
+        </div>
+      ),
+      altText: "Navigation component showcase",
+      width: 1125,
+      height: 1245,
+    },
+  },
+  {
+    id: "nav-accessibility",
+    title: "Accessibility Enhancements",
+    description:
+      "I made our top navigation, editorial components, and menu slide outs fully WCAG compliant by adding keyboard navigation and full screen reader support. Also developed and presented an internal accessibility workshop with methods and learnings from this project.",
+    thumbnail: accessibilityThumbnail,
+  },
+];
 
 const AMAZON_SKILLS: Badge[] = [
   { text: "Typescript" },
@@ -55,8 +105,6 @@ const UNIVERSITY_SKILLS: Badge[] = [
   { text: "VLSI" },
   { text: "Software Engineering" },
 ];
-
-import { useState } from "react";
 
 const ExpandableSection = ({ summary, children }: { summary: string; children: React.ReactNode }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -147,6 +195,7 @@ const Resume = () => {
               applications, APIs (Java), React Micro-Frontends, and Node.js Lambdas.
             </li>
           </ExpandableSection>
+          <ProjectCarousel projects={AMAZON_PROJECTS} />
           <Badges badges={AMAZON_SKILLS} />
         </div>
         <div ref={microfocusRef} className="mt-6 opacity-0">

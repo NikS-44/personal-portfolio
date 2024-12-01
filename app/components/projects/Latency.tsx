@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import latencyDemo from "@/app/assets/latency-demo.gif";
+import latencyDemo from "@/app/assets/latency.gif";
 
 const Latency = () => {
   return (

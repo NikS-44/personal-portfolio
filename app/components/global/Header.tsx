@@ -11,13 +11,13 @@ const Header = () => {
   const projects = [
     {
       id: 1,
-      name: "Resume",
-      href: "/#resume",
+      name: "About Me",
+      href: "/#home",
     },
     {
       id: 2,
       name: "My Work",
-      href: "/#projects",
+      href: "/#resume",
     },
   ];
 
