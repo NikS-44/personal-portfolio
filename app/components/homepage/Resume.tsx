@@ -79,7 +79,9 @@ const ExpandableSection = ({ summary, children }: { summary: string; children: R
         </svg>
       </button>
 
-      {isExpanded && <ul className="animate-fadeIn mt-4 list-inside list-disc space-y-3">{children}</ul>}
+      {isExpanded && (
+        <ul className="animate-fadeIn list-disclosure-closed ml-2 mt-4 list-inside space-y-3 sm:ml-6">{children}</ul>
+      )}
     </div>
   );
 };
@@ -108,7 +110,7 @@ const Resume = () => {
           </p>
           <ExpandableSection
             summary={
-              "I owned implementation and maintenance for projects including Top Navigation, our internal Design System, React 18 migration, Homepage Editorial Components, Search, GDPR, Legalese Pages, and Footer. " +
+              "I owned implementation and maintenance for projects including Global Navigation Accessibility Overhaul & React Migration, Design System Development/Documentation, React 18 migration, Homepage Editorial Components, Search, GDPR, Legalese Pages, and Footer. " +
               "I also drove accessibility and Core Web Vitals (web performance) initiatives and introduced improvements to partner workflows that increased delivery speed of editorial content by 30%. " +
               "I championed frontend excellence and openness across the organization through pairing/mentorship, empathetic code reviews, and workshops/presentations."
             }

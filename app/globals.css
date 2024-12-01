@@ -96,3 +96,7 @@ dialog::backdrop {
 :root:has(.no-doc-scroll) {
   overflow: hidden;
 }
+
+.list-disclosure-closed {
+  list-style-type: disclosure-closed;
+}
