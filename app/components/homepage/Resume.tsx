@@ -114,7 +114,7 @@ const ExpandableSection = ({ summary, children }: { summary: string; children: R
       <p className="mb-4 text-gray-200">{summary}</p>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center gap-2 rounded-lg bg-cyan-900/30 px-4 py-2 text-sm text-cyan-100 transition-all hover:bg-cyan-800/40"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-900/30 px-4 py-2 text-sm text-cyan-100 transition-all hover:bg-cyan-800/40 lg:w-fit lg:justify-start"
       >
         <span>Job Highlights</span>
         <svg
@@ -128,7 +128,7 @@ const ExpandableSection = ({ summary, children }: { summary: string; children: R
       </button>
 
       {isExpanded && (
-        <ul className="animate-fadeIn list-disclosure-closed ml-2 mt-4 list-inside space-y-3 sm:ml-6">{children}</ul>
+        <ul className="animate-fadeIn list-disclosure-closed ml-2 mt-4 list-inside space-y-3 lg:ml-6">{children}</ul>
       )}
     </div>
   );

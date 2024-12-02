@@ -102,3 +102,7 @@ dialog::backdrop {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.height-calc-size-auto {
+  height: calc-size(auto);
+}
