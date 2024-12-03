@@ -6,6 +6,7 @@ import newTopNav from "@/app/assets/new-top-nav.gif";
 import latencyThumbnail from "@/app/assets/latency-thumbnail.webp";
 import latency from "@/app/assets/latency.gif";
 import accessibilityThumbnail from "@/app/assets/accessibility-thumbnail.webp";
+import accessibility from "@/app/assets/shopbop-accessibility.gif";
 import { Project, ProjectCarousel } from "@/app/components/projects/ProjectComponents";
 import { useState } from "react";
 
@@ -38,7 +39,7 @@ const AMAZON_PROJECTS: Project[] = [
           <span className={"flex-1"}>After</span>
         </div>
       ),
-      altText: "Navigation component showcase",
+      altText: "Latency Improvements",
       width: 1125,
       height: 1245,
     },
@@ -49,6 +50,13 @@ const AMAZON_PROJECTS: Project[] = [
     description:
       "Made our top navigation, editorial components, search, and menu slide outs fully WCAG compliant by adding ARIA attributes, keyboard navigation, skip links, and proper focus behavior. Also, I developed and presented an internal accessibility workshop with methods and learnings from this project.",
     thumbnail: accessibilityThumbnail,
+    details: {
+      image: accessibility,
+      title: "Accessibility Demo",
+      altText: "Accessibility Demo",
+      width: 1115,
+      height: 815,
+    },
   },
 ];
 
