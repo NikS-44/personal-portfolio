@@ -14,7 +14,7 @@ const AMAZON_PROJECTS: Project[] = [
     id: "nav-modernization",
     title: "Global Navigation Modernization Initiative",
     description:
-      "Migrated our legacy JSP global navigation to React and improved the animations, optimized performance, fixed existing bugs, and made the menu fully responsive.",
+      "Migrated our legacy JSP global navigation to React while improving the animations, optimizing performance, fixing existing bugs, and making the menu fully responsive.",
     thumbnail: globalNavThumbnail,
     details: {
       image: newTopNav,
@@ -47,7 +47,7 @@ const AMAZON_PROJECTS: Project[] = [
     id: "nav-accessibility",
     title: "Accessibility Enhancements",
     description:
-      "I made our top navigation, editorial components, and menu slide outs fully WCAG compliant by adding keyboard navigation and full screen reader support. Also developed and presented an internal accessibility workshop with methods and learnings from this project.",
+      "Made our top navigation, editorial components, search, and menu slide outs fully WCAG compliant by adding ARIA attributes, keyboard navigation, skip links, and proper focus behavior. Also, I developed and presented an internal accessibility workshop with methods and learnings from this project.",
     thumbnail: accessibilityThumbnail,
   },
 ];
