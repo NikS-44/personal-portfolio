@@ -7,6 +7,8 @@ import latencyThumbnail from "@/app/assets/latency-thumbnail.webp";
 import latency from "@/app/assets/latency.gif";
 import accessibilityThumbnail from "@/app/assets/accessibility-thumbnail.webp";
 import accessibility from "@/app/assets/shopbop-accessibility.gif";
+import microfocusMccThumbnail from "@/app/assets/microfocus-mcc-thumbnail.webp";
+import microfocusMcc from "@/app/assets/microfocus-mcc.png";
 import { Project, ProjectCarousel } from "@/app/components/projects/ProjectComponents";
 import { useState } from "react";
 
@@ -56,6 +58,23 @@ const AMAZON_PROJECTS: Project[] = [
       altText: "Accessibility Demo",
       width: 1115,
       height: 815,
+    },
+  },
+];
+
+const MICROFOCUS_PROJECTS: Project[] = [
+  {
+    id: "microfocus-overview",
+    title: "Monitoring Control Center (MCC) Dashboard",
+    description:
+      "Implemented features on a new Angular SaaS dashboard that replaced a legacy desktop application for server monitoring and alerting.",
+    thumbnail: microfocusMccThumbnail,
+    details: {
+      image: microfocusMcc,
+      title: "SaaS dashboard for Server Monitoring",
+      altText: "SaaS dashboard for Server Monitoring",
+      width: 923,
+      height: 453,
     },
   },
 ];
@@ -224,6 +243,7 @@ const Resume = () => {
               Implemented translations for our whole app and become the team&apos;s SME on translation best practices.
             </li>
           </ExpandableSection>
+          <ProjectCarousel projects={MICROFOCUS_PROJECTS} />
           <Badges badges={MICROFOCUS_SKILLS} />
         </div>
         <div ref={hpeRef} className="mt-6 opacity-0">

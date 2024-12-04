@@ -101,15 +101,17 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects }) =>
   return (
     <div className="relative mx-auto my-5 max-w-screen-lg">
       <h2 className="mb-5 text-center text-xl font-bold text-white lg:text-start">Featured Projects</h2>
-      <div className="flex items-center">
-        <button
-          onClick={() => handleScroll("left")}
-          className="absolute left-0 z-10 rounded-full bg-cyan-900/80 p-2 text-white transition-colors hover:bg-cyan-800"
-        >
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
+      <div className="flex items-center justify-center lg:justify-start">
+        {projects.length > 1 && (
+          <button
+            onClick={() => handleScroll("left")}
+            className="absolute left-0 z-10 rounded-full bg-cyan-900/80 p-2 text-white transition-colors hover:bg-cyan-800"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
 
         <div ref={scrollContainerRef} className="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth p-4 lg:px-8">
           {projects.map((project, index) => (
@@ -124,14 +126,16 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects }) =>
           ))}
         </div>
 
-        <button
-          onClick={() => handleScroll("right")}
-          className="absolute right-0 z-10 rounded-full bg-cyan-900/80 p-2 text-white transition-colors hover:bg-cyan-800"
-        >
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
+        {projects.length > 1 && (
+          <button
+            onClick={() => handleScroll("right")}
+            className="absolute right-0 z-10 rounded-full bg-cyan-900/80 p-2 text-white transition-colors hover:bg-cyan-800"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
       </div>
       {selectedProject && selectedProject.details && (
         <ImageModal
