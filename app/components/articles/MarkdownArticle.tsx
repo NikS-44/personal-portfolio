@@ -29,17 +29,20 @@ const MarkdownArticle: React.FC<MarkdownArticleProps> = ({ articleId }) => {
     <div className="flex justify-center">
       <div
         ref={articleRef}
-        className="mx-10 mb-8 min-h-96 w-full max-w-screen-lg rounded-lg border border-cyan-900/30 bg-neutral-900/50 p-10 py-10 text-white opacity-0"
+        className="mx-2 mb-8 min-h-96 w-full max-w-screen-lg rounded-lg border border-cyan-900/30 bg-neutral-900/50 p-10 py-10 text-white opacity-0"
       >
         <ReactMarkdown
           components={{
             // Headings
-            h1: ({ children }) => <h1 className="mb-4 text-4xl font-bold">{children}</h1>,
-            h2: ({ children }) => <h2 className="mb-3 text-3xl font-semibold">{children}</h2>,
-            h3: ({ children }) => <h3 className="mb-2 text-2xl font-semibold">{children}</h3>,
+            h1: ({ children }) => <h1 className="my-6 text-3xl font-bold">{children}</h1>,
+            h2: ({ children }) => (
+              <h2 className="mb-3 mt-6 border-b border-current pb-1 text-2xl font-semibold">{children}</h2>
+            ),
+            h3: ({ children }) => <h3 className="mb-2 mt-4 text-xl font-semibold underline">{children}</h3>,
+            h4: ({ children }) => <h4 className="mb-2 mt-2 text-lg font-semibold">{children}</h4>,
 
             // Paragraphs
-            p: ({ children }) => <p className="mb-4 text-lg leading-relaxed">{children}</p>,
+            p: ({ children }) => <p className="mb-4 text-base leading-relaxed">{children}</p>,
 
             // Lists
             ul: ({ children }) => <ul className="mb-4 ml-6 list-disc">{children}</ul>,

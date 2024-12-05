@@ -17,8 +17,8 @@ const articles: Article[] = [
     title: "Web Accessibility: Beyond the Basics",
     description:
       "Diving deep into ARIA attributes, keyboard navigation, and creating truly inclusive web experiences. Learn how to make your websites accessible to everyone.",
-    date: "Coming Soon",
-    readTime: "8 min read",
+    date: "12/4/2024",
+    readTime: "12 min read",
     href: "/articles/accessibility",
   },
   {
