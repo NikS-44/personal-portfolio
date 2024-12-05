@@ -29,7 +29,7 @@ export default function RootLayout({
         <title>Nik Shah | Frontend Engineer</title>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} background-element flex min-h-dvh flex-col antialiased focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400`}
+        className={`${geistSans.variable} ${geistMono.variable} background-element flex min-h-dvh flex-col scroll-smooth antialiased focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400`}
       >
         <Header />
         <main className="[&>*:first-child]:pt-20">{children}</main>
