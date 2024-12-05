@@ -25,7 +25,7 @@ const MarkdownArticle: React.FC<MarkdownArticleProps> = ({ articleId }) => {
 
   return (
     <div className="flex justify-center">
-      <div className="mx-2 mb-8 min-h-96 w-full max-w-screen-lg rounded-lg border border-cyan-900/30 bg-neutral-900/50 p-10 py-10 text-white">
+      <div className="mx-3 mb-8 min-h-96 w-full max-w-screen-lg rounded-lg border border-cyan-900/30 bg-neutral-900/50 p-10 py-10 text-white">
         <ReactMarkdown
           components={{
             // Headings

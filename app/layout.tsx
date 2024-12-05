@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Nik Shah | Frontend Developer",
+  title: "Nik Shah | Frontend Engineer",
 };
 
 export default function RootLayout({
@@ -26,10 +26,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>Nik&apos;s Portfolio</title>
+        <title>Nik Shah | Frontend Engineer</title>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} background-element flex min-h-dvh flex-col scroll-smooth antialiased focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400`}
+        className={`${geistSans.variable} ${geistMono.variable} background-element flex min-h-dvh flex-col antialiased focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400`}
       >
         <Header />
         <main className="[&>*:first-child]:pt-20">{children}</main>

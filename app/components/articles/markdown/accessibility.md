@@ -12,8 +12,8 @@ also yield wins for folks without disabilities (high contrast text, tab accessib
 
 WCAG defines 3 different levels of conformance, A, AA, and AAA, with AAA being the highest-level.
 
-For most sites AA conformance is the recommended target that will hit majority of the problem areas for a given site,
-whereas, AAA is usually more challenging to achieve given the constraints.
+For most sites AA conformance is the recommended target that will hit the majority of the problem areas for a given
+site, whereas, AAA is usually more challenging to achieve given the constraints.
 
 Here is a [WCAG checklist](https://webaim.org/standards/wcag/checklist) to evaluate your features against the
 guidelines.
@@ -150,4 +150,4 @@ JAWS, NVDA, VoiceOver for Mac are all popular screen readers
   - 95% of behavior will be consistent across the popular screen readers
 - How to prioritize various screen reader platforms:
   - WebAIM does a survey that we can leverage to help us build our support matrix:
-    https://webaim.org/projects/screenreadersurvey9/
+    [https://webaim.org/projects/screenreadersurvey9/](https://webaim.org/projects/screenreadersurvey9/)
