@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
-import useIntersectionObserver from "@/app/hooks/useIntersectionObserver";
 
 interface MarkdownArticleProps {
   articleId: string;
@@ -9,7 +8,6 @@ interface MarkdownArticleProps {
 
 const MarkdownArticle: React.FC<MarkdownArticleProps> = ({ articleId }) => {
   const [content, setContent] = useState<string>("");
-  const articleRef = useIntersectionObserver();
 
   useEffect(() => {
     const loadMarkdownContent = async () => {
@@ -27,14 +25,11 @@ const MarkdownArticle: React.FC<MarkdownArticleProps> = ({ articleId }) => {
 
   return (
     <div className="flex justify-center">
-      <div
-        ref={articleRef}
-        className="mx-2 mb-8 min-h-96 w-full max-w-screen-lg rounded-lg border border-cyan-900/30 bg-neutral-900/50 p-10 py-10 text-white opacity-0"
-      >
+      <div className="mx-2 mb-8 min-h-96 w-full max-w-screen-lg rounded-lg border border-cyan-900/30 bg-neutral-900/50 p-10 py-10 text-white">
         <ReactMarkdown
           components={{
             // Headings
-            h1: ({ children }) => <h1 className="my-6 text-3xl font-bold">{children}</h1>,
+            h1: ({ children }) => <h1 className="mb-6 text-3xl font-bold">{children}</h1>,
             h2: ({ children }) => (
               <h2 className="mb-3 mt-6 border-b border-current pb-1 text-2xl font-semibold">{children}</h2>
             ),

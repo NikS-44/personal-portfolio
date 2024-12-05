@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import useIntersectionObserver from "@/app/hooks/useIntersectionObserver";
 
 interface Article {
   id: number;
@@ -32,8 +33,9 @@ const articles: Article[] = [
 ];
 
 const Articles = () => {
+  const articlesRef = useIntersectionObserver();
   return (
-    <div className="mx-auto mb-8 max-w-4xl">
+    <div ref={articlesRef} className="mx-auto mb-8 max-w-4xl opacity-0">
       <h2 className="mb-8 text-center text-3xl font-bold text-white">Latest Articles</h2>
       <div className="mx-2 grid gap-8 md:grid-cols-2">
         {articles.map((post) => (
