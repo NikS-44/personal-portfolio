@@ -12,6 +12,8 @@ import microfocusMcc from "@/app/assets/microfocus-mcc.png";
 import SY480Thumbnail from "@/app/assets/SY480-thumbnail.webp";
 import SY480 from "@/app/assets/SY480.webp";
 import BL460Thumbnail from "@/app/assets/BL460-thumbnail.webp";
+import superdomeX from "@/app/assets/superdomex.webp";
+import superdomeXThumbnail from "@/app/assets/superdomex-thumbnail.webp";
 import BL460 from "@/app/assets/BL460.webp";
 import { Project, ProjectCarousel } from "@/app/components/projects/ProjectComponents";
 import { useState } from "react";
@@ -110,6 +112,20 @@ const HPE_PROJECTS: Project[] = [
       altText: "GPU Sidecar and Expansion options",
       width: 1024,
       height: 643,
+    },
+  },
+  {
+    id: "hpe-superdomex",
+    title: "HPE SuperdomeX",
+    description:
+      "Worked on management hardware (FPGA & Microcontroller) PCB design of the first x86 version of the Superdome Mission-Critical Blade Server (after moving away from Itanium). Shipped a successful product working with a cross-functional team of pcb engineers, custom asic designers, signal integrity engineers, layout designers, and mechanical engineers.",
+    thumbnail: superdomeXThumbnail,
+    details: {
+      image: superdomeX,
+      title: "SuperdomeX is an 8 Blade Server system supporting Mission-Critical applications and in-memory databases.",
+      altText: "Superdome X",
+      width: 800,
+      height: 400,
     },
   },
 ];
