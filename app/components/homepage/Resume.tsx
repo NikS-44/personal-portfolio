@@ -9,6 +9,8 @@ import accessibilityThumbnail from "@/app/assets/accessibility-thumbnail.webp";
 import accessibility from "@/app/assets/shopbop-accessibility.gif";
 import microfocusMccThumbnail from "@/app/assets/microfocus-mcc-thumbnail.webp";
 import microfocusMcc from "@/app/assets/microfocus-mcc.png";
+import SY480Thumbnail from "@/app/assets/SY480-thumbnail.webp";
+import SY480 from "@/app/assets/SY480.webp";
 import { Project, ProjectCarousel } from "@/app/components/projects/ProjectComponents";
 import { useState } from "react";
 
@@ -75,6 +77,23 @@ const MICROFOCUS_PROJECTS: Project[] = [
       altText: "SaaS dashboard for Server Monitoring",
       width: 923,
       height: 453,
+    },
+  },
+];
+
+const HPE_PROJECTS: Project[] = [
+  {
+    id: "hpe-sy480",
+    title: "HPE Synergy 480 GPU Sidecars",
+    description:
+      "Led architecture, design, and development of PCIe sidecar motherboards developed for high density GPU deployments in bladed servers. This involved multiple PCBs with large power envelopes as well as PCIe retimers, PCIe Switches, and complex mechanical/thermal solutions.",
+    thumbnail: SY480Thumbnail,
+    details: {
+      image: SY480,
+      title: "GPU Sidecar and Expansion options that I architected, developed, tested, and released.",
+      altText: "GPU Sidecar and Expansion options",
+      width: 1024,
+      height: 991,
     },
   },
 ];
@@ -272,6 +291,7 @@ const Resume = () => {
             </li>
             <li>Created a library of Bash and Python scripts for GPU hardware validation.</li>
           </ExpandableSection>
+          <ProjectCarousel projects={HPE_PROJECTS} />
           <Badges badges={HPE_SKILLS} />
         </div>
       </section>
