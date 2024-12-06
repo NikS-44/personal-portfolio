@@ -11,6 +11,8 @@ import microfocusMccThumbnail from "@/app/assets/microfocus-mcc-thumbnail.webp";
 import microfocusMcc from "@/app/assets/microfocus-mcc.png";
 import SY480Thumbnail from "@/app/assets/SY480-thumbnail.webp";
 import SY480 from "@/app/assets/SY480.webp";
+import BL460Thumbnail from "@/app/assets/BL460-thumbnail.webp";
+import BL460 from "@/app/assets/BL460.webp";
 import { Project, ProjectCarousel } from "@/app/components/projects/ProjectComponents";
 import { useState } from "react";
 
@@ -86,7 +88,7 @@ const HPE_PROJECTS: Project[] = [
     id: "hpe-sy480",
     title: "HPE Synergy 480 GPU Sidecars",
     description:
-      "Led architecture, design, and development of PCIe sidecar motherboards developed for high density GPU deployments in bladed servers. This involved multiple PCBs with large power envelopes as well as PCIe retimers, PCIe Switches, and complex mechanical/thermal solutions.",
+      "Led architecture, design, and development of PCIe Gen4 sidecar motherboards developed for high density GPU deployments in bladed servers. This involved multiple PCBs with large power envelopes as well as PCIe retimers, PCIe Switches, and complex mechanical/thermal solutions.",
     thumbnail: SY480Thumbnail,
     details: {
       image: SY480,
@@ -94,6 +96,20 @@ const HPE_PROJECTS: Project[] = [
       altText: "GPU Sidecar and Expansion options",
       width: 1024,
       height: 991,
+    },
+  },
+  {
+    id: "hpe-bl460",
+    title: "HPE WS460c GPU Sidecars",
+    description:
+      "Inherited a PCIe Gen3 Sidecar design with ongoing signal integrity problems and customer escalations. Debugged PCIe impedance issues with flex cables and developed a remote PCIe FW updater ISO for customers to deploy. Designed and developed the next generation side cars and eliminated troublesome design aspects.",
+    thumbnail: BL460Thumbnail,
+    details: {
+      image: BL460,
+      title: "GPU Sidecar and Expansion options that I inherited, fixed, and developed next-generation PCBs for.",
+      altText: "GPU Sidecar and Expansion options",
+      width: 1024,
+      height: 643,
     },
   },
 ];
