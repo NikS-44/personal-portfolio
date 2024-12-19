@@ -25,9 +25,9 @@ const Greeting = () => {
 
       <p ref={blurb1Ref} className="mt-2 opacity-0">
         I&#39;m a front-end developer and hardware engineer with a passion for all things tech! I love the challenge of
-        solving complex problems and enjoy understanding the low level details of how the web actually works. My goal is
-        to lead teams in building scalable, reliable, and performant websites. I also have a strong passion for web
-        accessibility, and believe it is paramount to build inclusive and usable websites for all.
+        solving complex problems and enjoy understanding the low level details of how the technology actually works. My
+        goal is to lead teams in building scalable, reliable, and performant systems. I also have a strong passion for
+        accessibility, and believe it is paramount to build inclusive and usable technology for all.
       </p>
       <p ref={blurb2Ref} className={"opacity-0"}>
         In my free time, you can find me rock climbing, hanging with my chihuahuas, proselytizing about bidets, or

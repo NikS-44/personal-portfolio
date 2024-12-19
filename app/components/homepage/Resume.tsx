@@ -72,14 +72,14 @@ const AMAZON_PROJECTS: Project[] = [
     id: "react-18",
     title: "React 18 Upgrade",
     description:
-      "Designed strategy and executed a React 16 -> React 18 upgrade across all of our Micro-frontend repos (~40) with no down time. Migrated some enzyme tests to React Testing Library while introducing testing shims for enzyme tests that could not be migrated. Updated dependencies and repo-local development environments.",
+      "Designed strategy and executed a React 16 -> React 18 upgrade across all of our Micro-frontend repos (~40) with no down time. Migrated some enzyme tests to React Testing Library while introducing testing shims for enzyme tests that could not be migrated within our timeline. Updated dependencies and repo-local development environments.",
     thumbnail: reactLogo,
   },
   {
     id: "translation",
     title: "Automated Translations And Legalese",
     description:
-      "Designed and executed project that moved Shopbop away from manually translating content that cost us $96K a year. Moved our translations to internal machine translations and moved critical Legalese content out of our CMS and onboarded it into Amazon's Legal document service. This allowed us to standardize styling and layout across these pages, thus removing developer effort to style these pages.",
+      "Designed and executed a project that moved Shopbop away from manually translating content that cost us $96K a year. Moved our translations to internal machine translations and moved critical Legalese content out of our CMS and onboarded it into Amazon's Legal document service. This allowed us to standardize styling and layout across these pages, thus removing developer effort to style these pages.",
     thumbnail: privacyNotice,
   },
 ];
