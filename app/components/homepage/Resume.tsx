@@ -314,7 +314,9 @@ const Resume = () => {
           <Badges badges={MICROFOCUS_SKILLS} />
         </div>
         <div ref={hpeRef} className="mt-6 opacity-0">
-          <h3 className="text-xl font-semibold">System Engineer / Lead Hardware Engineer</h3>
+          <h3 className="text-xl font-semibold" id="hpe">
+            System Engineer / Lead Hardware Engineer
+          </h3>
           <p className="text-gray-200">Hewlett-Packard Enterprise | Fort Collins, CO | Feb 2011 - July 2021</p>
           <ExpandableSection
             summary={
