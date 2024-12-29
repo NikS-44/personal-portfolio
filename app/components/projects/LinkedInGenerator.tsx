@@ -248,7 +248,7 @@ export default function LinkedInGenerator() {
           </label>
         </div>
         <div className="mt-6">
-          <h3 className="mb-2 text-sm font-semibold text-gray-300">Keywords (OR)</h3>
+          <h3 className="mb-2 text-sm font-semibold text-gray-300">Keywords (AND)</h3>
           {keywords.map((value, idx) => (
             <div key={`keyword-${idx}`} className="mb-2 flex items-center">
               <input
