@@ -29,7 +29,7 @@ const Header = () => {
     },
     {
       id: 2,
-      name: "Linkedin Helper",
+      name: "LinkedIn Search Tool",
       href: "/projects/linkedin",
     },
   ];
@@ -54,10 +54,10 @@ const Header = () => {
           onToggle={() => toggleMenu("projects")}
         />
         <DropdownMenu
-          title="Creations"
+          title="Playground"
           items={creations}
-          isOpen={activeMenu === "creations"}
-          onToggle={() => toggleMenu("creations")}
+          isOpen={activeMenu === "playground"}
+          onToggle={() => toggleMenu("playground")}
         />
         <a
           className="mr-2 flex items-center gap-2 border-gray-300 transition-colors duration-300 hover:text-cyan-400"
