@@ -166,10 +166,26 @@ export default function LinkedInGenerator() {
   return (
     <div>
       <div className="mx-4 max-w-screen-lg rounded-lg bg-gray-900 px-4 py-6 shadow-lg sm:px-8 lg:mx-auto">
-        <h2 className="border-b border-gray-700 pb-2 text-2xl font-semibold text-white">
+        <h2 className="flex flex-row gap-20 border-b border-gray-700 pb-2 text-2xl font-semibold text-white">
           <div className="inline-flex items-center gap-2">
             <LinkedInIcon />
             LinkedIn Search Link Generator
+          </div>
+          <div className="my-4 flex justify-center">
+            {finalURL && (
+              <a
+                href={finalURL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center rounded-lg px-5 py-1 font-semibold text-white shadow-lg transition ${
+                  finalURL ? "bg-cyan-600 hover:bg-cyan-700" : "cursor-not-allowed bg-gray-500"
+                }`}
+                style={{ fontSize: "1.125rem" }} // Optional: Make the button text slightly larger.
+              >
+                Open LinkedIn Search Results
+                <span className="ml-2">→</span>
+              </a>
+            )}
           </div>
         </h2>
         <div className="mt-6">
