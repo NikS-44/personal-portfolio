@@ -25,9 +25,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="min-h-dvh scroll-smooth">
-      <head>
-        <title>Nik Shah | Engineer</title>
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} background-element flex flex-col antialiased focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400`}
       >
