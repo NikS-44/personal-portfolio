@@ -8,7 +8,7 @@ import GitHubIcon from "@/app/components/icons/GithubIcon";
 const Header = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  const projects = [
+  const personal = [
     {
       id: 1,
       name: "About Me",
@@ -18,6 +18,19 @@ const Header = () => {
       id: 2,
       name: "My Work",
       href: "/#resume",
+    },
+  ];
+
+  const creations = [
+    {
+      id: 1,
+      name: "Articles",
+      href: "/articles",
+    },
+    {
+      id: 2,
+      name: "Linkedin Helper",
+      href: "/projects/linkedin",
     },
   ];
 
@@ -36,16 +49,16 @@ const Header = () => {
         </Link>
         <DropdownMenu
           title="About"
-          items={projects}
+          items={personal}
           isOpen={activeMenu === "projects"}
           onToggle={() => toggleMenu("projects")}
         />
-        <Link
-          href="/articles"
-          className="mr-2 flex items-center gap-2 border-gray-300 transition-colors duration-300 hover:text-cyan-400"
-        >
-          Articles
-        </Link>
+        <DropdownMenu
+          title="Creations"
+          items={creations}
+          isOpen={activeMenu === "creations"}
+          onToggle={() => toggleMenu("creations")}
+        />
         <a
           className="mr-2 flex items-center gap-2 border-gray-300 transition-colors duration-300 hover:text-cyan-400"
           href="https://github.com/NikS-44/"
