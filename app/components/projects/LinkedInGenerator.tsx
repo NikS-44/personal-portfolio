@@ -137,7 +137,13 @@ export default function LinkedInGenerator() {
       return;
     }
     const validKeywords = keywords.map((k) => k.trim()).filter(Boolean);
-    const validExclusions = exclusions.map((e) => e.trim()).filter(Boolean);
+
+    // Wrap exclusions in quotes, since LinkedIn doesn't handle multi-word companies without quotes
+    const validExclusions = exclusions
+      .map((e) => e.trim())
+      .filter(Boolean)
+      .map((e) => `"${e}"`); // wrap in quotes
+
     let keywordString = "";
     if (validKeywords.length > 0) {
       keywordString = validKeywords.join(" AND ");
