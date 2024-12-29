@@ -6,6 +6,7 @@ import LinkedInIcon from "@/app/components/icons/LinkedInIcon";
 export default function LinkedInGenerator() {
   const [inputURL, setInputURL] = useState("");
   const [selectedTime, setSelectedTime] = useState("3600");
+  const [selectedSalary, setSelectedSalary] = useState("1");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [exclusions, setExclusions] = useState<string[]>([]);
   const [finalURL, setFinalURL] = useState("");
@@ -16,6 +17,7 @@ export default function LinkedInGenerator() {
       loadedRef.current = true;
       const savedURL = localStorage.getItem("lg_inputURL");
       const savedTime = localStorage.getItem("lg_selectedTime");
+      const savedSalary = localStorage.getItem("lg_selectedSalary");
       const savedKeywords = localStorage.getItem("lg_keywords");
       const savedExclusions = localStorage.getItem("lg_exclusions");
 
@@ -26,6 +28,8 @@ export default function LinkedInGenerator() {
       }
 
       if (savedTime) setSelectedTime(savedTime);
+
+      if (savedSalary) setSelectedSalary(savedSalary);
 
       if (savedKeywords) {
         const parsed = JSON.parse(savedKeywords);
@@ -46,13 +50,14 @@ export default function LinkedInGenerator() {
   useEffect(() => {
     localStorage.setItem("lg_inputURL", inputURL);
     localStorage.setItem("lg_selectedTime", selectedTime);
+    localStorage.setItem("lg_selectedSalary", selectedSalary);
     localStorage.setItem("lg_keywords", JSON.stringify(keywords));
     localStorage.setItem("lg_exclusions", JSON.stringify(exclusions));
-  }, [inputURL, selectedTime, keywords, exclusions]);
+  }, [inputURL, selectedTime, selectedSalary, keywords, exclusions]);
 
   useEffect(() => {
     generateLink();
-  }, [inputURL, selectedTime, keywords, exclusions]);
+  }, [inputURL, selectedTime, keywords, exclusions, selectedSalary]);
 
   const handleURLChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputURL(e.target.value);
@@ -60,6 +65,10 @@ export default function LinkedInGenerator() {
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedTime(e.target.value);
+  };
+
+  const handleSalaryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedSalary(e.target.value);
   };
 
   const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
@@ -160,6 +169,7 @@ export default function LinkedInGenerator() {
       parsedURL.searchParams.delete("keywords");
     }
     parsedURL.searchParams.set("f_TPR", "r" + selectedTime);
+    parsedURL.searchParams.set("f_SB2", selectedSalary);
     setFinalURL(parsedURL.toString());
   };
 
@@ -202,26 +212,43 @@ export default function LinkedInGenerator() {
           />
         </div>
         <div className="mt-4">
-          <label htmlFor="timeSelect" className="mb-1 block text-sm font-semibold text-gray-300">
+          <label className="mb-4 block text-sm font-semibold text-gray-300">
             Job Posted In The Last:
+            <select
+              value={selectedTime}
+              onChange={handleTimeChange}
+              className="ml-2 rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-600"
+            >
+              <option value="3600">1 Hour</option>
+              <option value="14400">4 Hours</option>
+              <option value="43200">12 Hours</option>
+              <option value="86400">24 Hours</option>
+              <option value="259200">3 Days</option>
+              <option value="432000">5 Days</option>
+              <option value="604800">1 Week</option>
+            </select>
           </label>
-          <select
-            id="timeSelect"
-            value={selectedTime}
-            onChange={handleTimeChange}
-            className="rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-600"
-          >
-            <option value="3600">1 Hour</option>
-            <option value="14400">4 Hours</option>
-            <option value="43200">12 Hours</option>
-            <option value="86400">24 Hours</option>
-            <option value="259200">3 Days</option>
-            <option value="432000">5 Days</option>
-            <option value="604800">1 Week</option>
-          </select>
+          <label className="mb-4 block text-sm font-semibold text-gray-300">
+            Minimum Salary:
+            <select
+              value={selectedSalary}
+              onChange={handleSalaryChange}
+              className="ml-2 rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-600"
+            >
+              <option value="1">$40,000</option>
+              <option value="2">$60,000</option>
+              <option value="3">$80,000</option>
+              <option value="4">$100,000</option>
+              <option value="5">$120,000</option>
+              <option value="6">$140,000</option>
+              <option value="7">$160,000</option>
+              <option value="8">$180,000</option>
+              <option value="9">$200,000</option>
+            </select>
+          </label>
         </div>
         <div className="mt-6">
-          <h3 className="mb-2 text-sm font-semibold text-gray-300">Keywords (AND)</h3>
+          <h3 className="mb-2 text-sm font-semibold text-gray-300">Keywords (OR)</h3>
           {keywords.map((value, idx) => (
             <div key={`keyword-${idx}`} className="mb-2 flex items-center">
               <input
