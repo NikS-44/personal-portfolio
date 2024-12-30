@@ -179,7 +179,9 @@ export default function LinkedInGenerator() {
         <h2 className="flex flex-row gap-5 border-b border-gray-700 pb-2 text-lg font-semibold text-white md:gap-20 md:text-2xl">
           <div className="inline-flex items-center gap-2">
             <LinkedInIcon />
-            LinkedIn Search Helper
+            LinkedIn&nbsp;
+            <span className="hidden md:inline">Search</span>
+            Helper
           </div>
           <div className="my-4 flex justify-center">
             {finalURL && (
@@ -187,13 +189,14 @@ export default function LinkedInGenerator() {
                 href={finalURL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-flex items-center rounded-lg px-5 py-1 text-sm font-semibold text-white shadow-lg transition md:text-lg ${
+                className={`inline-flex items-center rounded-lg px-2 py-1 text-sm font-semibold text-white shadow-lg transition md:px-5 md:text-lg ${
                   finalURL ? "bg-cyan-600 hover:bg-cyan-700" : "cursor-not-allowed bg-gray-500"
                 }`}
                 style={{ fontSize: "1.125rem" }} // Optional: Make the button text slightly larger.
               >
                 Go To LinkedIn
-                <span className="ml-2">→</span>
+                <span className="hidden md:inline">&nbsp;Search</span>
+                <span className="relative bottom-0.5 ml-2">→</span>
               </a>
             )}
           </div>
