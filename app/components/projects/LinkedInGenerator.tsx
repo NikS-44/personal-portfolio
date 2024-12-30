@@ -179,9 +179,9 @@ export default function LinkedInGenerator() {
         <h2 className="flex flex-row gap-5 border-b border-gray-700 pb-2 text-lg font-semibold text-white md:gap-20 md:text-2xl">
           <div className="inline-flex items-center gap-2">
             <LinkedInIcon />
-            LinkedIn&nbsp;
+            <span>LinkedIn</span>
             <span className="hidden md:inline">Search</span>
-            Helper
+            <span>Helper</span>
           </div>
           <div className="my-4 flex justify-center">
             {finalURL && (
