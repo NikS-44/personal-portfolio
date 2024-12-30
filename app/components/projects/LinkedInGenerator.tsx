@@ -179,7 +179,7 @@ export default function LinkedInGenerator() {
         <h2 className="flex flex-row gap-5 border-b border-gray-700 pb-2 text-lg font-semibold text-white md:gap-20 md:text-2xl">
           <div className="inline-flex items-center gap-2">
             <LinkedInIcon />
-            LinkedIn Search Link Generator
+            LinkedIn Search Helper
           </div>
           <div className="my-4 flex justify-center">
             {finalURL && (
@@ -192,7 +192,7 @@ export default function LinkedInGenerator() {
                 }`}
                 style={{ fontSize: "1.125rem" }} // Optional: Make the button text slightly larger.
               >
-                Open LinkedIn Search Results
+                Go To LinkedIn
                 <span className="ml-2">→</span>
               </a>
             )}
