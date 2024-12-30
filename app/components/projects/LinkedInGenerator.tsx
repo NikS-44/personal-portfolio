@@ -5,8 +5,8 @@ import LinkedInIcon from "@/app/components/icons/LinkedInIcon";
 
 export default function LinkedInGenerator() {
   const [inputURL, setInputURL] = useState("");
-  const [selectedTime, setSelectedTime] = useState("3600");
-  const [selectedSalary, setSelectedSalary] = useState("1");
+  const [selectedTime, setSelectedTime] = useState("14400");
+  const [selectedSalary, setSelectedSalary] = useState("0");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [exclusions, setExclusions] = useState<string[]>([]);
   const [finalURL, setFinalURL] = useState("");
@@ -235,6 +235,7 @@ export default function LinkedInGenerator() {
               onChange={handleSalaryChange}
               className="ml-2 rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-600"
             >
+              <option value="0">None</option>
               <option value="1">$40,000</option>
               <option value="2">$60,000</option>
               <option value="3">$80,000</option>
