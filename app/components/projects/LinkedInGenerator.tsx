@@ -169,7 +169,11 @@ export default function LinkedInGenerator() {
       parsedURL.searchParams.delete("keywords");
     }
     parsedURL.searchParams.set("f_TPR", "r" + selectedTime);
-    parsedURL.searchParams.set("f_SB2", selectedSalary);
+
+    if (selectedSalary !== "0") {
+      parsedURL.searchParams.set("f_SB2", selectedSalary);
+    }
+
     setFinalURL(parsedURL.toString());
   };
 
