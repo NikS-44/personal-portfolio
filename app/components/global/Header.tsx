@@ -32,6 +32,11 @@ const Header = () => {
       name: "LinkedIn Search Tool",
       href: "/projects/linkedin",
     },
+    {
+      id: 3,
+      name: "Cover Letter Generator",
+      href: "/projects/cover-letter",
+    },
   ];
 
   const toggleMenu = (menuName: string) => {

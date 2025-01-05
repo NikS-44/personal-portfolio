@@ -55,7 +55,7 @@ const ImageModal: React.FC<ImageModalProps> = ({
       className="fixed m-auto max-h-[90vh] w-fit max-w-[calc(100vw-2.5rem)] rounded-xl border-none bg-transparent p-0 outline-none backdrop:bg-black/90 backdrop:backdrop-blur-sm"
     >
       <div
-        className="animate-fadeIn relative transform cursor-default rounded-xl bg-gradient-to-b from-cyan-950 to-cyan-900 p-10 shadow-2xl ring-1 ring-white/10 transition-all"
+        className="animate-fadeIn relative flex transform cursor-default flex-col items-center rounded-xl bg-gradient-to-b from-cyan-950 to-cyan-900 p-10 shadow-2xl ring-1 ring-white/10 transition-all"
         onClick={(e) => e.stopPropagation()}
       >
         <button

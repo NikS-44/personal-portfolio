@@ -17,7 +17,7 @@ import BL460Thumbnail from "@/app/assets/BL460-thumbnail.webp";
 import superdomeX from "@/app/assets/superdomex.webp";
 import superdomeXThumbnail from "@/app/assets/superdomex-thumbnail.webp";
 import BL460 from "@/app/assets/BL460.webp";
-import { Project, ProjectCarousel } from "@/app/components/projects/ProjectComponents";
+import { Project, ProjectCarousel } from "@/app/components/homepage/ProjectComponents";
 import { useState } from "react";
 
 const AMAZON_PROJECTS: Project[] = [

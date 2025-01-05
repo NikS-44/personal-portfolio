@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import LinkedInIcon from "@/app/components/icons/LinkedInIcon";
 
-export default function LinkedInGenerator() {
+export default function LinkedInHelper() {
   const [inputURL, setInputURL] = useState("");
   const [selectedTime, setSelectedTime] = useState("14400");
   const [selectedSalary, setSelectedSalary] = useState("0");
