@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useRef, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import { inputStyles } from "@/app/components/projects/Input";

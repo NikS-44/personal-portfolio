@@ -3,10 +3,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import Input from "@/app/components/projects/Input";
 import TextArea from "@/app/components/projects/TextArea";
-import { faArrowsSpin, faDownload } from "@fortawesome/free-solid-svg-icons";
+import { faArrowsSpin } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import CoverLetterPDF from "@/app/components/projects/CoverLetterPDF";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import PDFDownloader from "@/app/components/projects/PDFDownloader";
 
 const CoverLetterGenerator = () => {
   const [name, setName] = useState("");
@@ -114,23 +113,14 @@ const CoverLetterGenerator = () => {
             )}
           </div>
           <div className="my-1 flex justify-center md:my-4">
-            <PDFDownloadLink
-              document={
-                <CoverLetterPDF
-                  name={name}
-                  email={email}
-                  greeting={greeting}
-                  coverLetter={coverLetter}
-                  signOff={signOff}
-                />
-              }
-              fileName={`${name.replace(/\s/g, "_") + "_"}Cover_Letter_${company.replace(/\s/g, "_")}.pdf`}
-            >
-              <button className="inline-flex items-center rounded-lg bg-cyan-600 px-2 py-1 text-lg font-semibold text-white shadow-lg transition hover:bg-cyan-700 md:px-5">
-                <span>Download PDF</span>
-                <FontAwesomeIcon icon={faDownload} className="ml-2 h-4 w-4" />
-              </button>
-            </PDFDownloadLink>
+            <PDFDownloader
+              name={name}
+              email={email}
+              greeting={greeting}
+              coverLetter={coverLetter}
+              signOff={signOff}
+              company={company}
+            />
           </div>
         </h2>
         <Input label={"Name"} value={name} onChange={(e) => setName(e.target.value)} placeHolder={"e.g. Nik Shah"} />

@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  transpilePackages: ["@react-pdf/renderer"],
+  experimental: {
+    esmExternals: "loose",
+  },
   webpack: (config) => {
     config.module.rules.push({
       test: /\.md$/,

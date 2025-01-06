@@ -1,9 +1,6 @@
-import { Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/renderer";
+"use client";
 
-// Font.register({
-//   family: "Open Sans",
-//   src: "https://fonts.gstatic.com/s/opensans/v17/..."
-// });
+import { Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/renderer";
 
 Font.registerHyphenationCallback((word) => [word]);
 
