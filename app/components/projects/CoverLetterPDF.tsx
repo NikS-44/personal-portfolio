@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 12,
-    marginBottom: 10,
+    marginBottom: 20,
   },
   paragraph: {
     marginBottom: 14,
