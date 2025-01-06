@@ -70,7 +70,7 @@ const CoverLetterGenerator = () => {
         setEmail(savedEmail);
       }
       if (savedPhoneNumber) {
-        setName(savedPhoneNumber);
+        setPhoneNumber(savedPhoneNumber);
       }
       if (savedResume) {
         setResume(savedResume);
@@ -95,7 +95,7 @@ const CoverLetterGenerator = () => {
     localStorage.setItem("cl_greeting", greeting);
     localStorage.setItem("cl_signOff", signOff);
     localStorage.setItem("cl_jobSpecificEmphasis", jobSpecificEmphasis);
-  }, [resume, name, email, greeting, signOff, jobSpecificEmphasis]);
+  }, [resume, name, email, greeting, signOff, jobSpecificEmphasis, phoneNumber]);
 
   const Buttons = () => {
     return (
