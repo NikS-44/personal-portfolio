@@ -32,7 +32,7 @@ const TextArea = ({
 
   return (
     <div className="mt-6">
-      <label className="mb-1 block text-sm font-semibold text-gray-300">
+      <label className="mb-1 block text-base font-semibold text-gray-300">
         {label}:
         <textarea
           ref={textareaRef}

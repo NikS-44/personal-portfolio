@@ -7,12 +7,13 @@ Font.registerHyphenationCallback((word) => [word]);
 type CoverLetterProps = {
   name: string;
   email: string;
+  phoneNumber: string;
   coverLetter: string;
   greeting: string;
   signOff: string;
 };
 
-const CoverLetterPDF = ({ name, email, coverLetter, greeting, signOff }: CoverLetterProps) => {
+const CoverLetterPDF = ({ name, email, phoneNumber, coverLetter, greeting, signOff }: CoverLetterProps) => {
   return (
     <Document>
       <Page style={styles.page}>
@@ -20,6 +21,7 @@ const CoverLetterPDF = ({ name, email, coverLetter, greeting, signOff }: CoverLe
           <View style={styles.headerDetails}>
             <Text style={styles.title}>{name}</Text>
             <Text style={styles.subTitle}>{email}</Text>
+            <Text style={styles.subTitle}>{phoneNumber}</Text>
           </View>
           <View style={styles.headerLine} />
         </View>

@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 type PDFDownloaderProps = {
   name: string;
   email: string;
+  phoneNumber: string;
   greeting: string;
   coverLetter: string;
   signOff: string;

@@ -13,7 +13,7 @@ export const inputStyles =
 const Input = ({ label, value, onChange, placeHolder = "" }: InputProps) => {
   return (
     <div className="mt-6">
-      <label className="mb-1 block text-sm font-semibold text-gray-300">
+      <label className="mb-1 block text-base font-semibold text-gray-300">
         {label}:
         <input type="text" placeholder={placeHolder} value={value} onChange={onChange} className={inputStyles} />
       </label>

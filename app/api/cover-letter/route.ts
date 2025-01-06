@@ -33,6 +33,7 @@ export async function POST(request: Request) {
         - Avoid long, wordy sentences. Keep paragraphs concise and focused.
         - Show, don't just tell. Demonstrate my strengths with a brief example rather than listing them plainly.
         - Make it sound genuine and human, without being too formulaic.
+        - Only put 1 new line between paragraphs.
     `;
 
     const result = await model.generateContent(prompt);
