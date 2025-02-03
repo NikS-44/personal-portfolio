@@ -24,56 +24,103 @@ const MarkdownArticle: React.FC<MarkdownArticleProps> = ({ articleId }) => {
   }, [articleId]);
 
   return (
-    <div className="flex justify-center">
-      <div className="mx-3 mb-8 min-h-96 w-full max-w-screen-xl rounded-lg border border-cyan-900/30 bg-neutral-900/50 p-10 text-white xl:px-40">
-        <ReactMarkdown
-          components={{
-            // Headings
-            h1: ({ children }) => <h1 className="my-4 mb-10 text-4xl font-bold">{children}</h1>,
-            h2: ({ children }) => (
-              <h2 className="my-8 border-b border-current pb-1 text-3xl font-semibold">{children}</h2>
-            ),
-            h3: ({ children }) => <h3 className="my-6 text-xl font-semibold underline">{children}</h3>,
-            h4: ({ children }) => <h4 className="my-4 text-lg font-semibold">{children}</h4>,
+    <div className="min-h-screen bg-gradient-to-b from-[#001a2c] to-[#001824] py-16">
+      <article className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="rounded-2xl border border-cyan-900/20 bg-[#0a1929] p-6 shadow-2xl md:p-10">
+          <header className="mb-16 text-center">
+            <h1 className="mb-4 text-4xl font-bold tracking-tight text-cyan-400 md:text-5xl">
+              {content.split("\n")[0]}
+            </h1>
+            <div className="flex items-center justify-center space-x-4 text-sm text-neutral-400">
+              <div>By Nik Shah</div>
+            </div>
+          </header>
+          <div className="prose prose-lg prose-invert max-w-none">
+            <ReactMarkdown
+              components={{
+                // Headings
+                h1: ({}) => null,
+                h2: ({ children }) => (
+                  <h2 className="mb-6 mt-16 text-2xl font-semibold text-white md:text-3xl">{children}</h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="mb-4 mt-12 text-xl font-semibold text-white/90 md:text-2xl">{children}</h3>
+                ),
+                h4: ({ children }) => (
+                  <h4 className="mb-4 mt-8 text-lg font-semibold text-white/90 md:text-xl">{children}</h4>
+                ),
 
-            // Paragraphs
-            p: ({ children }) => <p className="mb-8 text-lg leading-relaxed">{children}</p>,
+                // Paragraphs
+                p: ({ children }) => <p className="mb-6 text-lg leading-relaxed text-neutral-300">{children}</p>,
 
-            // Lists
-            ul: ({ children }) => <ul className="mb-4 ml-6 list-disc">{children}</ul>,
-            ol: ({ children }) => <ol className="mb-4 ml-6 list-decimal">{children}</ol>,
-            li: ({ children }) => <li className="mb-4">{children}</li>,
+                // Lists
+                ul: ({ children }) => <ul className="mb-8 ml-6 list-disc space-y-3">{children}</ul>,
+                ol: ({ children }) => <ol className="mb-8 ml-6 list-decimal space-y-3">{children}</ol>,
+                li: ({ children }) => <li className="text-lg text-neutral-300">{children}</li>,
 
-            // Links
-            a: ({ href, children }) => (
-              <a href={href} className="text-cyan-400 underline hover:text-cyan-300">
-                {children}
-              </a>
-            ),
+                // Code blocks
+                code: ({ className, children }) => {
+                  const match = /language-(\w+)/.exec(className || "");
+                  const isInline = !match;
 
-            // Blockquotes
-            blockquote: ({ children }) => (
-              <blockquote className="border-l-4 border-cyan-500 pl-4 italic">{children}</blockquote>
-            ),
+                  if (isInline) {
+                    return (
+                      <code className="rounded-md bg-[#001824] px-2 py-0.5 text-[0.9em] text-cyan-400">{children}</code>
+                    );
+                  }
 
-            // Tables
-            table: ({ children }) => (
-              <table className="mb-4 w-full border-collapse border border-gray-600">{children}</table>
-            ),
-            th: ({ children }) => <th className="border border-gray-600 bg-gray-800 p-2 text-left">{children}</th>,
-            td: ({ children }) => <td className="border border-gray-600 p-2">{children}</td>,
+                  return (
+                    <pre className="my-8 overflow-x-auto rounded-xl border border-cyan-900/20 bg-[#001824] p-6">
+                      <code className={`text-cyan-400 ${className} text-[0.9em]`}>{children}</code>
+                    </pre>
+                  );
+                },
 
-            // Horizontal Rule
-            hr: () => <hr className="my-4 border-gray-600" />,
+                // Blockquotes
+                blockquote: ({ children }) => (
+                  <blockquote className="my-8 rounded-r-xl border-l-4 border-cyan-500 bg-[#001824] py-6 pl-6 pr-6 text-xl italic text-neutral-300">
+                    {children}
+                  </blockquote>
+                ),
 
-            // Strong and Emphasis
-            strong: ({ children }) => <strong className="font-bold">{children}</strong>,
-            em: ({ children }) => <em className="italic">{children}</em>,
-          }}
-        >
-          {content}
-        </ReactMarkdown>
-      </div>
+                // Links
+                a: ({ href, children }) => (
+                  <a
+                    href={href}
+                    className="text-cyan-400 underline decoration-cyan-400/30 transition-all hover:decoration-cyan-400"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {children}
+                  </a>
+                ),
+
+                // Tables
+                table: ({ children }) => (
+                  <div className="my-8 overflow-x-auto">
+                    <table className="w-full border-collapse border border-cyan-900/20">{children}</table>
+                  </div>
+                ),
+                th: ({ children }) => (
+                  <th className="border border-cyan-900/20 bg-[#001824] p-4 text-left font-semibold text-white">
+                    {children}
+                  </th>
+                ),
+                td: ({ children }) => <td className="border border-cyan-900/20 p-4 text-neutral-300">{children}</td>,
+
+                // Horizontal Rule
+                hr: () => <hr className="my-12 border-cyan-900/20" />,
+
+                // Strong and Emphasis
+                strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+                em: ({ children }) => <em className="italic text-neutral-200">{children}</em>,
+              }}
+            >
+              {content.split("\n").slice(1).join("\n")}
+            </ReactMarkdown>
+          </div>
+        </div>
+      </article>
     </div>
   );
 };
