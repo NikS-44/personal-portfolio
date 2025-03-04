@@ -10,6 +10,7 @@ export default function LinkedInHelper() {
   const [keywords, setKeywords] = useState<string[]>([]);
   const [exclusions, setExclusions] = useState<string[]>([]);
   const [finalURL, setFinalURL] = useState("");
+  const [under10Applications, setUnder10Applications] = useState(false);
   const loadedRef = useRef(false);
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export default function LinkedInHelper() {
       const savedSalary = localStorage.getItem("lg_selectedSalary");
       const savedKeywords = localStorage.getItem("lg_keywords");
       const savedExclusions = localStorage.getItem("lg_exclusions");
+      const savedUnder10Applications = localStorage.getItem("lg_under10Applications");
 
       if (savedURL) {
         setInputURL(savedURL);
@@ -44,6 +46,10 @@ export default function LinkedInHelper() {
       } else {
         setExclusions([""]);
       }
+
+      if (savedUnder10Applications) {
+        setUnder10Applications(savedUnder10Applications === "true");
+      }
     }
   }, []);
 
@@ -53,11 +59,12 @@ export default function LinkedInHelper() {
     localStorage.setItem("lg_selectedSalary", selectedSalary);
     localStorage.setItem("lg_keywords", JSON.stringify(keywords));
     localStorage.setItem("lg_exclusions", JSON.stringify(exclusions));
-  }, [inputURL, selectedTime, selectedSalary, keywords, exclusions]);
+    localStorage.setItem("lg_under10Applications", under10Applications.toString());
+  }, [inputURL, selectedTime, selectedSalary, keywords, exclusions, under10Applications]);
 
   useEffect(() => {
     generateLink();
-  }, [inputURL, selectedTime, keywords, exclusions, selectedSalary]);
+  }, [inputURL, selectedTime, keywords, exclusions, selectedSalary, under10Applications]);
 
   const handleURLChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputURL(e.target.value);
@@ -174,6 +181,10 @@ export default function LinkedInHelper() {
       parsedURL.searchParams.set("f_SB2", selectedSalary);
     }
 
+    if (under10Applications) {
+      parsedURL.searchParams.set("f_EA", "true");
+    }
+
     setFinalURL(parsedURL.toString());
   };
 
@@ -226,6 +237,7 @@ export default function LinkedInHelper() {
               onChange={handleTimeChange}
               className="ml-2 rounded-lg border border-gray-700 bg-gray-800 p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-600"
             >
+              <option value="600">10 Minutes</option>
               <option value="3600">1 Hour</option>
               <option value="14400">4 Hours</option>
               <option value="43200">12 Hours</option>
@@ -253,6 +265,17 @@ export default function LinkedInHelper() {
               <option value="8">$180,000</option>
               <option value="9">$200,000</option>
             </select>
+          </label>
+        </div>
+        <div className="mt-4">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={under10Applications}
+              onChange={(e) => setUnder10Applications(e.target.checked)}
+              className="mr-2 rounded border-gray-700 bg-gray-800 text-cyan-600 focus:ring-cyan-600"
+            />
+            <span className="text-sm font-semibold text-gray-300">Under 10 applications</span>
           </label>
         </div>
         <div className="mt-6">
