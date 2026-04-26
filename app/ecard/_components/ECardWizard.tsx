@@ -1,0 +1,126 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import type { CardCategoryId, CardState } from "../_data/types";
+import { CATEGORIES } from "../_data/categories";
+import { templatesByCategory } from "../_data/templates/index";
+import { WizardStepper } from "./WizardStepper";
+import { StepCategory } from "./StepCategory";
+import { StepTemplate } from "./StepTemplate";
+import { StepPersonalize } from "./StepPersonalize";
+import { StepReview } from "./StepReview";
+
+type WizardStep = "category" | "template" | "personalize" | "review";
+
+const DRAFT_KEY = "ecard:draft:v1";
+const INITIAL_EMOJI = "✨";
+
+export function ECardWizard() {
+  const [step, setStep] = useState<WizardStep>("category");
+  const [cardState, setCardState] = useState<Partial<CardState>>({ v: 1, e: INITIAL_EMOJI });
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as Partial<CardState>;
+        if (parsed && typeof parsed === "object") setCardState(parsed);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(cardState));
+    } catch {
+      // ignore
+    }
+  }, [cardState]);
+
+  function update(updates: Partial<CardState>) {
+    setCardState((prev) => ({ ...prev, ...updates }));
+  }
+
+  function clearDraft() {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const categoryId = cardState.t ? (cardState.t.split("-").slice(0, -1).join("-") as CardCategoryId) : undefined;
+
+  const category = categoryId ? CATEGORIES.find((c) => c.id === categoryId) : undefined;
+
+  function canAdvance(): boolean {
+    if (step === "category") return !!cardState.t || !!categoryId;
+    if (step === "template") return !!cardState.t;
+    if (step === "personalize") return !!cardState.r?.trim() && !!cardState.s?.trim();
+    return false;
+  }
+
+  function handleCategoryChange(id: CardCategoryId) {
+    const templates = templatesByCategory[id];
+    update({ t: templates?.[0]?.id });
+    setStep("template");
+  }
+
+  function handleNext() {
+    if (step === "category") setStep("template");
+    else if (step === "template") setStep("personalize");
+    else if (step === "personalize") setStep("review");
+  }
+
+  function handleBack() {
+    if (step === "template") setStep("category");
+    else if (step === "personalize") setStep("template");
+    else if (step === "review") setStep("personalize");
+  }
+
+  const isCompleteState = (s: Partial<CardState>): s is CardState =>
+    s.v === 1 && !!s.t && !!s.r && !!s.s && s.m !== undefined && !!s.e;
+
+  return (
+    <div className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-6 px-4 py-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-gray-900">Create an eCard</h1>
+        <p className="mt-1 text-base text-gray-500">Send something beautiful in seconds</p>
+      </div>
+
+      <WizardStepper currentStep={step} canAdvance={canAdvance()} onBack={handleBack} onNext={handleNext} />
+
+      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        {step === "category" && <StepCategory value={category?.id} onChange={handleCategoryChange} />}
+
+        {step === "template" && categoryId && (
+          <StepTemplate
+            categoryId={categoryId}
+            value={cardState.t}
+            previewState={cardState}
+            onChange={(t) => update({ t })}
+          />
+        )}
+
+        {step === "personalize" && <StepPersonalize state={cardState} onChange={update} />}
+
+        {step === "review" && isCompleteState(cardState) && <StepReview state={cardState} onSuccess={clearDraft} />}
+
+        {step === "review" && !isCompleteState(cardState) && (
+          <div className="flex flex-col items-center gap-4 py-8">
+            <p className="text-lg text-gray-600">Please complete all required fields first.</p>
+            <button
+              type="button"
+              onClick={() => setStep("personalize")}
+              className="rounded-xl bg-rose-500 px-6 py-3 font-semibold text-white hover:bg-rose-600"
+            >
+              Go back and fill in details
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

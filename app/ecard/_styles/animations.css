@@ -1,0 +1,141 @@
+@keyframes ecard-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes ecard-pulse-soft {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.85;
+  }
+}
+@keyframes ecard-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+@keyframes ecard-bounce-gentle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-12px);
+  }
+  60% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes ecard-sway {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+@keyframes ecard-shimmer {
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.8;
+    filter: brightness(1.2);
+  }
+}
+@keyframes ecard-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes ecard-rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes ecard-spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ecard-anim-float {
+  animation: ecard-float 3s ease-in-out infinite;
+}
+.ecard-anim-pulse-soft {
+  animation: ecard-pulse-soft 2s ease-in-out infinite;
+}
+.ecard-anim-twinkle {
+  animation: ecard-twinkle 1.5s ease-in-out infinite;
+}
+.ecard-anim-bounce-gentle {
+  animation: ecard-bounce-gentle 1.2s ease-in-out infinite;
+}
+.ecard-anim-sway {
+  animation: ecard-sway 2s ease-in-out infinite;
+}
+.ecard-anim-shimmer {
+  animation: ecard-shimmer 2.5s ease-in-out infinite;
+}
+.ecard-anim-fade-in {
+  animation: ecard-fade-in 0.6s ease-out forwards;
+}
+.ecard-anim-rise {
+  animation: ecard-rise 0.8s ease-out forwards;
+}
+.ecard-anim-spin-slow {
+  animation: ecard-spin-slow 8s linear infinite;
+}
+
+[data-export="true"] .ecard-anim-float,
+[data-export="true"] .ecard-anim-pulse-soft,
+[data-export="true"] .ecard-anim-twinkle,
+[data-export="true"] .ecard-anim-bounce-gentle,
+[data-export="true"] .ecard-anim-sway,
+[data-export="true"] .ecard-anim-shimmer,
+[data-export="true"] .ecard-anim-spin-slow {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ecard-anim-float,
+  .ecard-anim-pulse-soft,
+  .ecard-anim-twinkle,
+  .ecard-anim-bounce-gentle,
+  .ecard-anim-sway,
+  .ecard-anim-shimmer,
+  .ecard-anim-fade-in,
+  .ecard-anim-rise,
+  .ecard-anim-spin-slow {
+    animation: none;
+  }
+}
