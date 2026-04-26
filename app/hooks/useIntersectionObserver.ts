@@ -11,6 +11,7 @@ function useIntersectionObserver(
   const observerOptions = useMemo(() => options, [options]);
 
   useEffect(() => {
+    const el = elementRef.current;
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -19,13 +20,13 @@ function useIntersectionObserver(
       });
     }, observerOptions);
 
-    if (elementRef.current) {
-      observer.observe(elementRef.current);
+    if (el) {
+      observer.observe(el);
     }
 
     return () => {
-      if (elementRef.current) {
-        observer.unobserve(elementRef.current);
+      if (el) {
+        observer.unobserve(el);
       }
     };
   }, [observerOptions]);

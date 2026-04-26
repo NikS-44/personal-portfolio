@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import LinkedInIcon from "@/app/components/icons/LinkedInIcon";
 
 export default function LinkedInHelper() {
@@ -61,10 +61,6 @@ export default function LinkedInHelper() {
     localStorage.setItem("lg_exclusions", JSON.stringify(exclusions));
     localStorage.setItem("lg_under10Applications", under10Applications.toString());
   }, [inputURL, selectedTime, selectedSalary, keywords, exclusions, under10Applications]);
-
-  useEffect(() => {
-    generateLink();
-  }, [inputURL, selectedTime, keywords, exclusions, selectedSalary, under10Applications]);
 
   const handleURLChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputURL(e.target.value);
@@ -140,7 +136,7 @@ export default function LinkedInHelper() {
     });
   };
 
-  const generateLink = () => {
+  const generateLink = useCallback(() => {
     if (!inputURL) {
       setFinalURL("");
       return;
@@ -186,7 +182,11 @@ export default function LinkedInHelper() {
     }
 
     setFinalURL(parsedURL.toString());
-  };
+  }, [inputURL, selectedTime, selectedSalary, keywords, exclusions, under10Applications]);
+
+  useEffect(() => {
+    generateLink();
+  }, [generateLink]);
 
   return (
     <div>
