@@ -7,6 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "lint:check": "eslint . --ext .js,.jsx,.ts,.tsx --max-warnings 0",
+    "verify": "yarn lint:check && yarn build",
+    "ai-rules:link": "node scripts/ensure-ai-rules-symlinks.mjs",
+    "postinstall": "node scripts/ensure-ai-rules-symlinks.mjs",
     "prepare": "husky install"
   },
   "dependencies": {

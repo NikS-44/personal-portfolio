@@ -31,6 +31,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Cursor MCP (optional local memory file; symlinked .cursor/ may be machine-local)
+.cursor/mcp-memory.jsonl
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -1,0 +1,8 @@
+---
+description: Points to .ai-rules + CLAUDE.md; edit only under .ai-rules/.
+alwaysApply: true
+---
+
+- **Stack, DoD, conventions** — root `CLAUDE.md`
+- **Canonical agent config** — **`.ai-rules/`** only; `.cursor` / `.claude` are symlinks to it (include `mcp.json`). No duplicate trees.
+- Symlinks missing after clone → `yarn run ai-rules:link` (also runs after `yarn install` via `postinstall`)
