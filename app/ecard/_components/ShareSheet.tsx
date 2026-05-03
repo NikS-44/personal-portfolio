@@ -73,13 +73,9 @@ export function ShareSheet({ state, canvasRef, onSuccess }: ShareSheetProps) {
       setWhatsappStatus("idle");
       onSuccess();
     }, 2500);
-    if (navigator.share) {
-      navigator.share({ title: "My eCard", url }).catch(() => {
-        window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
-      });
-    } else {
-      window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
-    }
+    // Always use WhatsApp click-to-chat. `navigator.share` is the OS sheet (not WhatsApp-specific)
+    // and on success would skip opening WhatsApp entirely.
+    window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank", "noopener,noreferrer");
   }
 
   function handleSMS() {
