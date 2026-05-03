@@ -55,22 +55,21 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
       </div>
       <div ref={gridRef} role="grid" className="grid grid-cols-5 gap-1" aria-label="Emoji picker">
         {emojis.map((emoji, idx) => (
-          <div key={emoji} role="row">
-            <button
-              type="button"
-              data-emoji-btn
-              role="gridcell"
-              aria-label={emoji}
-              tabIndex={idx === 0 ? 0 : -1}
-              onClick={() => onChange(emoji)}
-              onKeyDown={(e) => handleKeyDown(e, idx)}
-              className={`flex h-10 w-full items-center justify-center rounded-lg text-2xl transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-400 ${
-                value === emoji ? "bg-rose-100 ring-2 ring-rose-400" : ""
-              }`}
-            >
-              {emoji}
-            </button>
-          </div>
+          <button
+            key={emoji}
+            type="button"
+            data-emoji-btn
+            role="gridcell"
+            aria-label={emoji}
+            tabIndex={idx === 0 ? 0 : -1}
+            onClick={() => onChange(emoji)}
+            onKeyDown={(e) => handleKeyDown(e, idx)}
+            className={`flex h-10 w-full items-center justify-center rounded-lg text-2xl transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-400 ${
+              value === emoji ? "bg-rose-100 ring-2 ring-rose-400" : ""
+            }`}
+          >
+            {emoji}
+          </button>
         ))}
       </div>
     </div>

@@ -1,0 +1,113 @@
+import type { CardTemplate } from "../types";
+
+export const GUJARATI_NEW_YEAR_TEMPLATES: CardTemplate[] = [
+  {
+    id: "gujarati-new-year-01",
+    categoryId: "gujarati-new-year",
+    name: "Nutan Varshabhinandan",
+    layout: "centered-stack",
+    themeId: "saffron-gold",
+    primaryAnimation: "glow-pulse",
+    ornaments: [
+      { emoji: "🌅", positionClass: "top-2 left-2", sizeClass: "text-3xl", animation: "shimmer", animationDelay: "0s" },
+      {
+        emoji: "🪔",
+        positionClass: "top-2 right-2",
+        sizeClass: "text-3xl",
+        animation: "diya-flicker",
+        animationDelay: "0.5s",
+      },
+      {
+        emoji: "🌺",
+        positionClass: "bottom-2 left-2",
+        sizeClass: "text-2xl",
+        animation: "lotus-bloom",
+        animationDelay: "0.3s",
+      },
+      {
+        emoji: "✨",
+        positionClass: "bottom-2 right-2",
+        sizeClass: "text-2xl",
+        animation: "twinkle",
+        animationDelay: "0.7s",
+      },
+    ],
+  },
+  {
+    id: "gujarati-new-year-02",
+    categoryId: "gujarati-new-year",
+    name: "New Dawn",
+    layout: "banner-top",
+    themeId: "marigold",
+    primaryAnimation: "wave-in",
+    ornaments: [
+      {
+        emoji: "🌅",
+        positionClass: "bottom-2 left-2",
+        sizeClass: "text-3xl",
+        animation: "shimmer",
+        animationDelay: "0s",
+      },
+      {
+        emoji: "🪔",
+        positionClass: "bottom-2 right-2",
+        sizeClass: "text-3xl",
+        animation: "diya-flicker",
+        animationDelay: "0.6s",
+      },
+    ],
+  },
+  {
+    id: "gujarati-new-year-03",
+    categoryId: "gujarati-new-year",
+    name: "Golden Sunrise",
+    layout: "starburst",
+    themeId: "amber-gold",
+    primaryAnimation: "shimmer",
+    ornaments: [
+      {
+        emoji: "🌟",
+        positionClass: "top-2 left-2",
+        sizeClass: "text-3xl",
+        animation: "glow-pulse",
+        animationDelay: "0s",
+      },
+      {
+        emoji: "🌅",
+        positionClass: "top-2 right-2",
+        sizeClass: "text-2xl",
+        animation: "shimmer",
+        animationDelay: "0.4s",
+      },
+      {
+        emoji: "🪔",
+        positionClass: "bottom-2 left-2",
+        sizeClass: "text-2xl",
+        animation: "diya-flicker",
+        animationDelay: "0.8s",
+      },
+      {
+        emoji: "🌺",
+        positionClass: "bottom-2 right-2",
+        sizeClass: "text-2xl",
+        animation: "lotus-bloom",
+        animationDelay: "0.2s",
+      },
+    ],
+  },
+  {
+    id: "gujarati-new-year-04",
+    categoryId: "gujarati-new-year",
+    name: "Bestu Varas Garland",
+    layout: "garland",
+    themeId: "saffron-gold",
+    primaryAnimation: "rise",
+    ornaments: [
+      { emoji: "🌅", positionClass: "top-0", sizeClass: "text-xl", animation: "none" },
+      { emoji: "🪔", positionClass: "top-0", sizeClass: "text-xl", animation: "none" },
+      { emoji: "🌺", positionClass: "top-0", sizeClass: "text-xl", animation: "none" },
+      { emoji: "✨", positionClass: "top-0", sizeClass: "text-xl", animation: "none" },
+      { emoji: "🌅", positionClass: "top-0", sizeClass: "text-xl", animation: "none" },
+    ],
+  },
+];

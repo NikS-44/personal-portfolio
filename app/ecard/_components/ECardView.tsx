@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { decodeCardState } from "../_lib/encodeState";
 import { ECardCanvas } from "./ECardCanvas";
+import { CelebrationEffect } from "./CelebrationEffect";
+import { CATEGORIES } from "../_data/categories";
 
 export function ECardViewSkeleton() {
   return (
@@ -22,6 +24,12 @@ export function ECardView() {
     if (!encoded) return null;
     return decodeCardState(encoded);
   }, [encoded]);
+
+  const category = useMemo(() => {
+    if (!cardState?.t) return undefined;
+    const categoryId = cardState.t.split("-").slice(0, -1).join("-");
+    return CATEGORIES.find((c) => c.id === categoryId);
+  }, [cardState]);
 
   if (!cardState) {
     return (
@@ -41,13 +49,25 @@ export function ECardView() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 p-8">
+      <CelebrationEffect
+        active={true}
+        preset={cardState.a ?? category?.defaultCelebration ?? "confetti"}
+        colors={category?.confettiColors}
+      />
       <p className="text-center text-lg text-gray-500">
         {cardState.s ? `A card from ${cardState.s}` : "Someone sent you a card!"}
       </p>
       <ECardCanvas state={cardState} className="w-full max-w-2xl shadow-2xl" />
-      <Link href="/ecard" className="text-base text-gray-400 underline transition hover:text-gray-600">
-        Make your own card →
-      </Link>
+
+      <div className="flex w-full max-w-2xl flex-col items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 px-6 py-5 text-center">
+        <p className="text-base font-medium text-rose-700">Loved this card? Send one to someone special too!</p>
+        <Link
+          href="/ecard"
+          className="flex items-center gap-2 rounded-xl bg-rose-500 px-6 py-3 text-lg font-semibold text-white shadow-sm transition hover:bg-rose-600"
+        >
+          💌 Make your own free eCard
+        </Link>
+      </div>
     </div>
   );
 }

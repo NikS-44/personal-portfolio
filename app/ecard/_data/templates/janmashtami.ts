@@ -1,0 +1,106 @@
+import type { CardTemplate } from "../types";
+
+export const JANMASHTAMI_TEMPLATES: CardTemplate[] = [
+  {
+    id: "janmashtami-01",
+    categoryId: "janmashtami",
+    name: "Krishna's Birthday",
+    layout: "centered-stack",
+    themeId: "peacock-teal",
+    primaryAnimation: "fade-in",
+    ornaments: [
+      {
+        emoji: "🦚",
+        positionClass: "top-2 left-2",
+        sizeClass: "text-3xl",
+        animation: "peacock-dance",
+        animationDelay: "0s",
+      },
+      {
+        emoji: "🪷",
+        positionClass: "top-2 right-2",
+        sizeClass: "text-2xl",
+        animation: "lotus-bloom",
+        animationDelay: "0.5s",
+      },
+      {
+        emoji: "🎶",
+        positionClass: "bottom-2 left-2",
+        sizeClass: "text-2xl",
+        animation: "float",
+        animationDelay: "0.3s",
+      },
+      {
+        emoji: "🌿",
+        positionClass: "bottom-2 right-2",
+        sizeClass: "text-2xl",
+        animation: "sway",
+        animationDelay: "0.7s",
+      },
+    ],
+  },
+  {
+    id: "janmashtami-02",
+    categoryId: "janmashtami",
+    name: "Peacock Dance",
+    layout: "starburst",
+    themeId: "peacock-teal",
+    primaryAnimation: "shimmer",
+    ornaments: [
+      {
+        emoji: "🦚",
+        positionClass: "top-2 left-2",
+        sizeClass: "text-3xl",
+        animation: "peacock-dance",
+        animationDelay: "0s",
+      },
+      {
+        emoji: "🦚",
+        positionClass: "top-2 right-2",
+        sizeClass: "text-3xl",
+        animation: "peacock-dance",
+        animationDelay: "0.8s",
+      },
+      {
+        emoji: "🪷",
+        positionClass: "bottom-2 left-2",
+        sizeClass: "text-2xl",
+        animation: "lotus-bloom",
+        animationDelay: "0.4s",
+      },
+      { emoji: "✨", positionClass: "bottom-2 right-2", sizeClass: "text-2xl", animation: "twinkle" },
+    ],
+  },
+  {
+    id: "janmashtami-03",
+    categoryId: "janmashtami",
+    name: "Mathura Butter",
+    layout: "banner-top",
+    themeId: "sky-blue",
+    primaryAnimation: "rise",
+    ornaments: [
+      {
+        emoji: "🦚",
+        positionClass: "bottom-2 left-2",
+        sizeClass: "text-3xl",
+        animation: "peacock-dance",
+        animationDelay: "0s",
+      },
+      { emoji: "🪷", positionClass: "bottom-2 right-2", sizeClass: "text-2xl", animation: "lotus-bloom" },
+    ],
+  },
+  {
+    id: "janmashtami-04",
+    categoryId: "janmashtami",
+    name: "Gokul Garland",
+    layout: "garland",
+    themeId: "peacock-teal",
+    primaryAnimation: "fade-in",
+    ornaments: [
+      { emoji: "🦚", positionClass: "top-0", sizeClass: "text-xl", animation: "none" },
+      { emoji: "🪷", positionClass: "top-0", sizeClass: "text-xl", animation: "none" },
+      { emoji: "🎶", positionClass: "top-0", sizeClass: "text-xl", animation: "none" },
+      { emoji: "🌿", positionClass: "top-0", sizeClass: "text-xl", animation: "none" },
+    ],
+  },
+];

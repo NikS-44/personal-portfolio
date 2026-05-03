@@ -5,9 +5,10 @@ import { useReducedMotion } from "../_lib/useReducedMotion";
 
 interface ConfettiBurstProps {
   active: boolean;
+  colors?: string[];
 }
 
-export function ConfettiBurst({ active }: ConfettiBurstProps) {
+export function ConfettiBurst({ active, colors }: ConfettiBurstProps) {
   const reduced = useReducedMotion();
 
   useEffect(() => {
@@ -15,12 +16,17 @@ export function ConfettiBurst({ active }: ConfettiBurstProps) {
     let cancelled = false;
     import("canvas-confetti").then(({ default: confetti }) => {
       if (cancelled) return;
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      confetti({
+        particleCount: 140,
+        spread: 85,
+        origin: { y: 0.6 },
+        ...(colors ? { colors } : {}),
+      });
     });
     return () => {
       cancelled = true;
     };
-  }, [active, reduced]);
+  }, [active, reduced, colors]);
 
   return null;
 }

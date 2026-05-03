@@ -1,13 +1,15 @@
 import type { LayoutProps } from "./types";
+import { OrnamentSpan } from "./OrnamentSpan";
 
-export function BannerTopLayout({ template, theme, state }: LayoutProps) {
+export function BannerTopLayout({ template, theme, state, greeting }: LayoutProps) {
   return (
     <div className={`relative flex h-full w-full flex-col overflow-hidden ${theme.bg}`}>
       <div
-        className={`flex flex-col items-center justify-center gap-2 bg-gradient-to-br ${theme.gradientFrom} ${theme.gradientTo} px-6 py-8`}
+        className={`flex flex-col items-center justify-center gap-1 bg-gradient-to-br ${theme.gradientFrom} ${theme.gradientTo} px-6 py-6`}
       >
-        <span className="text-6xl">{state.e ?? "✨"}</span>
-        {state.r && <p className={`text-2xl font-bold ${theme.text}`}>{state.r}</p>}
+        <span className="text-5xl">{state.e ?? "✨"}</span>
+        <p className={`text-center text-2xl font-bold leading-tight ${theme.text}`}>{greeting}</p>
+        {state.r && <p className={`text-sm font-medium ${theme.text} opacity-70`}>for {state.r}</p>}
       </div>
       <div
         className={`flex flex-1 flex-col items-center justify-center gap-3 px-6 py-4 text-center ecard-anim-${template.primaryAnimation}`}
@@ -16,12 +18,7 @@ export function BannerTopLayout({ template, theme, state }: LayoutProps) {
         {state.s && <p className={`text-base font-semibold ${theme.accent}`}>— {state.s}</p>}
       </div>
       {template.ornaments.map((o, i) => (
-        <span
-          key={i}
-          className={`absolute ${o.positionClass} ${o.sizeClass} ${o.animation !== "none" ? `ecard-anim-${o.animation}` : ""}`}
-        >
-          {o.emoji}
-        </span>
+        <OrnamentSpan key={i} ornament={o} index={i} />
       ))}
     </div>
   );

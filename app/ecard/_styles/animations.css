@@ -1,84 +1,134 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ECARD ANIMATIONS  ·  Push CSS to the limit edition
+   All timing is "fun-speed" (0.7–2.5 s) — dramatic, not frantic.
+═══════════════════════════════════════════════════════════════════ */
+
+/* ── Core entry / ambient ──────────────────────────────────────── */
+
 @keyframes ecard-float {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
-  50% {
-    transform: translateY(-8px);
+  40% {
+    transform: translateY(-28px) scale(1.06);
+  }
+  70% {
+    transform: translateY(-18px) scale(1.03);
   }
 }
+
 @keyframes ecard-pulse-soft {
   0%,
   100% {
     transform: scale(1);
     opacity: 1;
+    filter: brightness(1);
   }
   50% {
-    transform: scale(1.05);
-    opacity: 0.85;
+    transform: scale(1.18);
+    opacity: 0.9;
+    filter: brightness(1.25);
   }
 }
+
 @keyframes ecard-twinkle {
   0%,
   100% {
     opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1);
+  }
+  25% {
+    opacity: 0.15;
+    transform: scale(0.7) rotate(20deg);
+    filter: brightness(0.5);
   }
   50% {
-    opacity: 0.3;
+    opacity: 1;
+    transform: scale(1.25) rotate(-10deg);
+    filter: brightness(1.8);
+  }
+  75% {
+    opacity: 0.4;
+    transform: scale(0.85) rotate(15deg);
+    filter: brightness(0.7);
   }
 }
+
 @keyframes ecard-bounce-gentle {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translateY(0) scaleX(1) scaleY(1);
   }
-  40% {
-    transform: translateY(-12px);
+  30% {
+    transform: translateY(-36px) scaleX(0.9) scaleY(1.15);
   }
-  60% {
-    transform: translateY(-6px);
+  50% {
+    transform: translateY(0) scaleX(1.2) scaleY(0.82);
+  }
+  65% {
+    transform: translateY(-16px) scaleX(0.95) scaleY(1.06);
+  }
+  80% {
+    transform: translateY(0) scaleX(1.06) scaleY(0.95);
   }
 }
+
 @keyframes ecard-sway {
   0%,
   100% {
-    transform: rotate(-5deg);
+    transform: rotate(-18deg) scale(1);
+  }
+  25% {
+    transform: rotate(20deg) scale(1.1);
   }
   50% {
-    transform: rotate(5deg);
+    transform: rotate(-14deg) scale(0.95);
+  }
+  75% {
+    transform: rotate(16deg) scale(1.08);
   }
 }
+
 @keyframes ecard-shimmer {
   0%,
   100% {
     opacity: 1;
-    filter: brightness(1);
+    filter: brightness(1) saturate(1);
   }
-  50% {
-    opacity: 0.8;
-    filter: brightness(1.2);
+  33% {
+    opacity: 0.75;
+    filter: brightness(1.5) saturate(2);
+  }
+  66% {
+    opacity: 0.9;
+    filter: brightness(0.8) saturate(0.7);
   }
 }
+
 @keyframes ecard-fade-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px) scale(0.85);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
+
 @keyframes ecard-rise {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(28px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 @keyframes ecard-spin-slow {
   from {
     transform: rotate(0deg);
@@ -88,54 +138,663 @@
   }
 }
 
+/* ── Existing festive animations — now seriously amped up ────── */
+
+@keyframes ecard-diya-flicker {
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(1) drop-shadow(0 0 6px #ff8c00) saturate(1.5);
+    transform: scale(1);
+  }
+  12% {
+    opacity: 0.7;
+    filter: brightness(2.2) drop-shadow(0 0 20px #ff4500) saturate(3);
+    transform: scale(1.18) rotate(4deg);
+  }
+  28% {
+    opacity: 1;
+    filter: brightness(0.7) drop-shadow(0 0 3px #ffd700) saturate(1);
+    transform: scale(0.88) rotate(-3deg);
+  }
+  55% {
+    opacity: 1;
+    filter: brightness(2) drop-shadow(0 0 18px #ff6347) saturate(2.5);
+    transform: scale(1.15) rotate(2deg);
+  }
+  78% {
+    opacity: 0.85;
+    filter: brightness(1.6) drop-shadow(0 0 8px #ffa500) saturate(2);
+    transform: scale(0.94) rotate(-2deg);
+  }
+}
+
+@keyframes ecard-color-splash {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: hue-rotate(0deg) saturate(1.5) brightness(1);
+  }
+  20% {
+    transform: scale(1.5) rotate(15deg);
+    filter: hue-rotate(90deg) saturate(4) brightness(1.4);
+  }
+  40% {
+    transform: scale(0.7) rotate(-12deg);
+    filter: hue-rotate(200deg) saturate(5) brightness(0.9);
+  }
+  60% {
+    transform: scale(1.4) rotate(8deg);
+    filter: hue-rotate(300deg) saturate(4.5) brightness(1.5);
+  }
+  80% {
+    transform: scale(0.85) rotate(-5deg);
+    filter: hue-rotate(180deg) saturate(3) brightness(1.1);
+  }
+}
+
+@keyframes ecard-kite-soar {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-8deg) scale(1);
+  }
+  20% {
+    transform: translate(10px, -30px) rotate(12deg) scale(1.15);
+  }
+  45% {
+    transform: translate(18px, -20px) rotate(6deg) scale(1.05);
+  }
+  65% {
+    transform: translate(6px, -38px) rotate(-6deg) scale(1.2);
+  }
+  85% {
+    transform: translate(14px, -15px) rotate(8deg) scale(1.08);
+  }
+}
+
+@keyframes ecard-lotus-bloom {
+  0%,
+  100% {
+    transform: scale(0.6) rotate(-12deg);
+    opacity: 0.5;
+    filter: brightness(0.8);
+  }
+  50% {
+    transform: scale(1.4) rotate(8deg);
+    opacity: 1;
+    filter: brightness(1.4) saturate(2);
+  }
+}
+
+@keyframes ecard-firework-burst {
+  0% {
+    transform: scale(0.2) translateY(10px);
+    opacity: 0;
+    filter: brightness(1);
+  }
+  25% {
+    transform: scale(1.8) translateY(-5px);
+    opacity: 1;
+    filter: brightness(2.5) saturate(3);
+  }
+  50% {
+    transform: scale(1.1) translateY(0);
+    opacity: 0.9;
+    filter: brightness(1.5);
+  }
+  75% {
+    transform: scale(1.5) translateY(-3px);
+    opacity: 0.7;
+    filter: brightness(2);
+  }
+  100% {
+    transform: scale(0.2) translateY(10px);
+    opacity: 0;
+  }
+}
+
+@keyframes ecard-rangoli-spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.25);
+    opacity: 0.8;
+    filter: hue-rotate(180deg) saturate(3);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 1;
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes ecard-peacock-dance {
+  0%,
+  100% {
+    transform: rotate(-18deg) scale(1) skewX(-3deg);
+    filter: hue-rotate(0deg);
+  }
+  25% {
+    transform: rotate(18deg) scale(1.25) skewX(3deg);
+    filter: hue-rotate(60deg) saturate(2);
+  }
+  50% {
+    transform: rotate(-10deg) scale(0.9) skewX(-2deg);
+    filter: hue-rotate(120deg) saturate(1.5);
+  }
+  75% {
+    transform: rotate(14deg) scale(1.18) skewX(2deg);
+    filter: hue-rotate(200deg) saturate(2.5);
+  }
+}
+
+@keyframes ecard-pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  20% {
+    transform: scale(2) rotate(8deg);
+    filter: brightness(1.5);
+  }
+  40% {
+    transform: scale(0.72) rotate(-5deg);
+  }
+  65% {
+    transform: scale(1.4) rotate(3deg);
+    filter: brightness(1.2);
+  }
+  82% {
+    transform: scale(0.92);
+  }
+}
+
+@keyframes ecard-jiggle {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  10% {
+    transform: rotate(-22deg) scale(1.1);
+  }
+  25% {
+    transform: rotate(22deg) scale(0.9);
+  }
+  40% {
+    transform: rotate(-16deg) scale(1.08);
+  }
+  55% {
+    transform: rotate(16deg) scale(0.93);
+  }
+  70% {
+    transform: rotate(-8deg) scale(1.04);
+  }
+  85% {
+    transform: rotate(8deg) scale(0.97);
+  }
+}
+
+@keyframes ecard-drop-in {
+  0% {
+    transform: translateY(-60px) scale(0.6);
+    opacity: 0;
+  }
+  55% {
+    transform: translateY(10px) scale(1.15) scaleY(0.85);
+    opacity: 1;
+  }
+  72% {
+    transform: translateY(-14px) scale(0.97) scaleY(1.08);
+  }
+  86% {
+    transform: translateY(5px) scale(1.03) scaleY(0.97);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes ecard-glow-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px rgba(255, 200, 0, 0.4));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 24px rgba(255, 200, 0, 1)) drop-shadow(0 0 48px rgba(255, 100, 0, 0.6)) brightness(1.6);
+    transform: scale(1.12);
+  }
+}
+
+@keyframes ecard-wave-in {
+  0% {
+    transform: translateX(-40px) scale(0.7);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(6px) scale(1.05);
+    opacity: 1;
+  }
+  80% {
+    transform: translateX(-3px) scale(0.98);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes ecard-orbit {
+  0% {
+    transform: rotate(0deg) translateX(10px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(10px) rotate(-360deg);
+  }
+}
+
+/* ── NEW: Absolutely in-your-face CSS spectacles ─────────────── */
+
+/* Mega rubber-ball bounce with full squish/stretch physics */
+@keyframes ecard-mega-bounce {
+  0% {
+    transform: translateY(0) scaleX(1) scaleY(1);
+  }
+  18% {
+    transform: translateY(-70px) scaleX(0.82) scaleY(1.22);
+  }
+  36% {
+    transform: translateY(-85px) scaleX(0.88) scaleY(1.18);
+  }
+  50% {
+    transform: translateY(0) scaleX(1.35) scaleY(0.7);
+  }
+  62% {
+    transform: translateY(-35px) scaleX(0.94) scaleY(1.1);
+  }
+  74% {
+    transform: translateY(0) scaleX(1.14) scaleY(0.88);
+  }
+  84% {
+    transform: translateY(-14px) scaleX(0.98) scaleY(1.04);
+  }
+  100% {
+    transform: translateY(0) scaleX(1) scaleY(1);
+  }
+}
+
+/* Elastic spring pop — shoots out and snaps back */
+@keyframes ecard-elastic-pop {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  15% {
+    transform: scale(2.4) rotate(12deg);
+    filter: brightness(1.6) saturate(2);
+  }
+  30% {
+    transform: scale(0.65) rotate(-8deg);
+  }
+  50% {
+    transform: scale(1.7) rotate(5deg);
+    filter: brightness(1.3);
+  }
+  65% {
+    transform: scale(0.88) rotate(-3deg);
+  }
+  80% {
+    transform: scale(1.18) rotate(1deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Pendulum — big satisfying arc swing */
+@keyframes ecard-pendulum {
+  0%,
+  100% {
+    transform: rotate(-32deg);
+  }
+  50% {
+    transform: rotate(32deg);
+  }
+}
+
+/* Rubber shake — horizontal rubber band distortion */
+@keyframes ecard-rubber-shake {
+  0%,
+  100% {
+    transform: skewX(0deg) scaleX(1) scaleY(1);
+  }
+  12% {
+    transform: skewX(-18deg) scaleX(1.25) scaleY(0.8);
+  }
+  24% {
+    transform: skewX(14deg) scaleX(0.78) scaleY(1.2);
+  }
+  36% {
+    transform: skewX(-12deg) scaleX(1.18) scaleY(0.85);
+  }
+  50% {
+    transform: skewX(9deg) scaleX(0.88) scaleY(1.12);
+  }
+  64% {
+    transform: skewX(-6deg) scaleX(1.1) scaleY(0.92);
+  }
+  78% {
+    transform: skewX(3deg) scaleX(0.96) scaleY(1.04);
+  }
+}
+
+/* 3D card flip — full perspective rotation */
+@keyframes ecard-3d-flip {
+  0% {
+    transform: perspective(300px) rotateY(0deg) scale(1);
+  }
+  35% {
+    transform: perspective(300px) rotateY(180deg) scale(1.3);
+  }
+  55% {
+    transform: perspective(300px) rotateY(180deg) scale(1.3);
+  }
+  100% {
+    transform: perspective(300px) rotateY(360deg) scale(1);
+  }
+}
+
+/* Dramatic breathing zoom */
+@keyframes ecard-zoom-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  40% {
+    transform: scale(1.9);
+    filter: brightness(1.4) drop-shadow(0 0 16px currentColor) saturate(2);
+  }
+  70% {
+    transform: scale(1.3);
+    filter: brightness(1.2);
+  }
+}
+
+/* Rainbow burst — hue cyclone + scale */
+@keyframes ecard-rainbow-burst {
+  0% {
+    transform: scale(1) rotate(0deg);
+    filter: hue-rotate(0deg) saturate(2) brightness(1);
+  }
+  20% {
+    transform: scale(1.5) rotate(18deg);
+    filter: hue-rotate(72deg) saturate(5) brightness(1.5);
+  }
+  40% {
+    transform: scale(0.75) rotate(-12deg);
+    filter: hue-rotate(144deg) saturate(6) brightness(0.9);
+  }
+  60% {
+    transform: scale(1.4) rotate(10deg);
+    filter: hue-rotate(216deg) saturate(5) brightness(1.6);
+  }
+  80% {
+    transform: scale(0.88) rotate(-6deg);
+    filter: hue-rotate(288deg) saturate(4) brightness(1.1);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: hue-rotate(360deg) saturate(2) brightness(1);
+  }
+}
+
+/* Wobbly spin — elastic rotation */
+@keyframes ecard-wobbly-spin {
+  0% {
+    transform: rotate(0deg) scale(1) skewX(0deg);
+  }
+  20% {
+    transform: rotate(90deg) scale(1.35) skewX(8deg);
+    filter: hue-rotate(90deg);
+  }
+  45% {
+    transform: rotate(180deg) scale(0.75) skewX(-6deg);
+    filter: hue-rotate(180deg);
+  }
+  70% {
+    transform: rotate(270deg) scale(1.25) skewX(5deg);
+    filter: hue-rotate(270deg);
+  }
+  100% {
+    transform: rotate(360deg) scale(1) skewX(0deg);
+    filter: hue-rotate(360deg);
+  }
+}
+
+/* Carnival — the wildest combo: translate + rotate + scale + hue */
+@keyframes ecard-carnival {
+  0% {
+    transform: scale(1) rotate(0deg) translateY(0);
+    filter: hue-rotate(0deg) saturate(1.5);
+  }
+  15% {
+    transform: scale(1.7) rotate(25deg) translateY(-20px);
+    filter: hue-rotate(60deg) saturate(4) brightness(1.4);
+  }
+  30% {
+    transform: scale(0.65) rotate(-18deg) translateY(8px);
+    filter: hue-rotate(120deg) saturate(5) brightness(0.85);
+  }
+  50% {
+    transform: scale(1.8) rotate(12deg) translateY(-14px);
+    filter: hue-rotate(200deg) saturate(4.5) brightness(1.5);
+  }
+  65% {
+    transform: scale(0.75) rotate(-10deg) translateY(5px);
+    filter: hue-rotate(280deg) saturate(3.5);
+  }
+  80% {
+    transform: scale(1.4) rotate(6deg) translateY(-8px);
+    filter: hue-rotate(320deg) saturate(3) brightness(1.3);
+  }
+  100% {
+    transform: scale(1) rotate(0deg) translateY(0);
+    filter: hue-rotate(360deg) saturate(1.5);
+  }
+}
+
+/* Slam bounce — dramatic entry from above with physics bounces */
+@keyframes ecard-slam-bounce {
+  0% {
+    transform: translateY(-100px) scale(0.4) rotate(-15deg);
+    opacity: 0;
+  }
+  45% {
+    transform: translateY(18px) scale(1.25) scaleY(0.78) rotate(5deg);
+    opacity: 1;
+  }
+  60% {
+    transform: translateY(-28px) scale(0.95) scaleY(1.12) rotate(-3deg);
+  }
+  73% {
+    transform: translateY(10px) scale(1.06) scaleY(0.93) rotate(2deg);
+  }
+  84% {
+    transform: translateY(-10px) scale(0.99) scaleY(1.04) rotate(-1deg);
+  }
+  92% {
+    transform: translateY(4px) scale(1.01);
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Neon flare — rapid bright flash cycles */
+@keyframes ecard-neon-flare {
+  0%,
+  100% {
+    filter: brightness(1) drop-shadow(0 0 2px currentColor);
+    transform: scale(1);
+  }
+  15% {
+    filter: brightness(3) drop-shadow(0 0 20px #fff) drop-shadow(0 0 40px currentColor) saturate(4);
+    transform: scale(1.2);
+  }
+  30% {
+    filter: brightness(0.6);
+    transform: scale(0.9);
+  }
+  55% {
+    filter: brightness(2.5) drop-shadow(0 0 16px #ff0) saturate(5);
+    transform: scale(1.15);
+  }
+  75% {
+    filter: brightness(0.8);
+    transform: scale(0.95);
+  }
+}
+
+/* Spin + grow spiral */
+@keyframes ecard-spin-grow {
+  0% {
+    transform: rotate(0deg) scale(0.6);
+    opacity: 0.5;
+  }
+  50% {
+    transform: rotate(540deg) scale(1.5);
+    opacity: 1;
+    filter: hue-rotate(180deg) saturate(3);
+  }
+  100% {
+    transform: rotate(1080deg) scale(0.6);
+    opacity: 0.5;
+  }
+}
+
+/* ── Animation utility classes ────────────────────────────────── */
+
 .ecard-anim-float {
-  animation: ecard-float 3s ease-in-out infinite;
+  animation: ecard-float 2.2s ease-in-out infinite;
 }
 .ecard-anim-pulse-soft {
-  animation: ecard-pulse-soft 2s ease-in-out infinite;
+  animation: ecard-pulse-soft 1.6s ease-in-out infinite;
 }
 .ecard-anim-twinkle {
-  animation: ecard-twinkle 1.5s ease-in-out infinite;
+  animation: ecard-twinkle 1.2s ease-in-out infinite;
 }
 .ecard-anim-bounce-gentle {
-  animation: ecard-bounce-gentle 1.2s ease-in-out infinite;
+  animation: ecard-bounce-gentle 1s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
 }
 .ecard-anim-sway {
-  animation: ecard-sway 2s ease-in-out infinite;
+  animation: ecard-sway 1.4s ease-in-out infinite;
 }
 .ecard-anim-shimmer {
-  animation: ecard-shimmer 2.5s ease-in-out infinite;
+  animation: ecard-shimmer 1.8s ease-in-out infinite;
 }
 .ecard-anim-fade-in {
-  animation: ecard-fade-in 0.6s ease-out forwards;
+  animation: ecard-fade-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 .ecard-anim-rise {
-  animation: ecard-rise 0.8s ease-out forwards;
+  animation: ecard-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 .ecard-anim-spin-slow {
-  animation: ecard-spin-slow 8s linear infinite;
+  animation: ecard-spin-slow 4s linear infinite;
+}
+.ecard-anim-diya-flicker {
+  animation: ecard-diya-flicker 1.4s ease-in-out infinite;
+}
+.ecard-anim-color-splash {
+  animation: ecard-color-splash 2.4s ease-in-out infinite;
+}
+.ecard-anim-kite-soar {
+  animation: ecard-kite-soar 3s ease-in-out infinite;
+}
+.ecard-anim-lotus-bloom {
+  animation: ecard-lotus-bloom 2.2s ease-in-out infinite;
+}
+.ecard-anim-firework-burst {
+  animation: ecard-firework-burst 1.8s ease-out infinite;
+}
+.ecard-anim-rangoli-spin {
+  animation: ecard-rangoli-spin 3.5s linear infinite;
+}
+.ecard-anim-peacock-dance {
+  animation: ecard-peacock-dance 2s ease-in-out infinite;
+}
+.ecard-anim-pop {
+  animation: ecard-pop 1.1s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+}
+.ecard-anim-jiggle {
+  animation: ecard-jiggle 0.8s ease-in-out infinite;
+}
+.ecard-anim-drop-in {
+  animation: ecard-drop-in 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.ecard-anim-glow-pulse {
+  animation: ecard-glow-pulse 1.6s ease-in-out infinite;
+}
+.ecard-anim-wave-in {
+  animation: ecard-wave-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.ecard-anim-orbit {
+  animation: ecard-orbit 3s linear infinite;
 }
 
-[data-export="true"] .ecard-anim-float,
-[data-export="true"] .ecard-anim-pulse-soft,
-[data-export="true"] .ecard-anim-twinkle,
-[data-export="true"] .ecard-anim-bounce-gentle,
-[data-export="true"] .ecard-anim-sway,
-[data-export="true"] .ecard-anim-shimmer,
-[data-export="true"] .ecard-anim-spin-slow {
-  animation: none;
+/* New wild ones */
+.ecard-anim-mega-bounce {
+  animation: ecard-mega-bounce 1.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
 }
+.ecard-anim-elastic-pop {
+  animation: ecard-elastic-pop 1.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+}
+.ecard-anim-pendulum {
+  animation: ecard-pendulum 1.5s ease-in-out infinite;
+  transform-origin: top center;
+}
+.ecard-anim-rubber-shake {
+  animation: ecard-rubber-shake 1s ease-in-out infinite;
+}
+.ecard-anim-3d-flip {
+  animation: ecard-3d-flip 2.5s ease-in-out infinite;
+}
+.ecard-anim-zoom-pulse {
+  animation: ecard-zoom-pulse 2s ease-in-out infinite;
+}
+.ecard-anim-rainbow-burst {
+  animation: ecard-rainbow-burst 2.2s ease-in-out infinite;
+}
+.ecard-anim-wobbly-spin {
+  animation: ecard-wobbly-spin 2s ease-in-out infinite;
+}
+.ecard-anim-carnival {
+  animation: ecard-carnival 2.8s ease-in-out infinite;
+}
+.ecard-anim-slam-bounce {
+  animation: ecard-slam-bounce 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.ecard-anim-neon-flare {
+  animation: ecard-neon-flare 1.8s ease-in-out infinite;
+}
+.ecard-anim-spin-grow {
+  animation: ecard-spin-grow 3s ease-in-out infinite;
+}
+
+/* ── Freeze all animations during image export ─────────────────── */
+
+[data-export="true"] [class*="ecard-anim-"] {
+  animation: none !important;
+}
+
+/* ── Respect reduced-motion preference ──────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-  .ecard-anim-float,
-  .ecard-anim-pulse-soft,
-  .ecard-anim-twinkle,
-  .ecard-anim-bounce-gentle,
-  .ecard-anim-sway,
-  .ecard-anim-shimmer,
-  .ecard-anim-fade-in,
-  .ecard-anim-rise,
-  .ecard-anim-spin-slow {
-    animation: none;
+  [class*="ecard-anim-"] {
+    animation: none !important;
   }
 }

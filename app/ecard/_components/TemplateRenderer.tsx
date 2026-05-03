@@ -1,4 +1,5 @@
 import type { CardTemplate, ColorTheme, CardState } from "../_data/types";
+import { CATEGORIES } from "../_data/categories";
 import { CenteredStackLayout } from "./_layouts/CenteredStackLayout";
 import { FramedLayout } from "./_layouts/FramedLayout";
 import { BannerTopLayout } from "./_layouts/BannerTopLayout";
@@ -17,7 +18,9 @@ interface TemplateRendererProps {
 }
 
 export function TemplateRenderer({ template, theme, state }: TemplateRendererProps) {
-  const props = { template, theme, state };
+  const category = CATEGORIES.find((c) => c.id === template.categoryId);
+  const greeting = category?.greeting ?? template.name;
+  const props = { template, theme, state, greeting };
   switch (template.layout) {
     case "centered-stack":
       return <CenteredStackLayout {...props} />;
