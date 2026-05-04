@@ -30,15 +30,22 @@ export function WizardStepper({ currentStep, canAdvance, onBack, onNext }: Wizar
       </p>
 
       <nav aria-label="Card creation steps">
-        <ol className="flex items-center gap-0">
-          {STEPS.map((step, i) => {
-            const done = i < currentIndex;
-            const active = i === currentIndex;
-            return (
-              <li key={step.id} className="flex flex-1 flex-col items-center gap-1.5">
-                <div className="flex w-full items-center">
-                  {/* Only light up the connector when the left step is fully done */}
-                  {i > 0 && <div className={`h-1 flex-1 ${done ? "bg-rose-400" : "bg-gray-200"}`} />}
+        <ol className="flex list-none flex-col gap-1.5 p-0">
+          {/* Circles + connectors: one flex-1 segment between each pair so spacing is even */}
+          <li className="flex w-full items-center">
+            {STEPS.map((step, i) => {
+              const done = i < currentIndex;
+              const active = i === currentIndex;
+              // Single segment between (i-1) and i; rose once we've reached step i
+              const segmentBeforeRose = i > 0 && currentIndex >= i;
+              return (
+                <div key={step.id} className="contents">
+                  {i > 0 && (
+                    <div
+                      className={`h-1 min-w-0 flex-1 rounded-full ${segmentBeforeRose ? "bg-rose-400" : "bg-gray-200"}`}
+                      aria-hidden
+                    />
+                  )}
                   <div
                     aria-current={active ? "step" : undefined}
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-bold transition ${
@@ -51,14 +58,28 @@ export function WizardStepper({ currentStep, canAdvance, onBack, onNext }: Wizar
                   >
                     {done ? "✓" : i + 1}
                   </div>
-                  {i < STEPS.length - 1 && <div className={`h-1 flex-1 ${done ? "bg-rose-400" : "bg-gray-200"}`} />}
                 </div>
-                <span className={`text-sm font-medium ${active ? "text-rose-600" : "text-gray-500"}`}>
-                  {step.label}
-                </span>
-              </li>
-            );
-          })}
+              );
+            })}
+          </li>
+          {/* Labels: same flex weights as row above (flex-1 under each connector, minimal under dots) */}
+          <li className="flex w-full items-start justify-center gap-0">
+            {STEPS.map((step, i) => {
+              const active = i === currentIndex;
+              return (
+                <div key={`${step.id}-label`} className="contents">
+                  {i > 0 && <div className="min-w-0 flex-1" aria-hidden />}
+                  <div className="flex w-10 shrink-0 justify-center">
+                    <span
+                      className={`max-w-[7.5rem] text-center text-sm font-medium leading-tight ${active ? "text-rose-600" : "text-gray-500"}`}
+                    >
+                      {step.label}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </li>
         </ol>
       </nav>
 

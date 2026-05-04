@@ -16,9 +16,14 @@ export function ECardViewSkeleton() {
   );
 }
 
-export function ECardView() {
+export type ECardViewProps = {
+  /** From `/e/[slug]` after server KV lookup; when set, `?d=` is ignored */
+  encoded?: string | null;
+};
+
+export function ECardView({ encoded: encodedProp }: ECardViewProps = {}) {
   const searchParams = useSearchParams();
-  const encoded = searchParams.get("d");
+  const encoded = encodedProp ?? searchParams.get("d");
 
   const cardState = useMemo(() => {
     if (!encoded) return null;
@@ -36,7 +41,7 @@ export function ECardView() {
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 p-8 text-center">
         <span className="text-5xl">💌</span>
         <p className="text-2xl font-semibold text-gray-800">Couldn&apos;t read this card</p>
-        <p className="text-gray-500">This link may be invalid or the card may have been made with an older version.</p>
+        <p className="text-gray-500">This link may be invalid or incomplete.</p>
         <Link
           href="/ecard"
           className="rounded-xl bg-rose-500 px-6 py-3 text-lg font-semibold text-white transition hover:bg-rose-600"

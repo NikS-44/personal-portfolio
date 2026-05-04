@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { CardState } from "../_data/types";
 import { encodeCardState } from "../_lib/encodeState";
 import { exportCardAsJpeg } from "../_lib/exportJpeg";
@@ -17,10 +17,35 @@ export function ShareSheet({ state, canvasRef, onSuccess }: ShareSheetProps) {
   const [exporting, setExporting] = useState(false);
   const [whatsappStatus, setWhatsappStatus] = useState<"idle" | "opening">("idle");
   const [smsStatus, setSmsStatus] = useState<"idle" | "opening">("idle");
+  const urlByEncodedRef = useRef<{ encoded: string; url: string } | null>(null);
 
-  function getCardUrl() {
+  /** Prefer `/e/{slug}` when KV is configured; cache per encoded payload for this session */
+  async function resolveShareUrl(): Promise<string> {
     const encoded = encodeCardState(state);
-    return `${window.location.origin}/ecard/view?d=${encoded}`;
+    const cached = urlByEncodedRef.current;
+    if (cached?.encoded === encoded) return cached.url;
+
+    const origin = window.location.origin;
+    const longUrl = `${origin}/e?d=${encoded}`;
+    try {
+      const res = await fetch("/api/ecard/short-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ d: encoded }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { ok?: boolean; slug?: string };
+        if (data.ok && typeof data.slug === "string" && data.slug.length > 0) {
+          const url = `${origin}/e/${data.slug}`;
+          urlByEncodedRef.current = { encoded, url };
+          return url;
+        }
+      }
+    } catch {
+      /* KV unavailable or network — long URL still works */
+    }
+    urlByEncodedRef.current = { encoded, url: longUrl };
+    return longUrl;
   }
 
   async function handleDownload() {
@@ -35,7 +60,7 @@ export function ShareSheet({ state, canvasRef, onSuccess }: ShareSheetProps) {
   }
 
   async function handleCopyLink() {
-    const url = getCardUrl();
+    const url = await resolveShareUrl();
     setCopying(true);
     try {
       if (navigator.share) {
@@ -65,8 +90,8 @@ export function ShareSheet({ state, canvasRef, onSuccess }: ShareSheetProps) {
     }
   }
 
-  function handleWhatsApp() {
-    const url = getCardUrl();
+  async function handleWhatsApp() {
+    const url = await resolveShareUrl();
     const text = encodeURIComponent(`I made you an eCard! Open it here: ${url}`);
     setWhatsappStatus("opening");
     setTimeout(() => {
@@ -78,8 +103,8 @@ export function ShareSheet({ state, canvasRef, onSuccess }: ShareSheetProps) {
     window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank", "noopener,noreferrer");
   }
 
-  function handleSMS() {
-    const url = getCardUrl();
+  async function handleSMS() {
+    const url = await resolveShareUrl();
     const body = encodeURIComponent(`I made you an eCard! Open it here: ${url}`);
     setSmsStatus("opening");
     setTimeout(() => {
@@ -111,7 +136,7 @@ export function ShareSheet({ state, canvasRef, onSuccess }: ShareSheetProps) {
           disabled={copying}
           className="flex h-14 items-center justify-center gap-3 rounded-xl bg-rose-500 px-6 text-lg font-semibold text-white transition hover:bg-rose-600 disabled:opacity-60"
         >
-          {copied ? "✅ Link copied!" : copying ? "Sharing…" : "🔗 Copy share link"}
+          {copied ? "✅ Link copied!" : copying ? "Preparing link…" : "🔗 Copy share link"}
         </button>
 
         {/* SMS */}
