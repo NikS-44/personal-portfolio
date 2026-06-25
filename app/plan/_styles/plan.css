@@ -1,0 +1,31 @@
+.plan-board {
+  --plan-bg: #ebe8e3;
+  --plan-surface: #faf9f7;
+  --plan-border: #e2ded6;
+  --plan-muted: #8a847a;
+  --plan-text: #2c2825;
+  --plan-accent: #5b4fd6;
+  --plan-accent-soft: #edeafd;
+  --plan-today: #eef6ff;
+  --plan-today-border: #93c5fd;
+}
+
+.plan-board {
+  background: var(--plan-bg);
+  color: var(--plan-text);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.plan-board ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.plan-board ::-webkit-scrollbar-thumb {
+  background: #cfc9bf;
+  border-radius: 999px;
+}
+
+.plan-board ::-webkit-scrollbar-track {
+  background: transparent;
+}

@@ -22,7 +22,11 @@ Progress:
   --update-progress writes public/ecard-bg/progress.json like the generator
   (same GEMINI_IMAGE_MODEL / ECARD_BG_ASPECT metadata defaults).
 
-Transient 503 / rate limits:
+Subset batches:
+  If generate_ecard_backgrounds.py wrote job_limit into last_batch_meta.json, use --from-meta.
+  Otherwise set ECARD_BG_JOB_LIMIT to the same integer when pairing responses manually.
+
+Transient errors (503, rate limits, **connection reset**, read timeouts):
   batches.get is retried with backoff (see GEMINI_BATCH_RETRY_* env vars below).
 
 Requires: pip install google-genai
@@ -38,6 +42,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import random
 import sys
 import time
 from pathlib import Path
@@ -63,15 +68,46 @@ from google.genai import errors as genai_errors
 
 
 def _should_retry_batches_get(exc: BaseException) -> bool:
+    """Network blips (RST, timeouts) are retryable; 503/429 etc. from API too."""
+    if isinstance(exc, (BrokenPipeError, ConnectionResetError, InterruptedError)):
+        return True
+    if isinstance(exc, TimeoutError):
+        return True
+    if isinstance(exc, OSError):
+        err_no = getattr(exc, "errno", None)
+        if err_no in (32, 54, 104, 110):  # EPIPE / reset / ETIMEDOUT-ish variants by platform
+            return True
+    msg_l = str(exc).lower()
+    if any(
+        s in msg_l
+        for s in (
+            "connection reset",
+            "broken pipe",
+            "timed out",
+            "timeout",
+            "eof occurred",
+            "temporarily unavailable",
+            "connection aborted",
+            "network is unreachable",
+        )
+    ):
+        return True
+    try:
+        import httpx
+
+        if isinstance(exc, (httpx.ReadError, httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout)):
+            return True
+    except ImportError:
+        pass
+
     code = getattr(exc, "status_code", None)
     if code in (429, 500, 502, 503, 504):
         return True
-    msg = str(exc).lower()
-    if "503" in msg and ("unavailable" in msg or "unavailable." in msg):
+    if "503" in msg_l and "unavailable" in msg_l:
         return True
-    if "429" in msg or ("rate" in msg and "limit" in msg):
+    if "429" in msg_l or ("rate" in msg_l and "limit" in msg_l):
         return True
-    if "500" in msg or "502" in msg or "504" in msg:
+    if any(x in msg_l for x in ("500", "502", "504")):
         return True
     return False
 
@@ -110,7 +146,7 @@ def batches_get_with_retry(client, job_name: str, *, context: str = "batches.get
                 print(f"{context}: gave up after {max_attempts} attempts ({e})", file=sys.stderr)
                 raise
 
-        wait = min(max_wait, delay)
+        wait = min(max_wait, delay) + random.uniform(0.0, 8.0)
         print(
             f"{context}: transient error, retry in {wait:.0f}s (attempt {attempt})…\n  {last_exc}",
             file=sys.stderr,
@@ -136,7 +172,7 @@ def main() -> None:
     parser.add_argument(
         "--from-meta",
         action="store_true",
-        help="Read job_name, start_index, only_categories from ECARD_BG_OUT/last_batch_meta.json",
+        help="Read job_name, start_index, only_categories, job_limit from ECARD_BG_OUT/last_batch_meta.json",
     )
     parser.add_argument(
         "--start-index",
@@ -185,6 +221,7 @@ def main() -> None:
     job_name = normalize_job_name(args.job)
     start_index = args.start_index
 
+    meta_job_limit: int | None = None
     if args.from_meta:
         if not meta_path.is_file():
             print(f"--from-meta requires {meta_path}", file=sys.stderr)
@@ -195,11 +232,19 @@ def main() -> None:
         oc = meta.get("only_categories")
         if oc:
             only_set = frozenset(oc)
+        jl = meta.get("job_limit")
+        if jl is not None:
+            meta_job_limit = int(jl)
 
     if start_index is None:
         start_index = 0
 
     jobs = iter_jobs(only_categories=only_set)
+    jl_env = os.environ.get("ECARD_BG_JOB_LIMIT", "").strip()
+    if meta_job_limit is not None:
+        jobs = jobs[:meta_job_limit]
+    elif jl_env:
+        jobs = jobs[: int(jl_env)]
     if not jobs:
         print("No jobs from catalog (check ECARD_BG_ONLY / meta only_categories).", file=sys.stderr)
         sys.exit(1)

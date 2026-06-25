@@ -15,7 +15,11 @@ Defaults:
 Filter:
   ECARD_BG_ONLY="diwali,holi,birthday"  → only those categories (still 5 prompts each → 225 jobs total unfiltered)
 
-Fetch outputs later (another machine / hung terminal):
+Smoke / subset batch (good when testing API health — use a fresh ECARD_BG_OUT so progress.json does not clash):
+  ECARD_BG_JOB_LIMIT=10 ECARD_BG_START_INDEX=0 ECARD_BG_OUT=/tmp/ecard-bg-smoke \\
+    GEMINI_USE_BATCH=1 python3 scripts/generate_ecard_backgrounds.py
+
+last_batch_meta.json records job_limit when set so fetch_gemini_batch_outputs.py --from-meta stays aligned.
 
   python3 scripts/fetch_gemini_batch_outputs.py --wait --update-progress
 
@@ -193,6 +197,7 @@ def run_batch(
     image_size: str,
     aspect_ratio: str,
     only_categories: list[str] | None = None,
+    catalog_job_limit: int | None = None,
 ) -> None:
     from google.genai import types
 
@@ -223,18 +228,15 @@ def run_batch(
     print(f"Batch job: {job_name}")
 
     meta_path = out_root / "last_batch_meta.json"
-    meta_path.write_text(
-        json.dumps(
-            {
-                "job_name": job_name,
-                "start_index": start_index,
-                "request_count": len(jobs_slice),
-                "only_categories": only_categories,
-            },
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
+    payload = {
+        "job_name": job_name,
+        "start_index": start_index,
+        "request_count": len(jobs_slice),
+        "only_categories": only_categories,
+    }
+    if catalog_job_limit is not None:
+        payload["job_limit"] = catalog_job_limit
+    meta_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print(f"Wrote {meta_path} (fetch outputs: scripts/fetch_gemini_batch_outputs.py)")
 
     terminal = _terminal_batch_states()
@@ -282,6 +284,16 @@ def main() -> None:
         print("No jobs after ECARD_BG_ONLY filter.", file=sys.stderr)
         sys.exit(1)
 
+    catalog_job_limit: int | None = None
+    lim_raw = os.environ.get("ECARD_BG_JOB_LIMIT", "").strip()
+    if lim_raw:
+        catalog_job_limit = int(lim_raw)
+        if catalog_job_limit <= 0:
+            print("ECARD_BG_JOB_LIMIT must be a positive integer.", file=sys.stderr)
+            sys.exit(1)
+        jobs = jobs[:catalog_job_limit]
+        print(f"ECARD_BG_JOB_LIMIT → using first {len(jobs)} job(s) of filtered catalog.")
+
     if os.environ.get("ECARD_BG_PRINT", "").strip().lower() in ("1", "true", "yes"):
         for i, (cid, vk) in enumerate(jobs[: min(3, len(jobs))]):
             print(f"\n--- Sample job {i + 1}: {cid} / {vk} ---\n")
@@ -305,6 +317,10 @@ def main() -> None:
         state = {"next_index": 0, "model": "gemini-3.1-flash-image-preview", "mode": "batch"}
         start_index = 0
 
+    si_env = os.environ.get("ECARD_BG_START_INDEX", "").strip()
+    if si_env:
+        start_index = int(si_env)
+        print(f"ECARD_BG_START_INDEX → resume/start offset set to {start_index}")
     model = os.environ.get("GEMINI_IMAGE_MODEL", "gemini-3.1-flash-image-preview")
     use_batch = os.environ.get("GEMINI_USE_BATCH", "1").strip().lower() not in ("0", "false", "no", "off")
     poll_seconds = float(os.environ.get("BATCH_POLL_SECONDS", "30"))
@@ -335,6 +351,7 @@ def main() -> None:
             image_size=image_size,
             aspect_ratio=aspect_ratio,
             only_categories=sorted(only_set) if only_set else None,
+            catalog_job_limit=catalog_job_limit,
         )
         return
 
