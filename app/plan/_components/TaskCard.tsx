@@ -61,11 +61,23 @@ export default function TaskCard({ task, act, isDraggingOverlay = false }: TaskC
     act({ type: "UPDATE_TASK", taskId: task.id, patch: { priority } });
   };
 
+  const toggleCollapse = () => {
+    act({ type: "TOGGLE_COLLAPSE", taskId: task.id });
+  };
+
+  const handleCardClick = (event: React.MouseEvent<HTMLElement>) => {
+    if (isDraggingOverlay) return;
+    const target = event.target as HTMLElement;
+    if (target.closest("button, input, textarea, select, a, form")) return;
+    toggleCollapse();
+  };
+
   return (
     <article
       ref={isDraggingOverlay ? undefined : setNodeRef}
       style={style}
-      className={`group rounded-xl border border-l-[3px] border-[var(--plan-border)] bg-white shadow-sm transition-shadow hover:shadow-md ${priorityAccentClass(task.priority)} ${
+      onClick={handleCardClick}
+      className={`group cursor-pointer rounded-xl border border-l-[3px] border-[var(--plan-border)] bg-white shadow-sm transition-shadow hover:shadow-md ${priorityAccentClass(task.priority)} ${
         task.completed ? "opacity-55" : ""
       } ${isDraggingOverlay ? "ring-[var(--plan-accent)]/30 shadow-xl ring-2" : ""}`}
     >
@@ -112,15 +124,18 @@ export default function TaskCard({ task, act, isDraggingOverlay = false }: TaskC
                   className="w-full rounded-md border border-[var(--plan-border)] bg-white px-2 py-1 text-[13px] font-medium leading-5 text-[var(--plan-text)]"
                 />
               ) : (
-                <button
-                  type="button"
-                  onClick={() => setEditingTitle(true)}
+                <span
+                  role="presentation"
+                  onDoubleClick={(event) => {
+                    event.stopPropagation();
+                    setEditingTitle(true);
+                  }}
                   className={`block w-full text-left text-[13px] font-medium leading-5 ${
                     task.completed ? "text-[var(--plan-muted)] line-through" : "text-[var(--plan-text)]"
                   }`}
                 >
                   {task.title}
-                </button>
+                </span>
               )}
             </div>
 
@@ -128,7 +143,10 @@ export default function TaskCard({ task, act, isDraggingOverlay = false }: TaskC
               <button
                 type="button"
                 aria-label={task.collapsed ? "Expand task" : "Collapse task"}
-                onClick={() => act({ type: "TOGGLE_COLLAPSE", taskId: task.id })}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  toggleCollapse();
+                }}
                 className="flex h-6 w-6 items-center justify-center rounded text-[var(--plan-muted)] hover:bg-[var(--plan-bg)] hover:text-[var(--plan-text)]"
               >
                 <ChevronIcon collapsed={task.collapsed} />

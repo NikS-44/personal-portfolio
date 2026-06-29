@@ -106,13 +106,13 @@ export default function PlanColumn({
         }}
         className="shrink-0 border-t border-[var(--plan-border)] bg-white/50 p-2.5 backdrop-blur-sm"
       >
-        <div className="flex items-center gap-2 rounded-xl border border-[var(--plan-border)] bg-white px-3 py-2 shadow-sm focus-within:border-[var(--plan-accent)] focus-within:ring-2 focus-within:ring-[var(--plan-accent-soft)]">
-          <span className="text-sm text-[var(--plan-muted)]">+</span>
+        <div className="flex items-center gap-2 rounded-xl border border-[var(--plan-border)] bg-white px-3.5 py-2.5 shadow-sm focus-within:border-[var(--plan-accent)] focus-within:ring-2 focus-within:ring-[var(--plan-accent-soft)]">
+          <span className="shrink-0 text-sm text-[var(--plan-muted)]">+</span>
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="New task"
-            className="min-w-0 flex-1 bg-transparent text-sm text-[var(--plan-text)] placeholder:text-[var(--plan-muted)]"
+            className="min-w-0 flex-1 bg-transparent py-0.5 text-sm text-[var(--plan-text)] placeholder:text-[var(--plan-muted)]"
           />
         </div>
       </form>
