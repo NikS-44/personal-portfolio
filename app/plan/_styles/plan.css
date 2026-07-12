@@ -65,7 +65,11 @@
   --plan-title-pad-y: 0.25rem;
   --plan-title-pad-x: 0.375rem;
   --plan-title-border: 1px;
+  --plan-title-lines: 3;
   --plan-title-row-h: calc(var(--plan-title-line) + (var(--plan-title-pad-y) * 2) + (var(--plan-title-border) * 2));
+  --plan-title-slot-max-h: calc(
+    (var(--plan-title-lines) * var(--plan-title-line)) + (var(--plan-title-pad-y) * 2) + (var(--plan-title-border) * 2)
+  );
   --plan-notes-line: calc(0.75rem * 1.625);
   --plan-notes-pad-y: 0.5rem;
   --plan-notes-pad-x: 0.625rem;
@@ -74,7 +78,11 @@
     (var(--plan-notes-lines) * var(--plan-notes-line)) + (var(--plan-notes-pad-y) * 2) + (var(--plan-title-border) * 2)
   );
   --plan-subtask-line: 1rem;
-  --plan-subtask-row-h: calc(var(--plan-subtask-line) + 0.25rem + (var(--plan-title-border) * 2));
+  --plan-subtask-lines: 3;
+  --plan-subtask-row-min-h: calc(var(--plan-subtask-line) + 0.25rem + (var(--plan-title-border) * 2));
+  --plan-subtask-slot-max-h: calc(
+    (var(--plan-subtask-lines) * var(--plan-subtask-line)) + 0.25rem + (var(--plan-title-border) * 2)
+  );
 }
 
 @media (prefers-color-scheme: dark) {
@@ -1414,12 +1422,19 @@ button.plan-title-slot {
   max-width: 100%;
   cursor: pointer;
   text-align: left;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--plan-title-lines);
+  overflow: hidden;
 }
 
 textarea.plan-title-slot {
   resize: none;
-  overflow: hidden;
-  field-sizing: content;
+  height: var(--plan-title-row-h);
+  min-height: var(--plan-title-row-h);
+  max-height: var(--plan-title-slot-max-h);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .plan-title-slot--editing {
@@ -1494,8 +1509,8 @@ textarea.plan-notes-slot {
   display: grid;
   grid-template-columns: 1rem minmax(0, 1fr) 1.25rem;
   column-gap: var(--plan-control-gap);
-  align-items: center;
-  min-height: var(--plan-subtask-row-h);
+  align-items: start;
+  min-height: var(--plan-subtask-row-min-h);
 }
 
 .plan-subtask-check {
@@ -1505,6 +1520,8 @@ textarea.plan-notes-slot {
   align-items: center;
   justify-content: center;
   justify-self: center;
+  align-self: start;
+  margin-top: 0.1875rem;
   border-radius: 0.1875rem;
   border: 1px solid var(--plan-border);
   background: var(--plan-card-bg);
@@ -1525,22 +1542,31 @@ textarea.plan-notes-slot {
 
 .plan-subtask-slot {
   box-sizing: border-box;
-  height: var(--plan-subtask-row-h);
-  min-height: var(--plan-subtask-row-h);
+  width: 100%;
+  height: auto;
+  min-height: var(--plan-subtask-row-min-h);
+  max-height: var(--plan-subtask-slot-max-h);
   margin: 0;
   padding: 0.125rem 0;
   border: var(--plan-title-border) solid transparent;
+  border-radius: 0.25rem;
   background: transparent;
   font: inherit;
   font-size: 0.75rem;
   line-height: var(--plan-subtask-line);
+  resize: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  field-sizing: content;
   appearance: none;
 }
 
 .plan-subtask-add-slot {
   box-sizing: border-box;
-  height: var(--plan-subtask-row-h);
-  min-height: var(--plan-subtask-row-h);
+  height: var(--plan-subtask-row-min-h);
+  min-height: var(--plan-subtask-row-min-h);
   margin: 0;
   padding: 0.125rem 0.375rem;
   border: var(--plan-title-border) solid var(--plan-border);
@@ -1559,6 +1585,8 @@ textarea.plan-notes-slot {
   align-items: center;
   justify-content: center;
   justify-self: center;
+  align-self: start;
+  margin-top: 0.0625rem;
   border-radius: 0.25rem;
   color: var(--plan-muted);
   opacity: 0;

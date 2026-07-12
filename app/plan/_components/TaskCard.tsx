@@ -40,7 +40,6 @@ export default function TaskCard({ task, act, isDraggingOverlay = false, isBeing
   useEffect(() => {
     if (!editingTitle) return;
     titleRef.current?.focus();
-    growTitleFallback(titleRef.current);
   }, [editingTitle]);
 
   useEffect(() => {
@@ -224,10 +223,7 @@ export default function TaskCard({ task, act, isDraggingOverlay = false, isBeing
                 ref={titleRef}
                 value={titleDraft}
                 rows={1}
-                onChange={(e) => {
-                  setTitleDraft(e.target.value);
-                  growTitleFallback(e.currentTarget);
-                }}
+                onChange={(e) => setTitleDraft(e.target.value)}
                 onBlur={commitTitle}
                 onClick={(event) => event.stopPropagation()}
                 onPointerDown={stopDragActivation}
@@ -386,8 +382,9 @@ export default function TaskCard({ task, act, isDraggingOverlay = false, isBeing
                     >
                       {sub.completed ? <SmallCheckIcon /> : null}
                     </button>
-                    <input
+                    <textarea
                       value={sub.title}
+                      rows={1}
                       onPointerDown={stopDragActivation}
                       onKeyDown={(e) => e.stopPropagation()}
                       onChange={(e) =>
@@ -401,6 +398,7 @@ export default function TaskCard({ task, act, isDraggingOverlay = false, isBeing
                       className={`plan-subtask-slot min-w-0 ${
                         sub.completed ? "text-[var(--plan-muted)] line-through" : "text-[var(--plan-text)]"
                       }`}
+                      aria-label="Subtask"
                     />
                     <button
                       type="button"
@@ -497,14 +495,6 @@ export default function TaskCard({ task, act, isDraggingOverlay = false, isBeing
       </div>
     </article>
   );
-}
-
-/** Height fallback for browsers without `field-sizing: content` (see plan.css). */
-function growTitleFallback(el: HTMLTextAreaElement | null) {
-  // `window.CSS`: the bare global is shadowed by dnd-kit's `CSS` import above.
-  if (!el || (typeof window !== "undefined" && window.CSS?.supports("field-sizing", "content"))) return;
-  el.style.height = "auto";
-  el.style.height = `${el.scrollHeight}px`;
 }
 
 function GripIcon() {
