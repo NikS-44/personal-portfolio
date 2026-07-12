@@ -147,6 +147,7 @@ export default function PlanColumn({
                 hint="Sort by priority"
                 hintId={sortTipId}
                 anchorName={sortAnchor}
+                hintAlign="end"
                 onClick={() => act({ type: "RESET_COLUMN_PRIORITY_SORT", columnKey })}
                 className="plan-sort-btn"
               >
@@ -158,7 +159,10 @@ export default function PlanColumn({
                 type="button"
                 aria-label="Hide backlog"
                 title="Hide backlog"
-                onClick={onToggleCollapsed}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onToggleCollapsed();
+                }}
                 className="plan-sort-btn"
               >
                 ×

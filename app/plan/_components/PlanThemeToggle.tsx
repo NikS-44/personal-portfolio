@@ -36,6 +36,7 @@ export default function PlanThemeToggle() {
       hint={label}
       hintId={tipId}
       anchorName={anchorName}
+      hintAlign="end"
       pressed={scheme !== "system"}
       onClick={cycle}
       className={`plan-menu-btn ${scheme !== "system" ? "plan-menu-btn--active" : ""}`}

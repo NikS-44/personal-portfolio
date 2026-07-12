@@ -529,6 +529,23 @@
   color: var(--plan-on-accent);
 }
 
+.plan-icon-btn-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+@position-try --hint-inline-start {
+  top: calc(anchor(bottom) + 0.375rem);
+  left: anchor(left);
+  translate: 0 0;
+}
+
+@position-try --hint-inline-end {
+  top: calc(anchor(bottom) + 0.375rem);
+  left: anchor(right);
+  translate: -100% 0;
+}
+
 .plan-hint {
   margin: 0;
   border: 0;
@@ -540,18 +557,32 @@
   line-height: 1.2;
   color: var(--plan-bg);
   inset: unset;
+  /* Default: align to button start so left-edge controls (backlog) stay on screen. */
   top: calc(anchor(bottom) + 0.375rem);
-  left: anchor(center);
-  translate: -50% 0;
-  position-try-fallbacks: flip-block;
+  left: anchor(left);
+  translate: 0 0;
+  white-space: nowrap;
+  max-width: min(16rem, calc(100vw - 1rem));
+  position-try-fallbacks: flip-block, --hint-inline-end;
+}
+
+.plan-hint--align-end {
+  left: anchor(right);
+  translate: -100% 0;
+  position-try-fallbacks: flip-block, --hint-inline-start;
 }
 
 @supports not (anchor-name: --x) {
-  .plan-hint {
-    /* Fallback: browsers without anchor positioning keep default popover placement */
-    top: unset;
-    left: unset;
+  .plan-icon-btn-wrap .plan-hint {
+    position: absolute;
+    top: calc(100% + 0.375rem);
+    left: 0;
     translate: none;
+  }
+
+  .plan-icon-btn-wrap .plan-hint--align-end {
+    left: auto;
+    right: 0;
   }
 }
 

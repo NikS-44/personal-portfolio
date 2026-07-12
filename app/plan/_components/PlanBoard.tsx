@@ -87,7 +87,20 @@ export default function PlanBoard() {
     persistBacklogOpen(next);
   };
 
+  const closeBacklogSheet = () => {
+    setBacklogOpenPersisted(false);
+    const dialog = backlogSheetRef.current;
+    if (dialog?.open) {
+      suppressSheetCloseRef.current = true;
+      dialog.close();
+    }
+  };
+
   const toggleBacklog = () => {
+    if (backlogOpen && layoutRef.current === "mobile") {
+      closeBacklogSheet();
+      return;
+    }
     setBacklogOpen((prev) => {
       const next = !prev;
       persistBacklogOpen(next);
@@ -139,7 +152,6 @@ export default function PlanBoard() {
       if (dialog.open) {
         suppressSheetCloseRef.current = true;
         dialog.close();
-        suppressSheetCloseRef.current = false;
       }
       return;
     }
@@ -149,7 +161,6 @@ export default function PlanBoard() {
     } else if (!backlogOpen && dialog.open) {
       suppressSheetCloseRef.current = true;
       dialog.close();
-      suppressSheetCloseRef.current = false;
     }
   }, [backlogOpen, boardLayout]);
 
@@ -259,7 +270,9 @@ export default function PlanBoard() {
   };
 
   const onBacklogSheetClose = () => {
-    if (suppressSheetCloseRef.current) return;
+    const suppressed = suppressSheetCloseRef.current;
+    suppressSheetCloseRef.current = false;
+    if (suppressed) return;
     if (layoutRef.current !== "mobile") return;
     setBacklogOpenPersisted(false);
   };
@@ -279,7 +292,7 @@ export default function PlanBoard() {
       title="Backlog"
       subtitle="Unscheduled"
       isBacklog
-      onToggleCollapsed={() => setBacklogOpenPersisted(false)}
+      onToggleCollapsed={closeBacklogSheet}
       tasks={backlogTasks}
       act={act}
       draggingTaskId={draggingTaskId}
