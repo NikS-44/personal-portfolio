@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import { formatColumnLabel, isWeekendKey, toDayKey } from "../_lib/dates";
 import { parseQuickAdd } from "../_lib/quickAdd";
 import type { PlanAction } from "../_lib/planReducer";
+import { isPriorityOrdered } from "../_lib/priority";
 import { BACKLOG_KEY } from "../_lib/types";
 import type { Task } from "../_lib/types";
 import CompletedTaskRow from "./CompletedTaskRow";
@@ -21,7 +22,6 @@ type PlanColumnProps = {
   onToggleCollapsed?: () => void;
   tasks: Task[];
   act: (action: PlanAction) => void;
-  manualOrder: boolean;
   draggingTaskId: string | null;
 };
 
@@ -34,7 +34,6 @@ export default function PlanColumn({
   onToggleCollapsed,
   tasks,
   act,
-  manualOrder,
   draggingTaskId,
 }: PlanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
@@ -92,7 +91,7 @@ export default function PlanColumn({
         ref={setNodeRef}
         data-column-key={columnKey}
         aria-label={`${title}${subtitle ? `, ${subtitle}` : ""}`}
-        className={`plan-column plan-column--weekend plan-column--dormant flex h-[calc(100dvh-4.5rem)] shrink-0 flex-col overflow-hidden rounded-2xl border shadow-sm ${surfaceClass} ${
+        className={`plan-column plan-column--weekend plan-column--dormant flex h-full shrink-0 flex-col overflow-hidden rounded-2xl border shadow-sm ${surfaceClass} ${
           isOver ? "plan-column--dormant-over" : ""
         }`}
       >
@@ -119,7 +118,7 @@ export default function PlanColumn({
     <section
       data-column-key={columnKey}
       aria-label={`${title}${subtitle ? `, ${subtitle}` : ""}`}
-      className={`plan-column flex h-[calc(100dvh-4.5rem)] w-[17.5rem] shrink-0 flex-col overflow-hidden rounded-2xl border shadow-sm ${surfaceClass}`}
+      className={`plan-column flex h-full w-[17.5rem] shrink-0 flex-col overflow-hidden rounded-2xl border shadow-sm ${surfaceClass}`}
     >
       <header className="shrink-0 border-b border-[var(--plan-border)] px-3.5 py-3">
         <div className="flex items-start justify-between gap-2">
@@ -142,7 +141,7 @@ export default function PlanColumn({
             >
               {openTasks.length}
             </span>
-            {manualOrder && openTasks.length >= 2 ? (
+            {openTasks.length >= 2 && !isPriorityOrdered(openTasks) ? (
               <PlanIconButton
                 label="Sort by priority"
                 hint="Sort by priority"
@@ -205,7 +204,7 @@ export default function PlanColumn({
 
           {openTasks.length === 0 ? (
             <p className="px-1 py-1 text-center text-[11px] text-[var(--plan-muted)]">
-              {isBacklog ? "Queue work here" : "Drop tasks here"}
+              {isBacklog ? "Queue work here" : "No open tasks"}
             </p>
           ) : null}
 

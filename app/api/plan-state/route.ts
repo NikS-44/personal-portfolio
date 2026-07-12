@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getKv } from "@/app/ecard/_lib/shortLinkKv";
 import { sanitizePlanState } from "@/app/plan/_lib/planState";
+import { prunePlanState } from "@/app/plan/_lib/prune";
 import { mergePlanStates, planRevision } from "@/app/plan/_lib/taskMerge";
 import type { PlanState } from "@/app/plan/_lib/types";
 
@@ -38,9 +39,10 @@ function readStored(raw: unknown): StoredSnapshot | null {
   const parsed = raw as Partial<StoredSnapshot>;
   const state = sanitizePlanState(parsed.state);
   if (!state) return null;
+  const pruned = prunePlanState(state);
   return {
-    state,
-    updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : planRevision(state),
+    state: pruned,
+    updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : planRevision(pruned),
   };
 }
 
@@ -66,7 +68,7 @@ export async function PUT(request: Request) {
   }
 
   const existing = readStored(await kv.get(KV_KEY));
-  const merged = existing ? mergePlanStates(existing.state, incoming) : incoming;
+  const merged = existing ? mergePlanStates(existing.state, incoming) : prunePlanState(incoming);
   const updatedAt = planRevision(merged);
   const snapshot: StoredSnapshot = { state: merged, updatedAt };
   await kv.set(KV_KEY, snapshot);

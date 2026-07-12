@@ -1,4 +1,5 @@
 import { createInitialState, sanitizePlanState } from "./planState";
+import { prunePlanState } from "./prune";
 import type { PlanGraveyard, PlanState, Task } from "./types";
 
 export type SyncTaskRecord = { kind: "live"; task: Task } | { kind: "tombstone"; id: string; deletedAt: string };
@@ -30,8 +31,9 @@ function pickRecord(a: SyncTaskRecord | undefined, b: SyncTaskRecord | undefined
 /**
  * Per-task LWW merge with delete tombstones. Meta fields use metaUpdatedAt.
  * Never drops a remote-only or local-only task unless a newer tombstone says so.
+ * Applies completed-task retention after merge.
  */
-export function mergePlanStates(local: PlanState, remote: PlanState): PlanState {
+export function mergePlanStates(local: PlanState, remote: PlanState, now: Date = new Date()): PlanState {
   const localMap = toRecordMap(local);
   const remoteMap = toRecordMap(remote);
   const ids = Array.from(new Set([...Array.from(localMap.keys()), ...Array.from(remoteMap.keys())]));
@@ -48,14 +50,17 @@ export function mergePlanStates(local: PlanState, remote: PlanState): PlanState 
 
   const metaSource = remote.metaUpdatedAt > local.metaUpdatedAt ? remote : local;
 
-  return {
-    tasks,
-    graveyard,
-    fixedWeekStart: metaSource.fixedWeekStart,
-    manualOrderColumns: metaSource.manualOrderColumns,
-    viewMode: metaSource.viewMode,
-    metaUpdatedAt: metaSource.metaUpdatedAt,
-  };
+  return prunePlanState(
+    {
+      tasks,
+      graveyard,
+      fixedWeekStart: metaSource.fixedWeekStart,
+      manualOrderColumns: metaSource.manualOrderColumns,
+      viewMode: metaSource.viewMode,
+      metaUpdatedAt: metaSource.metaUpdatedAt,
+    },
+    now,
+  );
 }
 
 /** Board revision clock for debounce / status UI (max of meta + task/tombstone times). */

@@ -1,11 +1,13 @@
 import { rollOverIncompleteTasks, toDayKey } from "./dates";
 import { createInitialState, sanitizePlanState } from "./planState";
+import { prunePlanState } from "./prune";
 import type { PlanState } from "./types";
 
 const STORAGE_KEY = "plan-board-v2";
 const UPDATED_AT_KEY = "plan-board-updated-at-v2";
 
 export { createInitialState, sanitizePlanState, sanitizeTask, sanitizeGraveyard } from "./planState";
+export { prunePlanState, COMPLETED_RETENTION_MONTHS } from "./prune";
 
 export function loadPlanState(): PlanState {
   if (typeof window === "undefined") return createInitialState();
@@ -17,7 +19,8 @@ export function loadPlanState(): PlanState {
     const state = sanitizePlanState(JSON.parse(raw));
     if (!state) return createInitialState();
 
-    return { ...state, tasks: rollOverIncompleteTasks(state.tasks, toDayKey(new Date())) };
+    const pruned = prunePlanState(state);
+    return { ...pruned, tasks: rollOverIncompleteTasks(pruned.tasks, toDayKey(new Date())) };
   } catch {
     return createInitialState();
   }
@@ -59,7 +62,8 @@ export function parseBackup(text: string): PlanState | null {
   try {
     const parsed = JSON.parse(text) as Partial<BackupFile> | PlanState;
     const candidate = typeof parsed === "object" && parsed !== null && "state" in parsed ? parsed.state : parsed;
-    return sanitizePlanState(candidate);
+    const state = sanitizePlanState(candidate);
+    return state ? prunePlanState(state) : null;
   } catch {
     return null;
   }

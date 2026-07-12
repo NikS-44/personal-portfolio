@@ -14,7 +14,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type HTMLAttributes, type MouseEvent } from "react";
 import type { Task } from "../_lib/types";
 import { BACKLOG_KEY } from "../_lib/types";
 import { usePlanBoard, type DropTarget } from "../_lib/usePlanBoard";
@@ -27,6 +27,9 @@ import TaskCard from "./TaskCard";
 import WeekSeparator from "./WeekSeparator";
 
 const BACKLOG_OPEN_KEY = "plan-backlog-open";
+const MOBILE_MQ = "(max-width: 640px)";
+
+type BoardLayout = "unknown" | "mobile" | "desktop";
 
 export default function PlanBoard() {
   const {
@@ -55,56 +58,107 @@ export default function PlanBoard() {
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
   const dropTargetRef = useRef<DropTarget | null>(null);
-  const [backlogOpen, setBacklogOpen] = useState(true);
+  const [backlogOpen, setBacklogOpen] = useState(false);
+  const [boardLayout, setBoardLayout] = useState<BoardLayout>("unknown");
   const backlogPinRef = useRef<HTMLElement>(null);
+  const backlogSheetRef = useRef<HTMLDialogElement>(null);
+  const layoutRef = useRef<BoardLayout>("unknown");
+  const suppressSheetCloseRef = useRef(false);
   const backlogTipId = useId();
   const backlogAnchor = "--plan-backlog-menu";
+
+  layoutRef.current = boardLayout;
 
   const updateDropTarget = (target: DropTarget | null) => {
     dropTargetRef.current = target;
     setDropTarget(target);
   };
 
+  const persistBacklogOpen = (next: boolean) => {
+    try {
+      window.localStorage.setItem(BACKLOG_OPEN_KEY, next ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const setBacklogOpenPersisted = (next: boolean) => {
+    setBacklogOpen(next);
+    persistBacklogOpen(next);
+  };
+
+  const toggleBacklog = () => {
+    setBacklogOpen((prev) => {
+      const next = !prev;
+      persistBacklogOpen(next);
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MQ);
+    const sync = () => {
+      setBoardLayout(mq.matches ? "mobile" : "desktop");
+    };
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
   useEffect(() => {
     const pin = backlogPinRef.current;
     if (pin) pin.inert = !backlogOpen;
-  }, [backlogOpen]);
+  }, [backlogOpen, boardLayout]);
 
   useEffect(() => {
     try {
+      const mobile = window.matchMedia(MOBILE_MQ).matches;
+      // Sheet should not auto-open on phones; desktop restores pin preference.
+      if (mobile) {
+        setBacklogOpen(false);
+        return;
+      }
       const raw = window.localStorage.getItem(BACKLOG_OPEN_KEY);
       if (raw === "0") setBacklogOpen(false);
-      if (raw === "1") setBacklogOpen(true);
-      // Migrate old collapsed key
-      if (raw == null && window.localStorage.getItem("plan-backlog-collapsed") === "1") {
+      else if (raw === "1") setBacklogOpen(true);
+      else if (window.localStorage.getItem("plan-backlog-collapsed") === "1") {
         setBacklogOpen(false);
-      }
-      // No stored preference on a phone: the backlog is an overlay there, start closed.
-      if (raw == null && window.matchMedia("(max-width: 640px)").matches) {
-        setBacklogOpen(false);
+      } else {
+        setBacklogOpen(true);
       }
     } catch {
       /* ignore */
     }
   }, []);
 
-  const toggleBacklog = () => {
-    setBacklogOpen((prev) => {
-      const next = !prev;
-      try {
-        window.localStorage.setItem(BACKLOG_OPEN_KEY, next ? "1" : "0");
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
-  };
+  useEffect(() => {
+    const dialog = backlogSheetRef.current;
+    if (!dialog) return;
 
-  const sensors = useSensors(
+    if (boardLayout !== "mobile") {
+      if (dialog.open) {
+        suppressSheetCloseRef.current = true;
+        dialog.close();
+        suppressSheetCloseRef.current = false;
+      }
+      return;
+    }
+
+    if (backlogOpen && !dialog.open) {
+      dialog.showModal();
+    } else if (!backlogOpen && dialog.open) {
+      suppressSheetCloseRef.current = true;
+      dialog.close();
+      suppressSheetCloseRef.current = false;
+    }
+  }, [backlogOpen, boardLayout]);
+
+  const desktopSensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 160, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+  const sensors = boardLayout === "mobile" ? [] : desktopSensors;
 
   /* ── Global keyboard shortcuts (card-level ones live in TaskCard) ── */
 
@@ -204,8 +258,33 @@ export default function PlanBoard() {
     updateDropTarget(null);
   };
 
+  const onBacklogSheetClose = () => {
+    if (suppressSheetCloseRef.current) return;
+    if (layoutRef.current !== "mobile") return;
+    setBacklogOpenPersisted(false);
+  };
+
+  const onBacklogSheetClick = (event: MouseEvent<HTMLDialogElement>) => {
+    if ("closedBy" in HTMLDialogElement.prototype) return;
+    if (event.target !== event.currentTarget) return;
+    event.currentTarget.close();
+  };
+
   const backlogTasks = displayByColumn.get(BACKLOG_KEY) ?? [];
   const backlogOpenCount = backlogTasks.filter((t) => !t.completed).length;
+
+  const backlogColumn = (
+    <PlanColumn
+      columnKey={BACKLOG_KEY}
+      title="Backlog"
+      subtitle="Unscheduled"
+      isBacklog
+      onToggleCollapsed={() => setBacklogOpenPersisted(false)}
+      tasks={backlogTasks}
+      act={act}
+      draggingTaskId={draggingTaskId}
+    />
+  );
 
   if (!hydrated) {
     return (
@@ -224,7 +303,7 @@ export default function PlanBoard() {
       onDragEnd={onDragEnd}
       onDragCancel={onDragCancel}
     >
-      <main id="plan-board" tabIndex={-1} className="flex min-h-dvh flex-col outline-none">
+      <main id="plan-board" tabIndex={-1} className="flex min-h-0 flex-col outline-none">
         <header className="bg-[var(--plan-surface)]/90 sticky top-0 z-20 flex shrink-0 items-center justify-between gap-4 border-b border-[var(--plan-border)] px-4 py-3 backdrop-blur-md">
           <div className="flex min-w-0 items-center gap-3">
             <PlanIconButton
@@ -318,30 +397,20 @@ export default function PlanBoard() {
         </header>
 
         <div className="plan-board-body flex min-h-0 flex-1">
-          <aside
-            ref={backlogPinRef}
-            className={`plan-backlog-pin shrink-0 ${backlogOpen ? "plan-backlog-pin--open" : "plan-backlog-pin--closed"}`}
-            aria-hidden={!backlogOpen}
-          >
-            <div className="plan-backlog-pin__inner">
-              <PlanColumn
-                columnKey={BACKLOG_KEY}
-                title="Backlog"
-                subtitle="Unscheduled"
-                isBacklog
-                onToggleCollapsed={toggleBacklog}
-                tasks={backlogTasks}
-                act={act}
-                manualOrder={state.manualOrderColumns.includes(BACKLOG_KEY)}
-                draggingTaskId={draggingTaskId}
-              />
-            </div>
-          </aside>
+          {boardLayout === "desktop" ? (
+            <aside
+              ref={backlogPinRef}
+              className={`plan-backlog-pin shrink-0 ${backlogOpen ? "plan-backlog-pin--open" : "plan-backlog-pin--closed"}`}
+              aria-hidden={!backlogOpen}
+            >
+              <div className="plan-backlog-pin__inner">{backlogColumn}</div>
+            </aside>
+          ) : null}
 
           <div className="plan-board-scroll relative flex min-h-0 min-w-0 flex-1">
             <div className="plan-scroll-edge plan-scroll-edge--start" aria-hidden="true" />
             <div
-              className={`plan-board-scroll__body flex min-h-0 min-w-0 flex-1 gap-3 overflow-x-auto px-4 py-4 ${
+              className={`plan-board-scroll__body flex min-h-0 min-w-0 flex-1 gap-3 overflow-x-auto overflow-y-hidden px-4 py-4 ${
                 viewMode === "today" ? "plan-board-scroll__body--today" : ""
               }`}
               aria-label="Day columns"
@@ -358,10 +427,9 @@ export default function PlanBoard() {
                     columnKey={segment.dayKey}
                     title={meta.title}
                     subtitle={meta.subtitle}
-                    isToday={meta.isToday}
+                    isToday={meta.isToday && viewMode !== "today"}
                     tasks={displayByColumn.get(segment.dayKey) ?? []}
                     act={act}
-                    manualOrder={state.manualOrderColumns.includes(segment.dayKey)}
                     draggingTaskId={draggingTaskId}
                   />
                 );
@@ -373,6 +441,20 @@ export default function PlanBoard() {
 
         <PlanToast toast={toast} onUndo={undoToast} onDismiss={dismissToast} />
       </main>
+
+      {boardLayout === "mobile" ? (
+        <dialog
+          ref={backlogSheetRef}
+          className="plan-backlog-sheet"
+          aria-label="Backlog"
+          onClose={onBacklogSheetClose}
+          onClick={onBacklogSheetClick}
+          {...({ closedby: "any" } as HTMLAttributes<HTMLDialogElement>)}
+        >
+          <div className="plan-backlog-sheet__handle" aria-hidden="true" />
+          <div className="plan-backlog-sheet__body">{backlogColumn}</div>
+        </dialog>
+      ) : null}
 
       <DragOverlay dropAnimation={null}>
         {activeTask ? (

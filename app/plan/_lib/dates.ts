@@ -47,6 +47,15 @@ export function isWeekendKey(key: string): boolean {
   return day === 0 || day === 6;
 }
 
+/** Next Mon–Fri strictly after `dayKey`. */
+export function nextWorkday(dayKey: string): string {
+  let cur = addDays(dayKey, 1);
+  while (!isWorkdayKey(cur)) {
+    cur = addDays(cur, 1);
+  }
+  return cur;
+}
+
 /** First visible workday in the default rolling view (today, or next Mon on weekends). */
 export function getRollingStartAnchor(todayKey: string): string {
   const day = parseDayKey(todayKey).getDay();

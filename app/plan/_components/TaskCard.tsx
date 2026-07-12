@@ -3,7 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useId, useRef, useState, type CSSProperties, type HTMLAttributes } from "react";
-import { addDays, formatOverdueFrom, formatTaskAge, getNextMondayFrom, parseDayKey, toDayKey } from "../_lib/dates";
+import { addDays, formatOverdueFrom, formatTaskAge, nextWorkday, parseDayKey, toDayKey } from "../_lib/dates";
 import type { PlanAction } from "../_lib/planReducer";
 import type { Priority } from "../_lib/types";
 import { BACKLOG_KEY } from "../_lib/types";
@@ -111,11 +111,18 @@ export default function TaskCard({ task, act, isDraggingOverlay = false, isBeing
     const push = (label: string, dayKey: string) => {
       if (dayKey !== task.dayKey && !options.some((o) => o.dayKey === dayKey)) options.push({ label, dayKey });
     };
+    const dayLabel = (dayKey: string) =>
+      parseDayKey(dayKey).toLocaleDateString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
+
     push("Today", today);
-    push("Tomorrow", addDays(today, 1));
-    const saturday = addDays(today, (6 - parseDayKey(today).getDay() + 7) % 7);
-    push("This weekend", saturday);
-    push("Next Monday", getNextMondayFrom(addDays(today, 1)));
+    const first = nextWorkday(today);
+    const second = nextWorkday(first);
+    push(first === addDays(today, 1) ? "Tomorrow" : dayLabel(first), first);
+    push(dayLabel(second), second);
     push("Backlog", BACKLOG_KEY);
     return options;
   };
@@ -242,7 +249,7 @@ export default function TaskCard({ task, act, isDraggingOverlay = false, isBeing
               <button
                 type="button"
                 onClick={startTitleEdit}
-                className={`plan-title-slot hover:bg-[var(--plan-bg)]/70 w-full text-left transition-colors ${
+                className={`plan-title-slot hover:bg-[var(--plan-bg)]/70 text-left transition-colors ${
                   task.completed ? "text-[var(--plan-muted)] line-through" : "text-[var(--plan-text)]"
                 }`}
               >
@@ -348,18 +355,21 @@ export default function TaskCard({ task, act, isDraggingOverlay = false, isBeing
                   className="plan-notes-slot w-full resize-y text-[var(--plan-text)]"
                 />
               ) : (
-                <button
-                  type="button"
-                  onPointerDown={stopDragActivation}
-                  onClick={() => {
-                    if (shouldSkipClick()) return;
-                    setNotesDraft(task.notes);
-                    setEditingNotes(true);
-                  }}
-                  className="plan-notes-slot w-full text-left text-[var(--plan-muted)] transition-colors"
-                >
-                  <span className="plan-notes-slot__text">{task.notes.trim() ? task.notes : "Add notes…"}</span>
-                </button>
+                <div className="plan-notes-slot plan-notes-slot--idle">
+                  <button
+                    type="button"
+                    onPointerDown={stopDragActivation}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (shouldSkipClick()) return;
+                      setNotesDraft(task.notes);
+                      setEditingNotes(true);
+                    }}
+                    className="plan-notes-slot__hit text-[var(--plan-muted)]"
+                  >
+                    <span className="plan-notes-slot__text">{task.notes.trim() ? task.notes : "Add notes…"}</span>
+                  </button>
+                </div>
               )}
             </div>
 

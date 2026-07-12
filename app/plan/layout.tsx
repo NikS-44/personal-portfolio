@@ -27,7 +27,7 @@ const PLAN_THEME_BOOT =
 
 export default function PlanLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="plan-board min-h-dvh">
+    <div className="plan-board">
       <script dangerouslySetInnerHTML={{ __html: PLAN_THEME_BOOT }} />
       <a href="#plan-board" className="plan-skip-link">
         Skip to board

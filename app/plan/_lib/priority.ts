@@ -13,6 +13,16 @@ export function compareByPriority(a: Task, b: Task): number {
   return a.sortOrder - b.sortOrder;
 }
 
+/** True when open tasks are already in non-decreasing priority order (p0→p3). */
+export function isPriorityOrdered(tasks: Task[]): boolean {
+  for (let i = 1; i < tasks.length; i += 1) {
+    if (PRIORITY_RANK[tasks[i].priority] < PRIORITY_RANK[tasks[i - 1].priority]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function sortTasksForColumn(tasks: Task[], manualOrder: boolean): Task[] {
   const list = [...tasks];
   if (manualOrder) {

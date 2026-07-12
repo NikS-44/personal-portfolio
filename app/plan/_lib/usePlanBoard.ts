@@ -32,6 +32,8 @@ export type PlanToastData = {
 };
 
 const SYNC_DEBOUNCE_MS = 1500;
+/** Pull+merge while the tab stays open; paused when hidden. */
+const SYNC_POLL_MS = 30_000;
 
 function withRollover(state: PlanState, todayKey: string): PlanState {
   return {
@@ -44,12 +46,18 @@ export function usePlanBoard() {
   const [history, dispatch] = useReducer(historyReducer, createInitialState(), createHistory);
   const [hydrated, setHydrated] = useState(false);
   const [toast, setToast] = useState<PlanToastData | null>(null);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>("unknown");
+  const [syncStatus, setSyncStatusState] = useState<SyncStatus>("unknown");
+  const syncStatusRef = useRef<SyncStatus>("unknown");
   const syncEnabledRef = useRef(false);
   const allowPushRef = useRef(false);
   const toastIdRef = useRef(0);
   const historyRef = useRef(history);
   historyRef.current = history;
+
+  const setSyncStatus = useCallback((next: SyncStatus) => {
+    syncStatusRef.current = next;
+    setSyncStatusState(next);
+  }, []);
 
   const state = history.present;
   const todayKey = useMemo(() => toDayKey(new Date()), []);
@@ -87,7 +95,7 @@ export function usePlanBoard() {
     return () => {
       cancelled = true;
     };
-  }, [todayKey]);
+  }, [todayKey, setSyncStatus]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -114,13 +122,14 @@ export function usePlanBoard() {
       setSyncStatus("synced");
     }, SYNC_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [state, hydrated, todayKey]);
+  }, [state, hydrated, todayKey, setSyncStatus]);
 
   useEffect(() => {
     if (!hydrated) return;
 
     const pullAndMerge = async () => {
-      if (!syncEnabledRef.current || syncStatus === "pending") return;
+      if (!syncEnabledRef.current || syncStatusRef.current === "pending") return;
+      if (document.visibilityState !== "visible") return;
       const { available, snapshot } = await fetchRemoteState();
       if (!available || !snapshot) return;
       const localPresent = historyRef.current.present;
@@ -139,11 +148,16 @@ export function usePlanBoard() {
 
     window.addEventListener("focus", pullAndMerge);
     document.addEventListener("visibilitychange", onVisibility);
+    const poll = window.setInterval(() => {
+      void pullAndMerge();
+    }, SYNC_POLL_MS);
+
     return () => {
       window.removeEventListener("focus", pullAndMerge);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.clearInterval(poll);
     };
-  }, [hydrated, todayKey, syncStatus]);
+  }, [hydrated, todayKey, setSyncStatus]);
   /* ── Toasts (undo affordance for destructive-ish actions) ── */
 
   const notify = useCallback((message: string, undoable = false) => {

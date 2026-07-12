@@ -100,6 +100,8 @@
   background: var(--plan-bg);
   color: var(--plan-text);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .plan-board ::-webkit-scrollbar {
@@ -155,7 +157,8 @@
 
 .plan-column {
   content-visibility: auto;
-  contain-intrinsic-size: auto 17.5rem auto calc(100dvh - 4.5rem);
+  /* Placeholder size while offscreen; height comes from flex stretch, not dvh. */
+  contain-intrinsic-size: auto 17.5rem auto 36rem;
 }
 
 .plan-card {
@@ -219,6 +222,12 @@
   overscroll-behavior-x: contain;
   scrollbar-gutter: stable;
   container-type: scroll-state;
+}
+
+#plan-board {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .plan-column-scroll__body {
@@ -289,6 +298,94 @@
   border-color: color-mix(in srgb, var(--plan-text) 14%, var(--plan-border));
   background: var(--plan-backlog-surface);
   box-shadow: none;
+}
+
+/* ── Mobile backlog bottom sheet ── */
+
+.plan-backlog-sheet {
+  position: fixed;
+  inset: auto 0 0 0;
+  width: 100%;
+  max-width: 100%;
+  height: min(85svh, 100%);
+  max-height: min(85svh, 100%);
+  margin: 0;
+  padding: 0.5rem 0.75rem 0.75rem;
+  border: none;
+  border-radius: 1.1rem 1.1rem 0 0;
+  background: var(--plan-backlog-pin-bg);
+  color: var(--plan-text);
+  box-shadow: 0 -12px 40px rgb(var(--plan-shadow) / 0.28);
+  opacity: 0;
+  transform: translateY(1rem);
+  transition-property: opacity, transform, display, overlay;
+  transition-duration: 0.28s;
+  transition-timing-function: ease-out;
+  transition-behavior: allow-discrete;
+}
+
+.plan-backlog-sheet[open] {
+  opacity: 1;
+  transform: translateY(0);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+}
+
+.plan-backlog-sheet::backdrop {
+  background-color: rgb(0 0 0 / 0);
+  transition:
+    display 0.28s allow-discrete,
+    overlay 0.28s allow-discrete,
+    background-color 0.28s ease-out;
+}
+
+.plan-backlog-sheet[open]::backdrop {
+  background-color: rgb(0 0 0 / 0.45);
+
+  @starting-style {
+    background-color: rgb(0 0 0 / 0);
+  }
+}
+
+.plan-backlog-sheet__handle {
+  width: 2.5rem;
+  height: 0.28rem;
+  margin: 0.15rem auto 0.65rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--plan-muted) 55%, transparent);
+}
+
+.plan-backlog-sheet__body {
+  display: flex;
+  height: calc(100% - 1.1rem);
+  min-height: 0;
+}
+
+.plan-backlog-sheet__body .plan-column {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  border-radius: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-backlog-sheet,
+  .plan-backlog-sheet::backdrop {
+    transition-duration: 0.01ms;
+  }
+
+  .plan-backlog-sheet {
+    transform: none;
+  }
+
+  .plan-backlog-sheet[open] {
+    @starting-style {
+      transform: none;
+    }
+  }
 }
 
 .plan-column--weekend {
@@ -1281,6 +1378,9 @@
 }
 
 button.plan-title-slot {
+  /* Shrink to the label so empty title-row space can toggle the card. */
+  width: fit-content;
+  max-width: 100%;
   cursor: pointer;
   text-align: left;
 }
@@ -1311,19 +1411,37 @@ textarea.plan-title-slot {
   appearance: none;
 }
 
-button.plan-notes-slot {
-  /* Explicit flex-start: Blink/WebKit otherwise vertically center button contents. */
+.plan-notes-slot--idle {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
   overflow: hidden;
-  cursor: pointer;
-  text-align: left;
 }
 
-button.plan-notes-slot:hover {
+.plan-notes-slot--idle:hover {
   border-color: color-mix(in srgb, var(--plan-accent) 40%, transparent);
+}
+
+.plan-notes-slot__hit {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0.125rem;
+  background: transparent;
+  font: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+}
+
+.plan-notes-slot__hit:hover {
+  color: var(--plan-text);
 }
 
 .plan-notes-slot__text {
@@ -1335,6 +1453,7 @@ button.plan-notes-slot:hover {
 }
 
 textarea.plan-notes-slot {
+  width: 100%;
   overflow: auto;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
@@ -1640,13 +1759,20 @@ textarea.plan-notes-slot {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--plan-danger-fg) 25%, transparent);
 }
 
-/* ── Mobile (≤640px): near-full-width snap columns, backlog as overlay drawer ── */
+/* ── Mobile (≤640px): near-full-width snap columns, backlog as modal sheet ── */
 
 .plan-board-body {
   position: relative;
 }
 
 @media (max-width: 640px) {
+  .plan-board,
+  #plan-board {
+    /* Avoid mobile browser chrome resizing the board (dvh jumps). */
+    height: 100svh;
+    max-height: 100svh;
+  }
+
   #plan-board > header {
     flex-wrap: wrap;
     padding-inline: 0.75rem;
@@ -1693,45 +1819,44 @@ textarea.plan-notes-slot {
     min-width: 2rem;
   }
 
-  /* Header may wrap to two rows; let columns stretch instead of assuming its height */
   .plan-board .plan-column {
-    height: auto;
+    height: 100%;
   }
 
   .plan-board .plan-board-scroll__body {
-    gap: 0.625rem;
-    padding: 0.75rem;
-    scroll-snap-type: x proximity;
+    gap: 0.75rem;
+    padding-block: 0.75rem;
+    /* Match scroll-padding so start-snap lands on the padded edge, not 100vw math. */
+    padding-inline: 0.75rem;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 0.75rem;
+    /* Gutter shifts snap math on narrow screens; overlay scrollbars are fine here. */
+    scrollbar-gutter: auto;
   }
 
   .plan-board .plan-column {
-    width: min(calc(100vw - 3.25rem), 19rem);
-    scroll-snap-align: center;
-    contain-intrinsic-size: auto min(calc(100vw - 3.25rem), 19rem) auto calc(100dvh - 4.5rem);
+    /* % of the scroller content box — more reliable than 100vw for mandatory snap. */
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: none;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    contain-intrinsic-size: auto 100% auto 36rem;
   }
 
   .plan-board .plan-column--dormant {
+    flex: 0 0 4.75rem;
     width: 4.75rem;
+    /* Don't compete with day columns for snap points. */
     scroll-snap-align: none;
   }
 
-  /* Backlog floats over the day columns instead of pinning beside them */
-  .plan-backlog-pin {
-    position: absolute;
-    inset-block: 0;
-    left: 0;
-    z-index: 10;
-    padding-block: 0.75rem;
+  .plan-board .plan-board-scroll__body > [role="separator"] {
+    scroll-snap-align: none;
   }
 
-  .plan-backlog-pin--open {
-    padding-inline: 0.75rem 0.5rem;
-    box-shadow:
-      1px 0 0 var(--plan-backlog-pin-inset) inset,
-      18px 0 44px rgb(var(--plan-shadow) / 0.3);
-  }
-
-  .plan-backlog-pin .plan-column {
-    width: min(calc(100vw - 4.25rem), 19rem);
+  /* Drag is disabled on mobile; hide the grip affordance. */
+  .plan-card__drag {
+    display: none;
   }
 }
