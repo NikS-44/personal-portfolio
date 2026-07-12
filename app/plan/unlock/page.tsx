@@ -15,7 +15,7 @@ export default function PlanUnlockPage() {
     const res = await fetch("/api/plan-unlock", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ key }),
+      body: JSON.stringify({ key: key.trim() }),
     }).catch(() => null);
 
     if (res?.ok) {

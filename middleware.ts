@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 export const config = {
-  matcher: ["/plan/:path*", "/api/plan-state"],
+  // Include bare `/plan` — `:path*` alone is easy to misread; be explicit.
+  matcher: ["/plan", "/plan/:path*", "/api/plan-state"],
 };
 
 /**

@@ -9,12 +9,28 @@ type StoredSnapshot = {
   updatedAt: string;
 };
 
+/** Read a cookie value the same way middleware does (URL-decoded). */
+function cookieValue(request: Request, name: string): string | undefined {
+  const header = request.headers.get("cookie");
+  if (!header) return undefined;
+  for (const part of header.split(/;\s*/)) {
+    const eq = part.indexOf("=");
+    if (eq === -1) continue;
+    if (part.slice(0, eq) !== name) continue;
+    try {
+      return decodeURIComponent(part.slice(eq + 1));
+    } catch {
+      return part.slice(eq + 1);
+    }
+  }
+  return undefined;
+}
+
 /** Middleware already gates this route by cookie; re-check here as defense in depth. */
 function authorized(request: Request): boolean {
   const secret = process.env.PLANNER_SECRET;
   if (!secret) return false;
-  const cookies = request.headers.get("cookie") ?? "";
-  return cookies.split(/;\s*/).includes(`plan-key=${secret}`);
+  return cookieValue(request, "plan-key") === secret;
 }
 
 export async function GET(request: Request) {
