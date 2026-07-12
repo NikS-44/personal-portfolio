@@ -19,20 +19,28 @@ export type Task = {
   dayKey: string;
   sortOrder: number;
   createdAt: string;
+  /** Last mutation to this task (sync LWW). */
+  updatedAt: string;
   /** Day the task originally slipped from; set by rollover, cleared on move/complete */
   overdueFrom?: string | null;
 };
+
+/** id → ISO deletedAt — tombstones so deletes survive cross-device sync. */
+export type PlanGraveyard = Record<string, string>;
 
 export type ViewMode = "today" | "week";
 
 export type PlanState = {
   tasks: Task[];
+  graveyard: PlanGraveyard;
   /** When set, show that Mon–Fri week only; `null` = rolling view from today + next week */
   fixedWeekStart: string | null;
   /** Columns where the user has manually reordered (skip priority sort) */
   manualOrderColumns: string[];
   /** Today focus vs full week board */
   viewMode: ViewMode;
+  /** Last change to board meta (view / column order), not individual tasks. */
+  metaUpdatedAt: string;
 };
 
 export const BACKLOG_KEY = "backlog";

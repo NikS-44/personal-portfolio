@@ -108,10 +108,16 @@ export function formatTaskAge(createdAt: string, todayKey: string): TaskAge | nu
 
 /** Move incomplete past-due tasks to today, remembering where they slipped from. */
 export function rollOverIncompleteTasks(tasks: Task[], todayKey: string): Task[] {
+  const ts = new Date().toISOString();
   return tasks.map((task) => {
     if (task.completed || task.dayKey === "backlog") return task;
     if (task.dayKey < todayKey) {
-      return { ...task, dayKey: todayKey, overdueFrom: task.overdueFrom ?? task.dayKey };
+      return {
+        ...task,
+        dayKey: todayKey,
+        overdueFrom: task.overdueFrom ?? task.dayKey,
+        updatedAt: ts,
+      };
     }
     return task;
   });

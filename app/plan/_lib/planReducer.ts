@@ -24,17 +24,26 @@ function newId(): string {
   return crypto.randomUUID();
 }
 
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+function touchTask(task: Task, patch: Partial<Task> = {}): Task {
+  return { ...task, ...patch, updatedAt: nowIso() };
+}
+
 function tasksInColumn(tasks: Task[], columnKey: string): Task[] {
   return tasks.filter((t) => t.dayKey === columnKey);
 }
 
 function reindexColumn(tasks: Task[], columnKey: string, orderedIds: string[]): Task[] {
   const orderMap = new Map(orderedIds.map((id, index) => [id, index]));
+  const ts = nowIso();
   return tasks.map((task) => {
     if (task.dayKey !== columnKey) return task;
     const index = orderMap.get(task.id);
-    if (index === undefined) return task;
-    return { ...task, sortOrder: index };
+    if (index === undefined || task.sortOrder === index) return task;
+    return { ...task, sortOrder: index, updatedAt: ts };
   });
 }
 
@@ -51,6 +60,10 @@ function markColumnManual(state: PlanState, columnKey: string): string[] {
   return [...state.manualOrderColumns, columnKey];
 }
 
+function touchMeta(state: PlanState, patch: Partial<PlanState>): PlanState {
+  return { ...state, ...patch, metaUpdatedAt: nowIso() };
+}
+
 export function planReducer(state: PlanState, action: PlanAction): PlanState {
   switch (action.type) {
     case "HYDRATE":
@@ -63,6 +76,7 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
       const sortOrder = state.manualOrderColumns.includes(action.columnKey)
         ? columnTasks.length
         : nextSortOrderForPriority(columnTasks, priority);
+      const ts = nowIso();
 
       const task: Task = {
         id: newId(),
@@ -75,24 +89,33 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
         collapsed: true,
         dayKey: action.columnKey,
         sortOrder,
-        createdAt: new Date().toISOString(),
+        createdAt: ts,
+        updatedAt: ts,
         overdueFrom: null,
       };
 
-      return { ...state, tasks: [...state.tasks, task] };
+      const graveyard = { ...state.graveyard };
+      delete graveyard[task.id];
+
+      return { ...state, tasks: [...state.tasks, task], graveyard };
     }
 
     case "UPDATE_TASK":
       return {
         ...state,
-        tasks: state.tasks.map((t) => (t.id === action.taskId ? { ...t, ...action.patch } : t)),
+        tasks: state.tasks.map((t) => (t.id === action.taskId ? touchTask(t, action.patch) : t)),
       };
 
-    case "DELETE_TASK":
+    case "DELETE_TASK": {
+      const existing = state.tasks.find((t) => t.id === action.taskId);
+      if (!existing) return state;
+      const deletedAt = nowIso();
       return {
         ...state,
         tasks: state.tasks.filter((t) => t.id !== action.taskId),
+        graveyard: { ...state.graveyard, [action.taskId]: deletedAt },
       };
+    }
 
     case "TOGGLE_COMPLETE": {
       const task = state.tasks.find((t) => t.id === action.taskId);
@@ -102,23 +125,25 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
       if (!completing) {
         return {
           ...state,
-          tasks: state.tasks.map((t) => (t.id === action.taskId ? { ...t, completed: false, completedAt: null } : t)),
+          tasks: state.tasks.map((t) =>
+            t.id === action.taskId ? touchTask(t, { completed: false, completedAt: null }) : t,
+          ),
         };
       }
 
       const fromBacklog = task.dayKey === BACKLOG_KEY;
       const today = toDayKey(new Date());
       const toColumn = fromBacklog ? today : task.dayKey;
+      const completedAt = nowIso();
 
       let tasks = state.tasks.map((t) =>
         t.id === action.taskId
-          ? {
-              ...t,
+          ? touchTask(t, {
               dayKey: toColumn,
               completed: true,
-              completedAt: new Date().toISOString(),
+              completedAt,
               overdueFrom: null,
-            }
+            })
           : t,
       );
 
@@ -143,14 +168,14 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
     case "TOGGLE_COLLAPSE":
       return {
         ...state,
-        tasks: state.tasks.map((t) => (t.id === action.taskId ? { ...t, collapsed: !t.collapsed } : t)),
+        tasks: state.tasks.map((t) => (t.id === action.taskId ? touchTask(t, { collapsed: !t.collapsed }) : t)),
       };
 
     case "SET_VIEW":
-      return { ...state, fixedWeekStart: action.fixedWeekStart };
+      return touchMeta(state, { fixedWeekStart: action.fixedWeekStart });
 
     case "SET_MODE":
-      return { ...state, viewMode: action.mode };
+      return touchMeta(state, { viewMode: action.mode });
 
     case "MOVE_TASK": {
       const task = state.tasks.find((t) => t.id === action.taskId);
@@ -180,29 +205,28 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
         const openIds = arrayMoveIds(prevOpenIds, fromIndex, toIndex);
         if (openIds.every((id, index) => id === prevOpenIds[index])) return state;
 
-        return {
-          ...state,
-          tasks: reindexColumn(state.tasks, toColumn, [...openIds, ...doneIds]),
-          manualOrderColumns: markColumnManual(state, toColumn),
-        };
+        return touchMeta(
+          {
+            ...state,
+            tasks: reindexColumn(state.tasks, toColumn, [...openIds, ...doneIds]),
+            manualOrderColumns: markColumnManual(state, toColumn),
+          },
+          {},
+        );
       }
 
-      // Cross-column move: an explicit re-plan, so the overdue marker clears.
       let tasks = state.tasks.map((t) =>
         t.id === action.taskId
-          ? {
-              ...t,
+          ? touchTask(t, {
               dayKey: toColumn,
               completed: false,
               completedAt: null,
               sortOrder: action.toIndex,
               overdueFrom: null,
-            }
+            })
           : t,
       );
 
-      // Dropping onto a specific slot is an explicit order choice → manual.
-      // Dropping onto the column shell (append) keeps priority sort when not already manual.
       const droppedOnSlot = action.toIndex < visualOpenIds(toColumn, tasks, destWasManual, action.taskId).length;
       const makeManual = destWasManual || droppedOnSlot;
 
@@ -228,16 +252,19 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
         .map((t) => t.id);
       tasks = reindexColumn(tasks, fromColumn, [...sourceOpenIds, ...sourceDoneIds]);
 
-      return {
-        ...state,
-        tasks,
-        manualOrderColumns: makeManual ? markColumnManual(state, toColumn) : state.manualOrderColumns,
-      };
+      return touchMeta(
+        {
+          ...state,
+          tasks,
+          manualOrderColumns: makeManual ? markColumnManual(state, toColumn) : state.manualOrderColumns,
+        },
+        {},
+      );
     }
 
     case "RESET_COLUMN_PRIORITY_SORT": {
       const manualOrderColumns = state.manualOrderColumns.filter((k) => k !== action.columnKey);
-      return { ...state, manualOrderColumns };
+      return touchMeta(state, { manualOrderColumns });
     }
 
     case "ADD_SUBTASK": {
@@ -249,7 +276,7 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
       return {
         ...state,
         tasks: state.tasks.map((t) =>
-          t.id === action.taskId ? { ...t, subtasks: [...t.subtasks, subtask], collapsed: false } : t,
+          t.id === action.taskId ? touchTask(t, { subtasks: [...t.subtasks, subtask], collapsed: false }) : t,
         ),
       };
     }
@@ -259,10 +286,9 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
         ...state,
         tasks: state.tasks.map((t) =>
           t.id === action.taskId
-            ? {
-                ...t,
+            ? touchTask(t, {
                 subtasks: t.subtasks.map((s) => (s.id === action.subtaskId ? { ...s, title: action.title } : s)),
-              }
+              })
             : t,
         ),
       };
@@ -272,10 +298,9 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
         ...state,
         tasks: state.tasks.map((t) =>
           t.id === action.taskId
-            ? {
-                ...t,
+            ? touchTask(t, {
                 subtasks: t.subtasks.map((s) => (s.id === action.subtaskId ? { ...s, completed: !s.completed } : s)),
-              }
+              })
             : t,
         ),
       };
@@ -284,7 +309,7 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
       return {
         ...state,
         tasks: state.tasks.map((t) =>
-          t.id === action.taskId ? { ...t, subtasks: t.subtasks.filter((s) => s.id !== action.subtaskId) } : t,
+          t.id === action.taskId ? touchTask(t, { subtasks: t.subtasks.filter((s) => s.id !== action.subtaskId) }) : t,
         ),
       };
 

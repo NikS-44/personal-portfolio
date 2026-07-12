@@ -1,4 +1,5 @@
-import { sanitizePlanState } from "./storage";
+import { sanitizePlanState } from "./planState";
+import { mergePlanStates, planRevision } from "./taskMerge";
 import type { PlanState } from "./types";
 
 export type SyncStatus = "unknown" | "off" | "synced" | "pending" | "error";
@@ -8,12 +9,16 @@ export type RemoteSnapshot = {
   updatedAt: string;
 };
 
+export type FetchRemoteResult = {
+  available: boolean;
+  snapshot: RemoteSnapshot | null;
+  corrupt?: boolean;
+};
+
 /**
- * Pull the remote snapshot. `null` data means the server has nothing yet;
- * `available: false` means sync is not configured (or we're locked out) and
- * the board should stay local-only.
+ * Pull remote. `null` snapshot = empty KV. Client always merges with local.
  */
-export async function fetchRemoteState(): Promise<{ available: boolean; snapshot: RemoteSnapshot | null }> {
+export async function fetchRemoteState(): Promise<FetchRemoteResult> {
   try {
     const res = await fetch("/api/plan-state", { cache: "no-store" });
     if (res.status === 204) return { available: true, snapshot: null };
@@ -21,22 +26,41 @@ export async function fetchRemoteState(): Promise<{ available: boolean; snapshot
 
     const body = (await res.json()) as Partial<RemoteSnapshot>;
     const state = sanitizePlanState(body.state);
-    if (!state || typeof body.updatedAt !== "string") return { available: true, snapshot: null };
-    return { available: true, snapshot: { state, updatedAt: body.updatedAt } };
+    if (!state) return { available: true, snapshot: null, corrupt: true };
+    const updatedAt = typeof body.updatedAt === "string" ? body.updatedAt : planRevision(state);
+    return { available: true, snapshot: { state, updatedAt } };
   } catch {
     return { available: false, snapshot: null };
   }
 }
 
-export async function pushRemoteState(snapshot: RemoteSnapshot): Promise<boolean> {
+/**
+ * Push local; server merges with KV and returns the merged snapshot.
+ */
+export async function pushRemoteState(state: PlanState): Promise<RemoteSnapshot | null> {
   try {
+    const updatedAt = planRevision(state);
     const res = await fetch("/api/plan-state", {
       method: "PUT",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(snapshot),
+      body: JSON.stringify({ state, updatedAt }),
     });
-    return res.ok;
+    if (!res.ok) return null;
+    if (res.status === 204) return { state, updatedAt };
+    const body = (await res.json().catch(() => null)) as Partial<RemoteSnapshot> | null;
+    const merged = sanitizePlanState(body?.state);
+    if (!merged) return { state, updatedAt };
+    return {
+      state: merged,
+      updatedAt: typeof body?.updatedAt === "string" ? body.updatedAt : planRevision(merged),
+    };
   } catch {
-    return false;
+    return null;
   }
+}
+
+/** Merge remote into local (identity if remote missing). */
+export function mergeWithRemote(local: PlanState, remote: PlanState | null): PlanState {
+  if (!remote) return local;
+  return mergePlanStates(local, remote);
 }

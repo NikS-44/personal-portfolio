@@ -16,10 +16,11 @@ import { createHistory, historyReducer, type HistoryAction } from "./history";
 import { sortTasksForColumn } from "./priority";
 import { isColumnKey } from "./planReducer";
 import { applyDragPreview, type DropTarget } from "./dragPreview";
-import { createInitialState, loadPlanState, loadUpdatedAt, savePlanState } from "./storage";
-import { fetchRemoteState, pushRemoteState, type SyncStatus } from "./sync";
+import { createInitialState, loadPlanState, savePlanState } from "./storage";
+import { fetchRemoteState, mergeWithRemote, pushRemoteState, type SyncStatus } from "./sync";
+import { planRevision } from "./taskMerge";
 import type { BoardDaySegment } from "./boardView";
-import type { Task, ViewMode } from "./types";
+import type { PlanState, Task, ViewMode } from "./types";
 import { BACKLOG_KEY } from "./types";
 
 export type { DropTarget };
@@ -32,10 +33,10 @@ export type PlanToastData = {
 
 const SYNC_DEBOUNCE_MS = 1500;
 
-function applyRemoteSnapshot(snapshot: { state: PlanState; updatedAt: string }, todayKey: string): PlanState {
+function withRollover(state: PlanState, todayKey: string): PlanState {
   return {
-    ...snapshot.state,
-    tasks: rollOverIncompleteTasks(snapshot.state.tasks, todayKey),
+    ...state,
+    tasks: rollOverIncompleteTasks(state.tasks, todayKey),
   };
 }
 
@@ -53,17 +54,16 @@ export function usePlanBoard() {
   const state = history.present;
   const todayKey = useMemo(() => toDayKey(new Date()), []);
 
-  /* ── Bootstrap: local first, then pull remote before enabling push ── */
+  /* ── Bootstrap: load local, merge remote per-task, then enable push ── */
 
   useEffect(() => {
     const local = loadPlanState();
-    const localUpdatedAt = loadUpdatedAt();
     dispatch({ type: "HYDRATE", state: local });
 
     let cancelled = false;
 
     (async () => {
-      const { available, snapshot } = await fetchRemoteState();
+      const { available, snapshot, corrupt } = await fetchRemoteState();
       if (cancelled) return;
 
       if (!available) {
@@ -72,17 +72,15 @@ export function usePlanBoard() {
         return;
       }
 
-      if (snapshot && (!localUpdatedAt || snapshot.updatedAt > localUpdatedAt)) {
-        const next = applyRemoteSnapshot(snapshot, todayKey);
-        dispatch({ type: "HYDRATE", state: next });
-        savePlanState(next, snapshot.updatedAt);
-      } else if (!snapshot || (localUpdatedAt != null && snapshot != null && localUpdatedAt > snapshot.updatedAt)) {
-        // Empty or older remote: push local once after hydrate so other devices can pull.
-        allowPushRef.current = true;
-      }
+      const merged = withRollover(mergeWithRemote(local, snapshot?.state ?? null), todayKey);
+      dispatch({ type: "HYDRATE", state: merged });
+      savePlanState(merged, planRevision(merged));
+
+      // Always push once after merge so server gets our local-only tasks / tombstones.
+      if (!corrupt) allowPushRef.current = true;
 
       syncEnabledRef.current = true;
-      setSyncStatus("synced");
+      setSyncStatus(corrupt ? "error" : "synced");
       setHydrated(true);
     })();
 
@@ -96,47 +94,56 @@ export function usePlanBoard() {
     savePlanState(state);
   }, [state, hydrated]);
 
-  /* ── Push local edits (after user acts); pull again when the tab refocuses ── */
+  /* ── Push local edits; pull+merge when the tab refocuses ── */
 
   useEffect(() => {
     if (!hydrated || !syncEnabledRef.current || !allowPushRef.current) return;
     setSyncStatus("pending");
     const timer = setTimeout(async () => {
-      const updatedAt = new Date().toISOString();
-      savePlanState(state, updatedAt);
-      const ok = await pushRemoteState({ state, updatedAt });
-      setSyncStatus(ok ? "synced" : "error");
+      const result = await pushRemoteState(state);
+      if (!result) {
+        setSyncStatus("error");
+        return;
+      }
+      const next = withRollover(result.state, todayKey);
+      // Only hydrate if server merge changed something vs what we sent.
+      if (planRevision(next) !== planRevision(state) || next.tasks.length !== state.tasks.length) {
+        dispatch({ type: "HYDRATE", state: next });
+      }
+      savePlanState(next, result.updatedAt);
+      setSyncStatus("synced");
     }, SYNC_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [state, hydrated]);
+  }, [state, hydrated, todayKey]);
 
   useEffect(() => {
     if (!hydrated) return;
 
-    const pullIfRemoteNewer = async () => {
+    const pullAndMerge = async () => {
       if (!syncEnabledRef.current || syncStatus === "pending") return;
       const { available, snapshot } = await fetchRemoteState();
       if (!available || !snapshot) return;
-      const localUpdatedAt = loadUpdatedAt();
-      if (localUpdatedAt && !(snapshot.updatedAt > localUpdatedAt)) return;
-      const next = applyRemoteSnapshot(snapshot, todayKey);
-      dispatch({ type: "HYDRATE", state: next });
-      savePlanState(next, snapshot.updatedAt);
+      const localPresent = historyRef.current.present;
+      const merged = withRollover(mergeWithRemote(localPresent, snapshot.state), todayKey);
+      if (planRevision(merged) === planRevision(localPresent) && merged.tasks.length === localPresent.tasks.length) {
+        return;
+      }
+      dispatch({ type: "HYDRATE", state: merged });
+      savePlanState(merged, planRevision(merged));
       setSyncStatus("synced");
     };
 
     const onVisibility = () => {
-      if (document.visibilityState === "visible") void pullIfRemoteNewer();
+      if (document.visibilityState === "visible") void pullAndMerge();
     };
 
-    window.addEventListener("focus", pullIfRemoteNewer);
+    window.addEventListener("focus", pullAndMerge);
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
-      window.removeEventListener("focus", pullIfRemoteNewer);
+      window.removeEventListener("focus", pullAndMerge);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [hydrated, todayKey, syncStatus]);
-
   /* ── Toasts (undo affordance for destructive-ish actions) ── */
 
   const notify = useCallback((message: string, undoable = false) => {
