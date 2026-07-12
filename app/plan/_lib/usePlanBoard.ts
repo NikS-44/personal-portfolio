@@ -32,68 +32,110 @@ export type PlanToastData = {
 
 const SYNC_DEBOUNCE_MS = 1500;
 
+function applyRemoteSnapshot(snapshot: { state: PlanState; updatedAt: string }, todayKey: string): PlanState {
+  return {
+    ...snapshot.state,
+    tasks: rollOverIncompleteTasks(snapshot.state.tasks, todayKey),
+  };
+}
+
 export function usePlanBoard() {
   const [history, dispatch] = useReducer(historyReducer, createInitialState(), createHistory);
   const [hydrated, setHydrated] = useState(false);
   const [toast, setToast] = useState<PlanToastData | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("unknown");
   const syncEnabledRef = useRef(false);
+  const allowPushRef = useRef(false);
   const toastIdRef = useRef(0);
   const historyRef = useRef(history);
   historyRef.current = history;
 
   const state = history.present;
+  const todayKey = useMemo(() => toDayKey(new Date()), []);
+
+  /* ── Bootstrap: local first, then pull remote before enabling push ── */
 
   useEffect(() => {
-    dispatch({ type: "HYDRATE", state: loadPlanState() });
-    setHydrated(true);
-  }, []);
+    const local = loadPlanState();
+    const localUpdatedAt = loadUpdatedAt();
+    dispatch({ type: "HYDRATE", state: local });
+
+    let cancelled = false;
+
+    (async () => {
+      const { available, snapshot } = await fetchRemoteState();
+      if (cancelled) return;
+
+      if (!available) {
+        setSyncStatus("off");
+        setHydrated(true);
+        return;
+      }
+
+      if (snapshot && (!localUpdatedAt || snapshot.updatedAt > localUpdatedAt)) {
+        const next = applyRemoteSnapshot(snapshot, todayKey);
+        dispatch({ type: "HYDRATE", state: next });
+        savePlanState(next, snapshot.updatedAt);
+      } else if (!snapshot || (localUpdatedAt != null && snapshot != null && localUpdatedAt > snapshot.updatedAt)) {
+        // Empty or older remote: push local once after hydrate so other devices can pull.
+        allowPushRef.current = true;
+      }
+
+      syncEnabledRef.current = true;
+      setSyncStatus("synced");
+      setHydrated(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [todayKey]);
 
   useEffect(() => {
     if (!hydrated) return;
     savePlanState(state);
   }, [state, hydrated]);
 
-  const todayKey = useMemo(() => toDayKey(new Date()), []);
-
-  /* ── Remote sync (no-op unless /api/plan-state is reachable) ── */
+  /* ── Push local edits (after user acts); pull again when the tab refocuses ── */
 
   useEffect(() => {
-    if (!hydrated) return;
-    let cancelled = false;
-
-    (async () => {
-      const { available, snapshot } = await fetchRemoteState();
-      if (cancelled) return;
-      if (!available) {
-        setSyncStatus("off");
-        return;
-      }
-      const localUpdatedAt = loadUpdatedAt();
-      if (snapshot && (!localUpdatedAt || snapshot.updatedAt > localUpdatedAt)) {
-        dispatch({
-          type: "HYDRATE",
-          state: { ...snapshot.state, tasks: rollOverIncompleteTasks(snapshot.state.tasks, todayKey) },
-        });
-      }
-      syncEnabledRef.current = true;
-      setSyncStatus("synced");
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [hydrated, todayKey]);
-
-  useEffect(() => {
-    if (!hydrated || !syncEnabledRef.current) return;
+    if (!hydrated || !syncEnabledRef.current || !allowPushRef.current) return;
     setSyncStatus("pending");
     const timer = setTimeout(async () => {
-      const ok = await pushRemoteState({ state, updatedAt: new Date().toISOString() });
+      const updatedAt = new Date().toISOString();
+      savePlanState(state, updatedAt);
+      const ok = await pushRemoteState({ state, updatedAt });
       setSyncStatus(ok ? "synced" : "error");
     }, SYNC_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [state, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const pullIfRemoteNewer = async () => {
+      if (!syncEnabledRef.current || syncStatus === "pending") return;
+      const { available, snapshot } = await fetchRemoteState();
+      if (!available || !snapshot) return;
+      const localUpdatedAt = loadUpdatedAt();
+      if (localUpdatedAt && !(snapshot.updatedAt > localUpdatedAt)) return;
+      const next = applyRemoteSnapshot(snapshot, todayKey);
+      dispatch({ type: "HYDRATE", state: next });
+      savePlanState(next, snapshot.updatedAt);
+      setSyncStatus("synced");
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void pullIfRemoteNewer();
+    };
+
+    window.addEventListener("focus", pullIfRemoteNewer);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", pullIfRemoteNewer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [hydrated, todayKey, syncStatus]);
 
   /* ── Toasts (undo affordance for destructive-ish actions) ── */
 
@@ -106,6 +148,7 @@ export function usePlanBoard() {
 
   const act = useCallback(
     (action: HistoryAction) => {
+      allowPushRef.current = true;
       const current = historyRef.current.present;
       if (action.type === "DELETE_TASK") {
         const task = current.tasks.find((t) => t.id === action.taskId);
@@ -130,6 +173,7 @@ export function usePlanBoard() {
   );
 
   const undoToast = useCallback(() => {
+    allowPushRef.current = true;
     setToast(null);
     dispatch({ type: "UNDO" });
   }, []);
@@ -166,10 +210,12 @@ export function usePlanBoard() {
   }, [state.tasks, state.manualOrderColumns, visibleDayKeys]);
 
   const setMode = useCallback((mode: ViewMode) => {
+    allowPushRef.current = true;
     dispatch({ type: "SET_MODE", mode });
   }, []);
 
   const goToPrevWeek = useCallback(() => {
+    allowPushRef.current = true;
     if (isRollingView(state.fixedWeekStart)) {
       dispatch({ type: "SET_VIEW", fixedWeekStart: prevWeekFromRolling(todayKey) });
       return;
@@ -180,6 +226,7 @@ export function usePlanBoard() {
   }, [state.fixedWeekStart, todayKey]);
 
   const goToNextWeek = useCallback(() => {
+    allowPushRef.current = true;
     if (isRollingView(state.fixedWeekStart)) {
       dispatch({ type: "SET_VIEW", fixedWeekStart: nextWeekFromRolling(todayKey) });
       return;
@@ -190,6 +237,7 @@ export function usePlanBoard() {
   }, [state.fixedWeekStart, todayKey]);
 
   const goToToday = useCallback(() => {
+    allowPushRef.current = true;
     dispatch({ type: "SET_VIEW", fixedWeekStart: null });
   }, []);
 

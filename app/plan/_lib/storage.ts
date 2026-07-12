@@ -79,10 +79,14 @@ export function loadPlanState(): PlanState {
   }
 }
 
-export function savePlanState(state: PlanState): void {
+export function savePlanState(state: PlanState, updatedAt?: string): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  window.localStorage.setItem(UPDATED_AT_KEY, new Date().toISOString());
+  // Only bump / set the sync clock when callers pass `updatedAt`.
+  // Auto-stamping on every persist made local always "newer" than remote, so pulls never applied.
+  if (updatedAt !== undefined) {
+    window.localStorage.setItem(UPDATED_AT_KEY, updatedAt);
+  }
 }
 
 export function loadUpdatedAt(): string | null {
