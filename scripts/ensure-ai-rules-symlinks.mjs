@@ -54,6 +54,8 @@ const links = [
   [path.join(root, ".ai-rules/commands"), path.join(root, ".cursor/commands"), "dir"],
   [path.join(root, ".ai-rules/rules"), path.join(root, ".cursor/rules"), "dir"],
   [path.join(root, ".ai-rules/mcp.json"), path.join(root, ".cursor/mcp.json"), "file"],
+  // Claude Code project MCP config (https://code.claude.com/docs/en/mcp)
+  [path.join(root, ".ai-rules/mcp.json"), path.join(root, ".mcp.json"), "file"],
   [path.join(root, ".ai-rules/skills"), path.join(root, ".claude/skills"), "dir"],
   [path.join(root, ".ai-rules/commands"), path.join(root, ".claude/commands"), "dir"],
   [path.join(root, ".ai-rules/rules"), path.join(root, ".claude/rules"), "dir"],

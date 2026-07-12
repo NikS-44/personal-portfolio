@@ -37,6 +37,11 @@ const Header = () => {
       name: "Cover Letter Generator",
       href: "/projects/cover-letter",
     },
+    {
+      id: 4,
+      name: "Planner",
+      href: "/plan",
+    },
   ];
 
   const toggleMenu = (menuName: string) => {

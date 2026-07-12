@@ -21,30 +21,9 @@ export function sortTasksForColumn(tasks: Task[], manualOrder: boolean): Task[] 
   return list.sort(compareByPriority);
 }
 
-export function priorityAccentClass(priority: Priority): string {
-  switch (priority) {
-    case "p0":
-      return "border-l-red-500";
-    case "p1":
-      return "border-l-orange-500";
-    case "p2":
-      return "border-l-amber-400";
-    case "p3":
-      return "border-l-stone-300";
-  }
-}
-
-export function priorityActiveClass(priority: Priority): string {
-  switch (priority) {
-    case "p0":
-      return "bg-red-500 text-white ring-red-500";
-    case "p1":
-      return "bg-orange-500 text-white ring-orange-500";
-    case "p2":
-      return "bg-amber-500 text-white ring-amber-500";
-    case "p3":
-      return "bg-stone-500 text-white ring-stone-500";
-  }
+/** Themed fg/bg pair for a priority; flips with the board's light/dark palette. */
+export function priorityBadgeClass(priority: Priority): string {
+  return `plan-tone--${priority}`;
 }
 
 export function nextSortOrderForPriority(tasks: Task[], priority: Priority): number {

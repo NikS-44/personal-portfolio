@@ -1,6 +1,7 @@
 {
   "mcpServers": {
     "github": {
+      "type": "http",
       "url": "https://api.githubcopilot.com/mcp/",
       "headers": {
         "Authorization": "Bearer ${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
@@ -12,7 +13,7 @@
     },
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${workspaceFolder}"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
     },
     "sequential-thinking": {
       "command": "npx",
@@ -22,7 +23,7 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {
-        "MEMORY_FILE_PATH": "${workspaceFolder}/.cursor/mcp-memory.jsonl"
+        "MEMORY_FILE_PATH": ".cursor/mcp-memory.jsonl"
       }
     },
     "context7": {

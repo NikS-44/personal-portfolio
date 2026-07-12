@@ -1,13 +1,99 @@
 .plan-board {
-  --plan-bg: #ebe8e3;
-  --plan-surface: #faf9f7;
-  --plan-border: #e2ded6;
-  --plan-muted: #8a847a;
-  --plan-text: #2c2825;
-  --plan-accent: #5b4fd6;
-  --plan-accent-soft: #edeafd;
-  --plan-today: #eef6ff;
-  --plan-today-border: #93c5fd;
+  /*
+   * Theme: every color token is a light-dark() pair driven by color-scheme.
+   * Default follows the OS (`color-scheme: light dark`). A manual toggle sets
+   * `data-theme="light"|"dark"` on this element (and persists in localStorage).
+   * Light is warm paper; dark is the same desk after sundown: deep warm
+   * charcoal, paper-white ink, lifted periwinkle accent.
+   */
+  color-scheme: light dark;
+
+  --plan-bg: light-dark(#ebe8e3, #131211);
+  --plan-surface: light-dark(#faf9f7, #1c1b19);
+  --plan-border: light-dark(#e2ded6, #33302b);
+  --plan-muted: light-dark(#8a847a, #9d968a);
+  --plan-text: light-dark(#2c2825, #ede9e2);
+  --plan-accent: light-dark(#5b4fd6, #a29aff);
+  --plan-accent-soft: light-dark(#edeafd, #2b2750);
+  --plan-today: light-dark(#eef6ff, #16202e);
+  --plan-today-border: light-dark(#93c5fd, #3e6ea8);
+
+  --plan-card-bg: light-dark(#fff, #242220);
+  --plan-elevated: light-dark(#fff, #2c2a26);
+  --plan-chip-bg: light-dark(rgb(255 255 255 / 0.85), rgb(255 255 255 / 0.06));
+  --plan-footer-veil: light-dark(rgb(255 255 255 / 0.5), rgb(19 18 17 / 0.55));
+  --plan-on-accent: #fff;
+  --plan-scrollbar: light-dark(#cfc9bf, #3e3b35);
+  /* rgb triplet for shadow colors: rgb(var(--plan-shadow) / a); dark override below */
+  --plan-shadow: 44 40 37;
+  --plan-backlog-pin-bg: light-dark(#e4e0d8, #0e0d0c);
+  --plan-backlog-pin-inset: light-dark(rgb(255 255 255 / 0.45), rgb(255 255 255 / 0.04));
+  --plan-backlog-surface: light-dark(#f7f4ef, #171614);
+  --plan-dormant-tint: light-dark(#d8d4cc, #201e1c);
+
+  --plan-success-fg: light-dark(#047857, #34d399);
+  --plan-success-bg: light-dark(#ecfdf5, #0e2b20);
+  --plan-success-ring: light-dark(#a7f3d0, #1c5940);
+  --plan-success-strong: light-dark(#059669, #10b981);
+  --plan-check: #10b981;
+  --plan-check-hover: #34d399;
+  --plan-danger-fg: light-dark(#b91c1c, #f87171);
+  --plan-danger-bg: light-dark(#fef2f2, #391b18);
+  --plan-danger-strong: light-dark(#dc2626, #e5484d);
+  --plan-danger-strong-hover: light-dark(#b91c1c, #f2555a);
+
+  --plan-p0-fg: light-dark(#b91c1c, #f87171);
+  --plan-p0-bg: light-dark(#fef2f2, #391b18);
+  --plan-p0-hover: light-dark(#fecaca, #4f2521);
+  --plan-p0-accent: light-dark(#ef4444, #f2555a);
+  --plan-p1-fg: light-dark(#c2410c, #fb923c);
+  --plan-p1-bg: light-dark(#fff7ed, #33230f);
+  --plan-p1-hover: light-dark(#fed7aa, #492f14);
+  --plan-p1-accent: #f97316;
+  --plan-p2-fg: light-dark(#92400e, #fbbf24);
+  --plan-p2-bg: light-dark(#fffbeb, #312712);
+  --plan-p2-hover: light-dark(#fde68a, #453718);
+  --plan-p2-accent: #fbbf24;
+  --plan-p3-fg: light-dark(#57534e, #a39d94);
+  --plan-p3-bg: light-dark(#f5f5f4, #2a2825);
+  --plan-p3-hover: light-dark(#e7e5e4, #37342f);
+  --plan-p3-accent: light-dark(#d6d3d1, #524e48);
+
+  --plan-control-gap: 0.375rem;
+  --plan-priority-col: 2rem;
+  --plan-title-line: 1.25rem;
+  --plan-title-pad-y: 0.25rem;
+  --plan-title-pad-x: 0.375rem;
+  --plan-title-border: 1px;
+  --plan-title-row-h: calc(var(--plan-title-line) + (var(--plan-title-pad-y) * 2) + (var(--plan-title-border) * 2));
+  --plan-notes-line: calc(0.75rem * 1.625);
+  --plan-notes-pad-y: 0.5rem;
+  --plan-notes-pad-x: 0.625rem;
+  --plan-notes-lines: 4;
+  --plan-notes-slot-h: calc(
+    (var(--plan-notes-lines) * var(--plan-notes-line)) + (var(--plan-notes-pad-y) * 2) + (var(--plan-title-border) * 2)
+  );
+  --plan-subtask-line: 1rem;
+  --plan-subtask-row-h: calc(var(--plan-subtask-line) + 0.25rem + (var(--plan-title-border) * 2));
+}
+
+@media (prefers-color-scheme: dark) {
+  .plan-board:not([data-theme]),
+  .plan-board[data-theme="system"] {
+    /* light-dark() can't express non-color tokens; deepen shadows here */
+    --plan-shadow: 0 0 0;
+  }
+}
+
+/* Manual theme override (toggle). Absent / system → OS preference via color-scheme. */
+.plan-board[data-theme="light"] {
+  color-scheme: light;
+  --plan-shadow: 44 40 37;
+}
+
+.plan-board[data-theme="dark"] {
+  color-scheme: dark;
+  --plan-shadow: 0 0 0;
 }
 
 .plan-board {
@@ -22,10 +108,1630 @@
 }
 
 .plan-board ::-webkit-scrollbar-thumb {
-  background: #cfc9bf;
+  background: var(--plan-scrollbar);
   border-radius: 999px;
 }
 
 .plan-board ::-webkit-scrollbar-track {
   background: transparent;
+}
+
+.plan-board input:focus:not(:focus-visible),
+.plan-board textarea:focus:not(:focus-visible),
+.plan-board select:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.plan-board :where(button, a, input, textarea, select, [tabindex="0"]):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--plan-accent) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.plan-add-task-field > input:focus-visible {
+  outline: none;
+}
+
+.plan-skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 100;
+  border-radius: 0.375rem;
+  background: var(--plan-text);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--plan-bg);
+  text-decoration: none;
+  transform: translateY(-150%);
+  transition: transform 0.15s ease;
+}
+
+.plan-skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* ── Performance: column & card containment (Kanban reflow isolation) ── */
+
+.plan-column {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 17.5rem auto calc(100dvh - 4.5rem);
+}
+
+.plan-card {
+  display: flex;
+  gap: 0.125rem;
+  cursor: grab;
+  border-radius: 0.625rem;
+  border: 1px solid var(--plan-border);
+  border-left: 3px solid var(--plan-priority-accent, var(--plan-p3-accent));
+  background: var(--plan-card-bg);
+  padding: 0.375rem 0.375rem 0.375rem 0.25rem;
+  box-shadow: 0 1px 2px rgb(var(--plan-shadow) / 0.04);
+  transition: box-shadow 0.15s ease;
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 4.5rem;
+}
+
+.plan-card[data-priority="p0"] {
+  --plan-priority-accent: var(--plan-p0-accent);
+}
+
+.plan-card[data-priority="p1"] {
+  --plan-priority-accent: var(--plan-p1-accent);
+}
+
+.plan-card[data-priority="p2"] {
+  --plan-priority-accent: var(--plan-p2-accent);
+}
+
+.plan-card[data-priority="p3"] {
+  --plan-priority-accent: var(--plan-p3-accent);
+}
+
+.plan-card:active {
+  cursor: grabbing;
+}
+
+.plan-card :is(button, select, a) {
+  cursor: pointer;
+}
+
+.plan-card :is(input, textarea) {
+  cursor: text;
+}
+
+@supports not (content-visibility: auto) {
+  .plan-column {
+    contain: layout style paint;
+  }
+}
+
+/* ── Scroll affordances (container scroll-state; no-op where unsupported) ── */
+
+.plan-board-scroll {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.plan-board-scroll__body {
+  overscroll-behavior-x: contain;
+  scrollbar-gutter: stable;
+  container-type: scroll-state;
+}
+
+.plan-column-scroll__body {
+  --plan-list-gap: 0.5rem;
+  gap: var(--plan-list-gap);
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  container-type: scroll-state;
+}
+
+.plan-backlog-pin {
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 0fr;
+  padding-block: 1rem;
+  padding-inline: 0;
+  background: var(--plan-backlog-pin-bg);
+  border-right: 1px solid color-mix(in srgb, var(--plan-text) 10%, var(--plan-border));
+  box-shadow:
+    1px 0 0 var(--plan-backlog-pin-inset) inset,
+    4px 0 14px rgb(var(--plan-shadow) / 0.045),
+    14px 0 36px rgb(var(--plan-shadow) / 0.05);
+  transition:
+    grid-template-columns 0.28s ease,
+    border-color 0.28s ease,
+    box-shadow 0.28s ease,
+    padding-inline 0.28s ease;
+}
+
+.plan-backlog-pin--open {
+  grid-template-columns: 1fr;
+  padding-inline: 1rem 0.5rem;
+}
+
+.plan-backlog-pin--closed {
+  border-right-color: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.plan-backlog-pin__inner {
+  min-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-0.75rem);
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease;
+}
+
+.plan-backlog-pin--open .plan-backlog-pin__inner {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-backlog-pin,
+  .plan-backlog-pin__inner {
+    transition-duration: 0.01ms;
+  }
+
+  .plan-backlog-pin__inner {
+    transform: none;
+  }
+}
+
+.plan-column--backlog {
+  border-color: color-mix(in srgb, var(--plan-text) 14%, var(--plan-border));
+  background: var(--plan-backlog-surface);
+  box-shadow: none;
+}
+
+.plan-column--weekend {
+  transition: width 0.18s ease;
+}
+
+.plan-column--dormant {
+  width: 5.5rem;
+  border-color: color-mix(in srgb, var(--plan-muted) 35%, var(--plan-border));
+  background: color-mix(in srgb, var(--plan-bg) 65%, var(--plan-dormant-tint));
+  box-shadow: none;
+  color: var(--plan-muted);
+}
+
+/* Keep a tall, full-height hit box for dnd-kit collision while compact. */
+.plan-column--dormant .plan-column-dormant {
+  min-height: 100%;
+  pointer-events: none;
+}
+
+.plan-column--dormant .plan-column-dormant__add {
+  pointer-events: auto;
+}
+
+.plan-column--dormant-over {
+  border-color: color-mix(in srgb, var(--plan-accent) 40%, var(--plan-border));
+  background: color-mix(in srgb, var(--plan-accent-soft) 50%, var(--plan-bg));
+}
+
+.plan-column-dormant {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 0.4rem;
+}
+
+.plan-column-dormant__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  text-align: center;
+}
+
+.plan-column-dormant__day {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--plan-text) 55%, var(--plan-muted));
+}
+
+.plan-column-dormant__date {
+  font-size: 0.625rem;
+  line-height: 1.2;
+  color: var(--plan-muted);
+}
+
+.plan-column-dormant__today {
+  margin-top: 0.15rem;
+  border-radius: 999px;
+  background: var(--plan-accent);
+  padding: 0.1rem 0.35rem;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--plan-on-accent);
+}
+
+.plan-column-dormant__add {
+  display: inline-flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px dashed color-mix(in srgb, var(--plan-muted) 55%, transparent);
+  background: color-mix(in srgb, var(--plan-elevated) 55%, transparent);
+  font-size: 1.05rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--plan-text) 45%, var(--plan-muted));
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.plan-column-dormant__add:hover {
+  border-color: var(--plan-accent);
+  background: var(--plan-elevated);
+  color: var(--plan-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-column--weekend {
+    transition: none;
+  }
+}
+
+.plan-menu-btn {
+  position: relative;
+  display: inline-flex;
+  height: 2.25rem;
+  min-width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--plan-border);
+  background: var(--plan-elevated);
+  padding-inline: 0.5rem;
+  color: var(--plan-text);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.plan-menu-btn:hover {
+  border-color: color-mix(in srgb, var(--plan-accent) 35%, var(--plan-border));
+  background: var(--plan-bg);
+}
+
+.plan-menu-btn--active {
+  border-color: color-mix(in srgb, var(--plan-accent) 45%, var(--plan-border));
+  background: var(--plan-accent-soft);
+  color: var(--plan-accent);
+}
+
+.plan-menu-btn__count {
+  min-width: 1.125rem;
+  border-radius: 999px;
+  background: var(--plan-accent);
+  padding: 0.05rem 0.35rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--plan-on-accent);
+}
+
+.plan-hint {
+  margin: 0;
+  border: 0;
+  border-radius: 0.375rem;
+  background: var(--plan-text);
+  padding: 0.3125rem 0.5625rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--plan-bg);
+  inset: unset;
+  top: calc(anchor(bottom) + 0.375rem);
+  left: anchor(center);
+  translate: -50% 0;
+  position-try-fallbacks: flip-block;
+}
+
+@supports not (anchor-name: --x) {
+  .plan-hint {
+    /* Fallback: browsers without anchor positioning keep default popover placement */
+    top: unset;
+    left: unset;
+    translate: none;
+  }
+}
+
+.plan-scroll-edge {
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.plan-scroll-edge--top {
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1.25rem;
+  background: linear-gradient(to bottom, rgb(var(--plan-shadow) / 0.08), transparent);
+}
+
+.plan-scroll-edge--bottom {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1.25rem;
+  background: linear-gradient(to top, rgb(var(--plan-shadow) / 0.08), transparent);
+}
+
+.plan-scroll-edge--start {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1.25rem;
+  background: linear-gradient(to right, rgb(var(--plan-shadow) / 0.08), transparent);
+}
+
+.plan-scroll-edge--end {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1.25rem;
+  background: linear-gradient(to left, rgb(var(--plan-shadow) / 0.08), transparent);
+}
+
+@container scroll-state(scrollable: top) {
+  .plan-scroll-edge--top {
+    opacity: 1;
+  }
+}
+
+@container scroll-state(scrollable: bottom) {
+  .plan-scroll-edge--bottom {
+    opacity: 1;
+  }
+}
+
+@container scroll-state(scrollable: left) {
+  .plan-scroll-edge--start {
+    opacity: 1;
+  }
+}
+
+@container scroll-state(scrollable: right) {
+  .plan-scroll-edge--end {
+    opacity: 1;
+  }
+}
+
+.plan-column-header__meta {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.plan-column-count {
+  display: inline-flex;
+  min-width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--plan-chip-bg);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--plan-muted);
+  box-shadow: inset 0 0 0 1px var(--plan-border);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.plan-column-count--heavy {
+  background: var(--plan-p2-bg);
+  color: var(--plan-p2-fg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--plan-p2-fg) 30%, var(--plan-border));
+  font-weight: 650;
+}
+
+.plan-column-count--over {
+  background: var(--plan-p0-bg);
+  color: var(--plan-p0-fg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--plan-p0-fg) 30%, var(--plan-border));
+  font-weight: 650;
+}
+
+.plan-sort-btn {
+  position: relative;
+  display: flex;
+  height: 1.625rem;
+  width: 1.625rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  color: var(--plan-accent);
+  background: var(--plan-chip-bg);
+  box-shadow: inset 0 0 0 1px var(--plan-border);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.plan-sort-btn:hover {
+  background: var(--plan-elevated);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--plan-accent) 35%, var(--plan-border));
+}
+
+/* ── Task card (Linear / Jira inspired) ── */
+
+.plan-card:hover {
+  box-shadow: 0 2px 6px rgb(var(--plan-shadow) / 0.08);
+}
+
+.plan-card--done {
+  opacity: 0.58;
+}
+
+.plan-card--overlay {
+  box-shadow: 0 8px 24px rgb(var(--plan-shadow) / 0.12);
+  outline: 2px solid color-mix(in srgb, var(--plan-accent) 30%, transparent);
+}
+
+.plan-card--dragging {
+  /* Slot preview while DragOverlay follows the pointer (dnd-kit multi-container). */
+  opacity: 0;
+  pointer-events: none;
+}
+
+.plan-card__drag {
+  display: flex;
+  height: var(--plan-title-row-h);
+  width: 1.125rem;
+  flex-shrink: 0;
+  pointer-events: none;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  border-radius: 0.25rem;
+  color: var(--plan-muted);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.plan-card:hover .plan-card__drag,
+.plan-card:focus-within .plan-card__drag {
+  opacity: 1;
+}
+
+.plan-card__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.plan-card__face {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto;
+  column-gap: var(--plan-control-gap);
+  row-gap: 0.25rem;
+  align-items: start;
+}
+
+.plan-card__footer {
+  grid-row: 3;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.plan-card__footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.plan-priority-select {
+  box-sizing: border-box;
+  display: inline-flex;
+  height: 1.375rem;
+  min-width: 2.625rem;
+  margin: 0;
+  padding: 0 1.125rem 0 0.4375rem;
+  border: 1px solid color-mix(in srgb, currentColor 22%, var(--plan-border));
+  border-radius: 0.3125rem;
+  background-color: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8' fill='none'%3E%3Cpath d='M1.5 2.75L4 5.25L6.5 2.75' stroke='%238a847a' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.3125rem center;
+  background-size: 0.5rem;
+  font: inherit;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.375rem;
+  text-align: left;
+  text-align-last: left;
+  cursor: pointer;
+  appearance: none;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.plan-priority-select:hover {
+  border-color: color-mix(in srgb, currentColor 45%, var(--plan-border));
+  box-shadow: 0 1px 2px rgb(var(--plan-shadow) / 0.08);
+  filter: none;
+}
+
+.plan-priority-select:active {
+  box-shadow: inset 0 1px 2px rgb(var(--plan-shadow) / 0.08);
+}
+
+.plan-priority-select:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--plan-accent) 55%, transparent);
+  outline-offset: 1pddx;
+}
+
+@supports (appearance: base-select) {
+  .plan-priority-select {
+    padding: 0;
+    background-image: none;
+  }
+
+  .plan-priority-select,
+  .plan-priority-select::picker(select) {
+    appearance: base-select;
+  }
+
+  /* Kill the native picker icon — we render our own static caret */
+  .plan-priority-select::picker-icon {
+    display: none;
+  }
+
+  .plan-priority-select__trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    height: 1.375rem;
+    min-width: 2.625rem;
+    padding: 0 0.375rem 0 0.4375rem;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .plan-priority-select__caret {
+    display: inline-flex;
+    flex-shrink: 0;
+    width: 0.5rem;
+    height: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    color: var(--plan-muted);
+  }
+
+  .plan-priority-select::picker(select) {
+    min-width: 5.5rem;
+    margin-top: 0.25rem;
+    padding: 0.2rem;
+    border: 1px solid var(--plan-border);
+    border-radius: 0.375rem;
+    background: var(--plan-elevated);
+    box-shadow: 0 4px 14px rgb(var(--plan-shadow) / 0.1);
+  }
+
+  .plan-priority-select option {
+    padding: 0.4rem 0.55rem;
+    border-radius: 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background-color 0.12s ease,
+      box-shadow 0.12s ease;
+  }
+
+  .plan-priority-select option + option {
+    margin-top: 0.15rem;
+    box-shadow: 0 -1px 0 color-mix(in srgb, var(--plan-border) 88%, transparent);
+  }
+
+  .plan-priority-select option:checked {
+    font-weight: 700;
+  }
+
+  .plan-priority-select option::checkmark {
+    color: var(--plan-accent);
+  }
+
+  .plan-priority-select option.plan-priority-option--p0 {
+    background: var(--plan-p0-bg);
+    color: var(--plan-p0-fg);
+  }
+
+  .plan-priority-select option.plan-priority-option--p1 {
+    background: var(--plan-p1-bg);
+    color: var(--plan-p1-fg);
+  }
+
+  .plan-priority-select option.plan-priority-option--p2 {
+    background: var(--plan-p2-bg);
+    color: var(--plan-p2-fg);
+  }
+
+  .plan-priority-select option.plan-priority-option--p3 {
+    background: var(--plan-p3-bg);
+    color: var(--plan-p3-fg);
+  }
+
+  .plan-priority-select option:hover,
+  .plan-priority-select option:focus-visible {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 28%, transparent);
+  }
+
+  .plan-priority-select option.plan-priority-option--p0:hover,
+  .plan-priority-select option.plan-priority-option--p0:focus-visible {
+    background: var(--plan-p0-hover);
+  }
+
+  .plan-priority-select option.plan-priority-option--p1:hover,
+  .plan-priority-select option.plan-priority-option--p1:focus-visible {
+    background: var(--plan-p1-hover);
+  }
+
+  .plan-priority-select option.plan-priority-option--p2:hover,
+  .plan-priority-select option.plan-priority-option--p2:focus-visible {
+    background: var(--plan-p2-hover);
+  }
+
+  .plan-priority-select option.plan-priority-option--p3:hover,
+  .plan-priority-select option.plan-priority-option--p3:focus-visible {
+    background: var(--plan-p3-hover);
+  }
+}
+
+.plan-card__title-wrap {
+  grid-row: 1;
+  grid-column: 1;
+  min-width: 0;
+}
+
+.plan-card__actions {
+  grid-row: 1;
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.0625rem;
+  align-self: start;
+  padding-top: 0.125rem;
+}
+
+.plan-card__action {
+  display: flex;
+  height: 1.375rem;
+  width: 1.375rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  color: var(--plan-muted);
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.plan-card__action--expand {
+  opacity: 1;
+  color: var(--plan-text);
+}
+
+.plan-card__done-btn {
+  display: inline-flex;
+  height: 1.375rem;
+  align-items: center;
+  border-radius: 0.3125rem;
+  padding: 0 0.4375rem;
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--plan-success-fg);
+  background: var(--plan-success-bg);
+  box-shadow: inset 0 0 0 1px var(--plan-success-ring);
+  white-space: nowrap;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.plan-card__done-btn:hover {
+  background: var(--plan-success-strong);
+  color: var(--plan-on-accent);
+  box-shadow: none;
+}
+
+.plan-card:hover .plan-card__action,
+.plan-card:focus-within .plan-card__action {
+  opacity: 1;
+}
+
+.plan-card__action:hover {
+  background: var(--plan-bg);
+  color: var(--plan-text);
+}
+
+.plan-card__preview {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  color: var(--plan-muted);
+}
+
+.plan-card__preview p {
+  margin: 0;
+  min-width: 0;
+}
+
+.plan-card__subprogress {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.plan-card__subprogress-bar {
+  display: inline-flex;
+  width: 1.625rem;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--plan-border) 80%, var(--plan-muted));
+  overflow: hidden;
+}
+
+.plan-card__subprogress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--plan-check);
+  transition: width 0.2s ease;
+}
+
+.plan-card__details {
+  margin-top: 0.625rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid color-mix(in srgb, var(--plan-border) 70%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.plan-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.125rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid color-mix(in srgb, var(--plan-border) 70%, transparent);
+}
+
+.plan-card__meta-spacer {
+  flex: 1;
+}
+
+.plan-card__meta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.plan-card__meta-btn--backlog {
+  height: 1.5rem;
+  padding: 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--plan-muted);
+}
+
+.plan-card__meta-btn--backlog:hover {
+  background: var(--plan-bg);
+  color: var(--plan-text);
+}
+
+.plan-card__meta-btn--trash {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--plan-muted);
+}
+
+.plan-card__meta-btn--trash:hover {
+  background: var(--plan-danger-bg);
+  color: var(--plan-danger-fg);
+}
+
+/* ── Anchored popover menus (board menu, schedule) ── */
+
+.plan-pop {
+  margin: 0;
+  inset: unset;
+  top: calc(anchor(bottom) + 0.375rem);
+  left: anchor(center);
+  translate: -50% 0;
+  position-try-fallbacks: flip-block;
+  min-width: 10rem;
+  padding: 0.25rem;
+  border: 1px solid var(--plan-border);
+  border-radius: 0.5rem;
+  background: var(--plan-elevated);
+  box-shadow: 0 8px 24px rgb(var(--plan-shadow) / 0.14);
+  color: var(--plan-text);
+}
+
+/* Right-aligned variant for controls near the viewport edge */
+.plan-pop--end {
+  left: anchor(right);
+  translate: -100% 0;
+}
+
+@supports not (anchor-name: --x) {
+  .plan-pop,
+  .plan-pop--end {
+    /* Fallback: browsers without anchor positioning keep default popover placement */
+    top: unset;
+    left: unset;
+    translate: none;
+  }
+}
+
+.plan-pop__item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 550;
+  text-align: left;
+  color: var(--plan-text);
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.plan-pop__item:hover {
+  background: var(--plan-accent-soft);
+  color: var(--plan-accent);
+}
+
+.plan-pop__note {
+  margin: 0.25rem 0 0.15rem;
+  padding: 0.25rem 0.55rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--plan-border) 80%, transparent);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  color: var(--plan-muted);
+}
+
+/* ── Toast (undo affordance) ── */
+
+.plan-toast {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: min(24rem, calc(100vw - 2rem));
+  padding: 0.5rem 0.625rem 0.5rem 0.875rem;
+  border: 1px solid color-mix(in srgb, var(--plan-text) 12%, var(--plan-border));
+  border-radius: 0.75rem;
+  background: var(--plan-elevated);
+  box-shadow: 0 10px 30px rgb(var(--plan-shadow) / 0.2);
+  color: var(--plan-text);
+}
+
+.plan-toast__message {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.plan-toast__undo {
+  flex-shrink: 0;
+  height: 1.625rem;
+  border-radius: 0.4375rem;
+  padding: 0 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  color: var(--plan-accent);
+  background: var(--plan-accent-soft);
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.plan-toast__undo:hover {
+  background: var(--plan-accent);
+  color: var(--plan-on-accent);
+}
+
+.plan-toast__close {
+  flex-shrink: 0;
+  display: flex;
+  height: 1.5rem;
+  width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  color: var(--plan-muted);
+}
+
+.plan-toast__close:hover {
+  background: var(--plan-bg);
+  color: var(--plan-text);
+}
+
+.plan-week-nav__label {
+  min-width: 7.5rem;
+}
+
+/* ── Today/Week segmented control ── */
+
+.plan-seg {
+  display: inline-flex;
+  gap: 0.125rem;
+  padding: 0.1875rem;
+  border: 1px solid var(--plan-border);
+  border-radius: 0.75rem;
+  background: var(--plan-elevated);
+  box-shadow: 0 1px 2px rgb(var(--plan-shadow) / 0.04);
+}
+
+.plan-seg__btn {
+  height: 1.875rem;
+  border-radius: 0.5625rem;
+  padding: 0 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  color: var(--plan-muted);
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.plan-seg__btn:hover {
+  color: var(--plan-text);
+}
+
+.plan-seg__btn--active,
+.plan-seg__btn--active:hover {
+  background: var(--plan-accent);
+  color: var(--plan-on-accent);
+}
+
+/* ── Schedule button on cards ── */
+
+.plan-card__sched-btn {
+  display: inline-flex;
+  height: 1.375rem;
+  width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.3125rem;
+  color: var(--plan-muted);
+  box-shadow: inset 0 0 0 1px var(--plan-border);
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.plan-card__sched-btn:hover {
+  color: var(--plan-accent);
+  background: var(--plan-accent-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--plan-accent) 30%, transparent);
+}
+
+/* ── Today focus view ── */
+
+.plan-board-scroll__body--today {
+  justify-content: center;
+}
+
+.plan-board-scroll__body--today .plan-column {
+  width: min(26rem, 100%);
+}
+
+/* ── Unlock page ── */
+
+.plan-unlock {
+  display: flex;
+  width: min(20rem, 100%);
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid var(--plan-border);
+  border-radius: 1rem;
+  background: var(--plan-surface);
+  box-shadow: 0 10px 30px rgb(var(--plan-shadow) / 0.08);
+}
+
+.plan-unlock__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--plan-text);
+}
+
+.plan-unlock__copy {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--plan-muted);
+}
+
+.plan-unlock__input {
+  height: 2.25rem;
+  border: 1px solid var(--plan-border);
+  border-radius: 0.5rem;
+  padding: 0 0.625rem;
+  font: inherit;
+  font-size: 0.875rem;
+  background: var(--plan-card-bg);
+  color: var(--plan-text);
+}
+
+.plan-unlock__input:focus-visible {
+  border-color: var(--plan-accent);
+}
+
+.plan-unlock__error {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--plan-danger-fg);
+}
+
+.plan-unlock__submit {
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--plan-on-accent);
+  background: var(--plan-accent);
+  transition: opacity 0.12s ease;
+}
+
+.plan-unlock__submit:hover {
+  opacity: 0.9;
+}
+
+.plan-unlock__submit:disabled {
+  opacity: 0.6;
+}
+
+.plan-title-slot {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: var(--plan-title-row-h);
+  margin: 0;
+  padding: var(--plan-title-pad-y) var(--plan-title-pad-x);
+  border: var(--plan-title-border) solid transparent;
+  border-radius: 0.25rem;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: var(--plan-title-line);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  appearance: none;
+}
+
+button.plan-title-slot {
+  cursor: pointer;
+  text-align: left;
+}
+
+textarea.plan-title-slot {
+  resize: none;
+  overflow: hidden;
+  field-sizing: content;
+}
+
+.plan-title-slot--editing {
+  border-color: color-mix(in srgb, var(--plan-accent) 40%, transparent);
+  background: var(--plan-card-bg);
+}
+
+.plan-notes-slot {
+  box-sizing: border-box;
+  height: var(--plan-notes-slot-h);
+  min-height: var(--plan-notes-slot-h);
+  margin: 0;
+  padding: var(--plan-notes-pad-y) var(--plan-notes-pad-x);
+  border: var(--plan-title-border) solid var(--plan-border);
+  border-radius: 0.5rem;
+  background: var(--plan-surface);
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: 1.625;
+  appearance: none;
+}
+
+button.plan-notes-slot {
+  /* Explicit flex-start: Blink/WebKit otherwise vertically center button contents. */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+}
+
+button.plan-notes-slot:hover {
+  border-color: color-mix(in srgb, var(--plan-accent) 40%, transparent);
+}
+
+.plan-notes-slot__text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--plan-notes-lines);
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+textarea.plan-notes-slot {
+  overflow: auto;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.plan-subtask-row {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) 1.25rem;
+  column-gap: var(--plan-control-gap);
+  align-items: center;
+  min-height: var(--plan-subtask-row-h);
+}
+
+.plan-subtask-check {
+  display: flex;
+  height: 0.875rem;
+  width: 0.875rem;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  border-radius: 0.1875rem;
+  border: 1px solid var(--plan-border);
+  background: var(--plan-card-bg);
+  color: var(--plan-on-accent);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.plan-subtask-check:hover {
+  border-color: var(--plan-check-hover);
+}
+
+.plan-subtask-check--done {
+  border-color: var(--plan-check);
+  background: var(--plan-check);
+}
+
+.plan-subtask-slot {
+  box-sizing: border-box;
+  height: var(--plan-subtask-row-h);
+  min-height: var(--plan-subtask-row-h);
+  margin: 0;
+  padding: 0.125rem 0;
+  border: var(--plan-title-border) solid transparent;
+  background: transparent;
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: var(--plan-subtask-line);
+  appearance: none;
+}
+
+.plan-subtask-add-slot {
+  box-sizing: border-box;
+  height: var(--plan-subtask-row-h);
+  min-height: var(--plan-subtask-row-h);
+  margin: 0;
+  padding: 0.125rem 0.375rem;
+  border: var(--plan-title-border) solid var(--plan-border);
+  border-radius: 0.375rem;
+  background: var(--plan-card-bg);
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: var(--plan-subtask-line);
+  appearance: none;
+}
+
+.plan-subtask-delete {
+  display: flex;
+  height: 1.25rem;
+  width: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  border-radius: 0.25rem;
+  color: var(--plan-muted);
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+}
+
+.plan-subtask-row:hover .plan-subtask-delete,
+.plan-subtask-row:focus-within .plan-subtask-delete {
+  opacity: 1;
+}
+
+.plan-subtask-delete:hover {
+  color: var(--plan-danger-strong);
+}
+
+.plan-subtask-add-btn {
+  display: flex;
+  height: 1.25rem;
+  width: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  border-radius: 0.375rem;
+  background: var(--plan-accent-soft);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--plan-accent);
+  transition: background-color 0.15s ease;
+}
+
+.plan-subtask-add-btn:hover {
+  background: var(--plan-accent);
+  color: #fff;
+}
+
+.plan-add-task-field {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--plan-control-gap);
+  padding: var(--plan-title-pad-y) 0.75rem;
+  border: var(--plan-title-border) dashed var(--plan-border);
+  border-radius: 0.75rem;
+  background: var(--plan-surface);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.plan-add-task-field:hover {
+  border-color: color-mix(in srgb, var(--plan-accent) 35%, var(--plan-border));
+  background: var(--plan-elevated);
+  box-shadow: 0 1px 3px rgb(var(--plan-shadow) / 0.05);
+}
+
+.plan-add-task-field:focus-within {
+  border-style: solid;
+  border-color: var(--plan-accent);
+  background: var(--plan-elevated);
+}
+
+.plan-add-task-field input {
+  height: var(--plan-title-row-h);
+  min-height: var(--plan-title-row-h);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: var(--plan-title-line);
+  appearance: none;
+}
+
+.plan-drop-placeholder {
+  display: none;
+}
+
+.plan-done-section {
+  margin-top: 0.5rem;
+  padding-top: 0.625rem;
+  border-top: 1px dashed color-mix(in srgb, var(--plan-border) 80%, transparent);
+}
+
+.plan-done-section__toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0 0 0.375rem;
+  padding: 0.125rem;
+  border-radius: 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--plan-muted);
+  transition:
+    color 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.plan-done-section__toggle:hover {
+  color: var(--plan-text);
+  background: color-mix(in srgb, var(--plan-bg) 60%, transparent);
+}
+
+.plan-done-section__chevron {
+  display: inline-flex;
+  transition: rotate 0.15s ease;
+}
+
+.plan-done-section__toggle[aria-expanded="false"] .plan-done-section__chevron {
+  rotate: -90deg;
+}
+
+.plan-done-section__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.plan-done-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: 0.375rem;
+  min-height: 1.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, currentColor 12%, var(--plan-border));
+  background: color-mix(in srgb, var(--plan-card-bg) 70%, transparent);
+  padding: 0.25rem 0.375rem 0.25rem 0.5rem;
+}
+
+.plan-done-row__title {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: var(--plan-muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.plan-done-row__priority {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: inherit;
+  opacity: 0.85;
+}
+
+.plan-done-row__undo {
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  padding: 0 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 650;
+  color: var(--plan-accent);
+  transition: background-color 0.12s ease;
+}
+
+.plan-done-row__undo:hover {
+  background: var(--plan-elevated);
+}
+
+/* ── Priority tones (fg/bg pairs, themed via tokens) ──
+   background-color longhand only: the select underneath carries a
+   background-image caret in the no-base-select fallback, and the
+   shorthand would reset its repeat/position (tiled-caret bug). */
+
+.plan-tone--p0 {
+  background-color: var(--plan-p0-bg);
+  color: var(--plan-p0-fg);
+}
+
+.plan-tone--p1 {
+  background-color: var(--plan-p1-bg);
+  color: var(--plan-p1-fg);
+}
+
+.plan-tone--p2 {
+  background-color: var(--plan-p2-bg);
+  color: var(--plan-p2-fg);
+}
+
+.plan-tone--p3 {
+  background-color: var(--plan-p3-bg);
+  color: var(--plan-p3-fg);
+}
+
+/* ── Backlog aging chip ── */
+
+.plan-card__age {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 1.375rem;
+  border-radius: 0.3125rem;
+  padding: 0 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--plan-muted);
+  background: var(--plan-bg);
+  box-shadow: inset 0 0 0 1px var(--plan-border);
+}
+
+.plan-card__age--stale {
+  color: var(--plan-p2-fg);
+  background: var(--plan-p2-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--plan-p2-fg) 25%, transparent);
+}
+
+.plan-card__age--overdue {
+  color: var(--plan-danger-fg);
+  background: var(--plan-danger-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--plan-danger-fg) 25%, transparent);
+}
+
+/* ── Mobile (≤640px): near-full-width snap columns, backlog as overlay drawer ── */
+
+.plan-board-body {
+  position: relative;
+}
+
+@media (max-width: 640px) {
+  #plan-board > header {
+    flex-wrap: wrap;
+    padding-inline: 0.75rem;
+    padding-block: 0.5rem;
+    gap: 0.5rem;
+    row-gap: 0.375rem;
+  }
+
+  .plan-header-controls {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 0.375rem;
+    margin-left: auto;
+    /* Tailwind shrink-0 sizes this to max-content; cap it so children wrap */
+    max-width: 100%;
+  }
+
+  .plan-week-nav__label {
+    min-width: 0;
+  }
+
+  .plan-seg__btn {
+    height: 1.75rem;
+    padding: 0 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .plan-week-nav {
+    gap: 0.25rem;
+    padding: 0.125rem;
+  }
+
+  .plan-week-nav > button {
+    padding-inline: 0.375rem;
+  }
+
+  .plan-week-nav__label {
+    padding-inline: 0.25rem;
+    font-size: 0.75rem;
+  }
+
+  .plan-menu-btn {
+    height: 2rem;
+    min-width: 2rem;
+  }
+
+  /* Header may wrap to two rows; let columns stretch instead of assuming its height */
+  .plan-board .plan-column {
+    height: auto;
+  }
+
+  .plan-board .plan-board-scroll__body {
+    gap: 0.625rem;
+    padding: 0.75rem;
+    scroll-snap-type: x proximity;
+  }
+
+  .plan-board .plan-column {
+    width: min(calc(100vw - 3.25rem), 19rem);
+    scroll-snap-align: center;
+    contain-intrinsic-size: auto min(calc(100vw - 3.25rem), 19rem) auto calc(100dvh - 4.5rem);
+  }
+
+  .plan-board .plan-column--dormant {
+    width: 4.75rem;
+    scroll-snap-align: none;
+  }
+
+  /* Backlog floats over the day columns instead of pinning beside them */
+  .plan-backlog-pin {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    z-index: 10;
+    padding-block: 0.75rem;
+  }
+
+  .plan-backlog-pin--open {
+    padding-inline: 0.75rem 0.5rem;
+    box-shadow:
+      1px 0 0 var(--plan-backlog-pin-inset) inset,
+      18px 0 44px rgb(var(--plan-shadow) / 0.3);
+  }
+
+  .plan-backlog-pin .plan-column {
+    width: min(calc(100vw - 4.25rem), 19rem);
+  }
 }

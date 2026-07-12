@@ -1,31 +1,40 @@
-import {
-  addDays,
-  formatWeekRange,
-  getRollingStartAnchor,
-  getWeekStart,
-  getWorkWeekDayKeys,
-  parseDayKey,
-  workdaysInRange,
-} from "./dates";
+import { addDays, formatWeekRange, getCalendarWeekDayKeys, getWeekStart, parseDayKey, workdaysInRange } from "./dates";
 
 export type BoardDaySegment = { kind: "day"; dayKey: string } | { kind: "separator"; weekStart: string; label: string };
 
-/** Default rolling view: from today (or next Mon on weekends) through this Fri, then next work week. */
+/**
+ * Rolling: remaining workdays through this Fri, this Sat+Sun, then next Mon–Fri.
+ * Fixed week browse: Mon–Sun for that week.
+ */
 export function getBoardSegments(fixedWeekStart: string | null, todayKey: string): BoardDaySegment[] {
   if (fixedWeekStart !== null) {
-    return getWorkWeekDayKeys(fixedWeekStart).map((dayKey) => ({ kind: "day", dayKey }));
+    return getCalendarWeekDayKeys(fixedWeekStart).map((dayKey) => ({ kind: "day" as const, dayKey }));
   }
 
-  const rollingStart = getRollingStartAnchor(todayKey);
-  const thisWeekMonday = getWeekStart(parseDayKey(rollingStart));
+  const thisWeekMonday = getWeekStart(parseDayKey(todayKey));
   const thisWeekFriday = addDays(thisWeekMonday, 4);
-  const currentDays = workdaysInRange(rollingStart, thisWeekFriday);
+  const thisWeekSaturday = addDays(thisWeekMonday, 5);
+  const thisWeekSunday = addDays(thisWeekMonday, 6);
+  const dow = parseDayKey(todayKey).getDay();
+
+  const segments: BoardDaySegment[] = [];
+
+  if (dow >= 1 && dow <= 5) {
+    workdaysInRange(todayKey, thisWeekFriday).forEach((dayKey) => {
+      segments.push({ kind: "day", dayKey });
+    });
+    segments.push({ kind: "day", dayKey: thisWeekSaturday });
+    segments.push({ kind: "day", dayKey: thisWeekSunday });
+  } else if (dow === 6) {
+    segments.push({ kind: "day", dayKey: thisWeekSaturday });
+    segments.push({ kind: "day", dayKey: thisWeekSunday });
+  } else {
+    segments.push({ kind: "day", dayKey: thisWeekSunday });
+  }
 
   const nextWeekMonday = addDays(thisWeekMonday, 7);
   const nextWeekFriday = addDays(nextWeekMonday, 4);
   const nextDays = workdaysInRange(nextWeekMonday, nextWeekFriday);
-
-  const segments: BoardDaySegment[] = currentDays.map((dayKey) => ({ kind: "day", dayKey }));
 
   if (nextDays.length > 0) {
     segments.push({
@@ -73,16 +82,14 @@ export function nextWeekStart(weekStart: string): string {
   return addDays(weekStart, 7);
 }
 
-/** Where ← lands from rolling view: full previous work week. */
+/** Where ← lands from rolling view: full previous calendar week (Mon start). */
 export function prevWeekFromRolling(todayKey: string): string {
-  const anchor = getRollingStartAnchor(todayKey);
-  return prevWeekStart(getWeekStart(parseDayKey(anchor)));
+  return prevWeekStart(getWeekStart(parseDayKey(todayKey)));
 }
 
 /** Where → lands from rolling view: week after the previewed next week. */
 export function nextWeekFromRolling(todayKey: string): string {
-  const anchor = getRollingStartAnchor(todayKey);
-  const thisWeekMonday = getWeekStart(parseDayKey(anchor));
+  const thisWeekMonday = getWeekStart(parseDayKey(todayKey));
   return addDays(thisWeekMonday, 14);
 }
 

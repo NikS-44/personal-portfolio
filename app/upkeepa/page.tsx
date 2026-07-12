@@ -126,6 +126,48 @@ export default function UpkeepaPage() {
         </div>
       </section>
 
+      {/* ── Wellness ─────────────────────────────────────────────────── */}
+      <section className="px-5 pb-4 pt-2">
+        <div className="mx-auto grid max-w-5xl items-center gap-8 overflow-hidden rounded-3xl border border-[#CDE9D8] bg-white p-8 shadow-sm sm:p-10 md:grid-cols-[auto,1fr]">
+          <div className="flex justify-center">
+            <div
+              aria-hidden
+              className="relative flex h-40 w-40 items-center justify-center rounded-full"
+              style={{ background: "radial-gradient(circle, #DDF1E6 0%, rgba(221,241,230,0) 70%)" }}
+            >
+              <Mascot pose="idle" size={150} float />
+            </div>
+          </div>
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full bg-[#E6F4EC] px-3 py-1 text-xs font-semibold text-[#12856B]">
+              Also inside
+            </span>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#23362C]">A little wellness, too</h2>
+            <p className="mt-3 max-w-xl text-[#4B6557]">
+              Upkeepa looks after you, not just the house. Breathe, stretch, train, and keep an eye on the numbers that
+              matter — all in the same app you already open every day.
+            </p>
+            <ul className="mt-5 flex flex-wrap gap-2">
+              {[
+                "Guided breathing",
+                "Stretching flows",
+                "Meditation & body scan",
+                "Hangboard & 4×4 climbing",
+                "Weightlifting timers",
+                "Weight & blood-pressure trends",
+              ].map((tag) => (
+                <li
+                  key={tag}
+                  className="rounded-full border border-[#CDE9D8] bg-[#F4FAF6] px-3 py-1.5 text-sm font-medium text-[#3A5247]"
+                >
+                  {tag}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
       {/* ── How it works ─────────────────────────────────────────────── */}
       <section className="bg-[#EAF5EE] py-16 sm:py-20">
         <div className="mx-auto max-w-5xl px-5">

@@ -19,7 +19,11 @@ export type Task = {
   dayKey: string;
   sortOrder: number;
   createdAt: string;
+  /** Day the task originally slipped from; set by rollover, cleared on move/complete */
+  overdueFrom?: string | null;
 };
+
+export type ViewMode = "today" | "week";
 
 export type PlanState = {
   tasks: Task[];
@@ -27,6 +31,8 @@ export type PlanState = {
   fixedWeekStart: string | null;
   /** Columns where the user has manually reordered (skip priority sort) */
   manualOrderColumns: string[];
+  /** Today focus vs full week board */
+  viewMode: ViewMode;
 };
 
 export const BACKLOG_KEY = "backlog";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import {
   formatBoardHeaderRange,
   getBoardSegments,
@@ -11,16 +11,38 @@ import {
   prevWeekFromRolling,
   prevWeekStart,
 } from "./boardView";
-import { formatWeekRange, getWeekStart, parseDayKey, toDayKey } from "./dates";
+import { formatWeekRange, getWeekStart, parseDayKey, rollOverIncompleteTasks, toDayKey } from "./dates";
+import { createHistory, historyReducer, type HistoryAction } from "./history";
 import { sortTasksForColumn } from "./priority";
-import { isColumnKey, planReducer, type PlanAction } from "./planReducer";
-import { createInitialState, loadPlanState, savePlanState } from "./storage";
-import type { Task } from "./types";
+import { isColumnKey } from "./planReducer";
+import { applyDragPreview, type DropTarget } from "./dragPreview";
+import { createInitialState, loadPlanState, loadUpdatedAt, savePlanState } from "./storage";
+import { fetchRemoteState, pushRemoteState, type SyncStatus } from "./sync";
+import type { BoardDaySegment } from "./boardView";
+import type { Task, ViewMode } from "./types";
 import { BACKLOG_KEY } from "./types";
 
+export type { DropTarget };
+
+export type PlanToastData = {
+  id: number;
+  message: string;
+  undoable: boolean;
+};
+
+const SYNC_DEBOUNCE_MS = 1500;
+
 export function usePlanBoard() {
-  const [state, dispatch] = useReducer(planReducer, createInitialState());
+  const [history, dispatch] = useReducer(historyReducer, createInitialState(), createHistory);
   const [hydrated, setHydrated] = useState(false);
+  const [toast, setToast] = useState<PlanToastData | null>(null);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("unknown");
+  const syncEnabledRef = useRef(false);
+  const toastIdRef = useRef(0);
+  const historyRef = useRef(history);
+  historyRef.current = history;
+
+  const state = history.present;
 
   useEffect(() => {
     dispatch({ type: "HYDRATE", state: loadPlanState() });
@@ -34,20 +56,103 @@ export function usePlanBoard() {
 
   const todayKey = useMemo(() => toDayKey(new Date()), []);
 
-  const boardSegments = useMemo(
-    () => getBoardSegments(state.fixedWeekStart, todayKey),
-    [state.fixedWeekStart, todayKey],
+  /* ── Remote sync (no-op unless /api/plan-state is reachable) ── */
+
+  useEffect(() => {
+    if (!hydrated) return;
+    let cancelled = false;
+
+    (async () => {
+      const { available, snapshot } = await fetchRemoteState();
+      if (cancelled) return;
+      if (!available) {
+        setSyncStatus("off");
+        return;
+      }
+      const localUpdatedAt = loadUpdatedAt();
+      if (snapshot && (!localUpdatedAt || snapshot.updatedAt > localUpdatedAt)) {
+        dispatch({
+          type: "HYDRATE",
+          state: { ...snapshot.state, tasks: rollOverIncompleteTasks(snapshot.state.tasks, todayKey) },
+        });
+      }
+      syncEnabledRef.current = true;
+      setSyncStatus("synced");
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, todayKey]);
+
+  useEffect(() => {
+    if (!hydrated || !syncEnabledRef.current) return;
+    setSyncStatus("pending");
+    const timer = setTimeout(async () => {
+      const ok = await pushRemoteState({ state, updatedAt: new Date().toISOString() });
+      setSyncStatus(ok ? "synced" : "error");
+    }, SYNC_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [state, hydrated]);
+
+  /* ── Toasts (undo affordance for destructive-ish actions) ── */
+
+  const notify = useCallback((message: string, undoable = false) => {
+    toastIdRef.current += 1;
+    setToast({ id: toastIdRef.current, message, undoable });
+  }, []);
+
+  const dismissToast = useCallback(() => setToast(null), []);
+
+  const act = useCallback(
+    (action: HistoryAction) => {
+      const current = historyRef.current.present;
+      if (action.type === "DELETE_TASK") {
+        const task = current.tasks.find((t) => t.id === action.taskId);
+        notify(`Deleted “${(task?.title ?? "task").trim() || "Untitled task"}”`, true);
+      } else if (action.type === "TOGGLE_COMPLETE") {
+        const task = current.tasks.find((t) => t.id === action.taskId);
+        if (task && !task.completed) {
+          notify(`Done: “${task.title.trim() || "Untitled task"}”`, true);
+        } else {
+          setToast(null);
+        }
+      } else if (action.type === "IMPORT_STATE") {
+        notify(`Imported ${action.state.tasks.length} tasks`, true);
+      } else if (action.type !== "UNDO" && action.type !== "REDO") {
+        setToast(null);
+      } else {
+        setToast(null);
+      }
+      dispatch(action);
+    },
+    [notify],
   );
+
+  const undoToast = useCallback(() => {
+    setToast(null);
+    dispatch({ type: "UNDO" });
+  }, []);
+
+  /* ── Board view ── */
+
+  const boardSegments = useMemo<BoardDaySegment[]>(() => {
+    if (state.viewMode === "today") return [{ kind: "day", dayKey: todayKey }];
+    return getBoardSegments(state.fixedWeekStart, todayKey);
+  }, [state.viewMode, state.fixedWeekStart, todayKey]);
 
   const visibleDayKeys = useMemo(() => getDayKeysFromSegments(boardSegments), [boardSegments]);
 
   const headerLabel = useMemo(() => {
+    if (state.viewMode === "today") {
+      return parseDayKey(todayKey).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    }
     if (isRollingView(state.fixedWeekStart)) {
       return formatBoardHeaderRange(boardSegments);
     }
     if (visibleDayKeys.length === 0) return "Week";
     return formatWeekRange(getWeekStart(parseDayKey(visibleDayKeys[0])));
-  }, [state.fixedWeekStart, boardSegments, visibleDayKeys]);
+  }, [state.viewMode, state.fixedWeekStart, boardSegments, visibleDayKeys, todayKey]);
 
   const tasksByColumn = useMemo(() => {
     const map = new Map<string, Task[]>();
@@ -60,7 +165,9 @@ export function usePlanBoard() {
     return map;
   }, [state.tasks, state.manualOrderColumns, visibleDayKeys]);
 
-  const act = useCallback((action: PlanAction) => dispatch(action), []);
+  const setMode = useCallback((mode: ViewMode) => {
+    dispatch({ type: "SET_MODE", mode });
+  }, []);
 
   const goToPrevWeek = useCallback(() => {
     if (isRollingView(state.fixedWeekStart)) {
@@ -87,29 +194,52 @@ export function usePlanBoard() {
   }, []);
 
   const resolveDropTarget = useCallback(
-    (_taskId: string, overId: string): { columnKey: string; index: number } | null => {
+    (taskId: string, overId: string): DropTarget | null => {
+      const activeTask = state.tasks.find((t) => t.id === taskId);
+      if (!activeTask) return null;
+
+      const openIdsForColumn = (columnKey: string) =>
+        (tasksByColumn.get(columnKey) ?? []).filter((t) => !t.completed).map((t) => t.id);
+
       if (isColumnKey(overId)) {
-        const columnTasks = tasksByColumn.get(overId) ?? [];
-        return { columnKey: overId, index: columnTasks.length };
+        const openIds = openIdsForColumn(overId);
+        const fromIndex = openIds.indexOf(taskId);
+        // Column shell: append (arrayMove to end when same column, insert at end when cross).
+        if (fromIndex >= 0) {
+          return { columnKey: overId, index: Math.max(openIds.length - 1, 0) };
+        }
+        return { columnKey: overId, index: openIds.length };
       }
 
-      const overTask = state.tasks.find((t) => t.id === overId);
-      if (!overTask) return null;
+      if (overId === taskId) return null;
 
-      const columnTasks = tasksByColumn.get(overTask.dayKey) ?? [];
-      const index = columnTasks.findIndex((t) => t.id === overId);
-      return { columnKey: overTask.dayKey, index: index >= 0 ? index : columnTasks.length };
+      const overTask = state.tasks.find((t) => t.id === overId);
+      if (!overTask || overTask.completed) return null;
+
+      const openIds = openIdsForColumn(overTask.dayKey);
+      const index = openIds.indexOf(overId);
+      if (index < 0) {
+        return { columnKey: overTask.dayKey, index: Math.max(openIds.length - 1, 0) };
+      }
+
+      return { columnKey: overTask.dayKey, index };
     },
     [state.tasks, tasksByColumn],
   );
 
-  const moveTask = useCallback(
-    (taskId: string, overId: string) => {
-      const target = resolveDropTarget(taskId, overId);
-      if (!target) return;
-      dispatch({ type: "MOVE_TASK", taskId, toColumn: target.columnKey, toIndex: target.index });
+  const previewTasksByColumn = useCallback(
+    (draggingTaskId: string | null, dropTarget: DropTarget | null) => {
+      if (!draggingTaskId || !dropTarget) return tasksByColumn;
+      return applyDragPreview(tasksByColumn, draggingTaskId, dropTarget);
     },
-    [resolveDropTarget],
+    [tasksByColumn],
+  );
+
+  const commitDrop = useCallback(
+    (taskId: string, target: DropTarget) => {
+      act({ type: "MOVE_TASK", taskId, toColumn: target.columnKey, toIndex: target.index });
+    },
+    [act],
   );
 
   return {
@@ -120,11 +250,22 @@ export function usePlanBoard() {
     tasksByColumn,
     headerLabel,
     isRolling: isRollingView(state.fixedWeekStart),
+    viewMode: state.viewMode,
+    canUndo: history.past.length > 0,
+    canRedo: history.future.length > 0,
     act,
+    setMode,
     goToPrevWeek,
     goToNextWeek,
     goToToday,
-    moveTask,
+    commitDrop,
+    resolveDropTarget,
+    previewTasksByColumn,
+    toast,
+    dismissToast,
+    undoToast,
+    notify,
+    syncStatus,
   };
 }
 

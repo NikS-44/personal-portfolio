@@ -2,22 +2,26 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useEffect, useRef, useState } from "react";
-import { priorityAccentClass, priorityActiveClass } from "../_lib/priority";
+import { useEffect, useId, useRef, useState, type CSSProperties, type HTMLAttributes } from "react";
+import { addDays, formatOverdueFrom, formatTaskAge, getNextMondayFrom, parseDayKey, toDayKey } from "../_lib/dates";
 import type { PlanAction } from "../_lib/planReducer";
-import type { Priority, Task } from "../_lib/types";
-import { PRIORITY_OPTIONS } from "../_lib/types";
+import type { Priority } from "../_lib/types";
+import { BACKLOG_KEY } from "../_lib/types";
+import type { Task } from "../_lib/types";
+import PrioritySelect from "./PrioritySelect";
 
 type TaskCardProps = {
   task: Task;
   act: (action: PlanAction) => void;
   isDraggingOverlay?: boolean;
+  isBeingDragged?: boolean;
 };
 
-export default function TaskCard({ task, act, isDraggingOverlay = false }: TaskCardProps) {
+export default function TaskCard({ task, act, isDraggingOverlay = false, isBeingDragged = false }: TaskCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     disabled: isDraggingOverlay,
+    data: { type: "task", columnKey: task.dayKey },
   });
 
   const [editingTitle, setEditingTitle] = useState(false);
@@ -25,24 +29,44 @@ export default function TaskCard({ task, act, isDraggingOverlay = false }: TaskC
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesDraft, setNotesDraft] = useState(task.notes);
   const [newSubtask, setNewSubtask] = useState("");
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const titleRef = useRef<HTMLInputElement>(null);
+  const titleRef = useRef<HTMLTextAreaElement>(null);
   const notesRef = useRef<HTMLTextAreaElement>(null);
+  const schedulePopRef = useRef<HTMLDivElement>(null);
+  const skipClickRef = useRef(false);
+  const scheduleId = useId();
+  const scheduleAnchor = `--plan-sched-${task.id}`;
+  const inBacklog = task.dayKey === BACKLOG_KEY;
 
   useEffect(() => {
-    if (editingTitle) titleRef.current?.focus();
+    if (!editingTitle) return;
+    titleRef.current?.focus();
+    growTitleFallback(titleRef.current);
   }, [editingTitle]);
 
   useEffect(() => {
     if (editingNotes) notesRef.current?.focus();
   }, [editingNotes]);
 
+  useEffect(() => {
+    if (isDragging) skipClickRef.current = true;
+  }, [isDragging]);
+
+  const shouldSkipClick = () => {
+    if (!skipClickRef.current) return false;
+    skipClickRef.current = false;
+    return true;
+  };
+
+  const stopDragActivation = (event: React.SyntheticEvent) => {
+    event.stopPropagation();
+  };
+
   const style = isDraggingOverlay
     ? undefined
     : {
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.35 : 1,
+        opacity: isBeingDragged ? 0 : isDragging ? 0.35 : 1,
       };
 
   const commitTitle = () => {
@@ -57,7 +81,7 @@ export default function TaskCard({ task, act, isDraggingOverlay = false }: TaskC
     if (notesDraft !== task.notes) act({ type: "UPDATE_TASK", taskId: task.id, patch: { notes: notesDraft } });
   };
 
-  const onPriorityChange = (priority: Priority) => {
+  const onPriorityChange = (priority: Task["priority"]) => {
     act({ type: "UPDATE_TASK", taskId: task.id, patch: { priority } });
   };
 
@@ -65,11 +89,106 @@ export default function TaskCard({ task, act, isDraggingOverlay = false }: TaskC
     act({ type: "TOGGLE_COLLAPSE", taskId: task.id });
   };
 
+  const moveToBacklog = () => {
+    if (inBacklog) return;
+    act({ type: "MOVE_TASK", taskId: task.id, toColumn: BACKLOG_KEY, toIndex: 0 });
+  };
+
+  const deleteTask = () => {
+    act({ type: "DELETE_TASK", taskId: task.id });
+  };
+
+  const scheduleTo = (dayKey: string) => {
+    schedulePopRef.current?.hidePopover();
+    if (dayKey === task.dayKey) return;
+    // Large index = append; keeps the destination's priority sort intact.
+    act({ type: "MOVE_TASK", taskId: task.id, toColumn: dayKey, toIndex: Number.MAX_SAFE_INTEGER });
+  };
+
+  const scheduleOptions = (): { label: string; dayKey: string }[] => {
+    const today = toDayKey(new Date());
+    const options: { label: string; dayKey: string }[] = [];
+    const push = (label: string, dayKey: string) => {
+      if (dayKey !== task.dayKey && !options.some((o) => o.dayKey === dayKey)) options.push({ label, dayKey });
+    };
+    push("Today", today);
+    push("Tomorrow", addDays(today, 1));
+    const saturday = addDays(today, (6 - parseDayKey(today).getDay() + 7) % 7);
+    push("This weekend", saturday);
+    push("Next Monday", getNextMondayFrom(addDays(today, 1)));
+    push("Backlog", BACKLOG_KEY);
+    return options;
+  };
+
+  const startTitleEdit = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (shouldSkipClick()) return;
+    if (task.collapsed) act({ type: "TOGGLE_COLLAPSE", taskId: task.id });
+    setTitleDraft(task.title);
+    setEditingTitle(true);
+  };
+
   const handleCardClick = (event: React.MouseEvent<HTMLElement>) => {
     if (isDraggingOverlay) return;
+    if (shouldSkipClick()) return;
     const target = event.target as HTMLElement;
-    if (target.closest("button, input, textarea, select, a, form")) return;
+    if (target.closest("button, input, textarea, select, a, form, dialog")) return;
     toggleCollapse();
+  };
+
+  const handleCardKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (isDraggingOverlay) return;
+    const target = event.target as HTMLElement;
+    if (target.closest("button, input, textarea, select, a, form, dialog")) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleCollapse();
+    }
+  };
+
+  const notePreview = task.notes.trim();
+  const subtaskTotal = task.subtasks.length;
+  const subtaskDone = task.subtasks.filter((s) => s.completed).length;
+  const age = inBacklog && !task.completed ? formatTaskAge(task.createdAt, toDayKey(new Date())) : null;
+  const { onKeyDown: sortableKeyDown, ...sortablePointerListeners } = listeners ?? {};
+
+  const handleArticleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    const target = event.target as HTMLElement;
+    if (target.closest("input, textarea, select, dialog")) return;
+
+    handleCardKeyDown(event);
+
+    // Shortcuts and keyboard drag only when the card itself is focused, not nested controls.
+    if (event.target !== event.currentTarget) return;
+
+    if (event.metaKey || event.ctrlKey || event.altKey) {
+      sortableKeyDown?.(event);
+      return;
+    }
+
+    const key = event.key.toLowerCase();
+    if (event.key >= "1" && event.key <= "4") {
+      event.preventDefault();
+      act({ type: "UPDATE_TASK", taskId: task.id, patch: { priority: `p${Number(event.key) - 1}` as Priority } });
+      return;
+    }
+    if (key === "d") {
+      event.preventDefault();
+      act({ type: "TOGGLE_COMPLETE", taskId: task.id });
+      return;
+    }
+    if (event.key === "Backspace" || event.key === "Delete") {
+      event.preventDefault();
+      deleteTask();
+      return;
+    }
+    if (key === "t") {
+      event.preventDefault();
+      scheduleTo(toDayKey(new Date()));
+      return;
+    }
+
+    sortableKeyDown?.(event);
   };
 
   return (
@@ -77,238 +196,305 @@ export default function TaskCard({ task, act, isDraggingOverlay = false }: TaskC
       ref={isDraggingOverlay ? undefined : setNodeRef}
       style={style}
       onClick={handleCardClick}
-      className={`group cursor-pointer rounded-xl border border-l-[3px] border-[var(--plan-border)] bg-white shadow-sm transition-shadow hover:shadow-md ${priorityAccentClass(task.priority)} ${
-        task.completed ? "opacity-55" : ""
-      } ${isDraggingOverlay ? "ring-[var(--plan-accent)]/30 shadow-xl ring-2" : ""}`}
+      onKeyDown={handleArticleKeyDown}
+      className={`plan-card group ${task.completed ? "plan-card--done" : ""} ${
+        isDraggingOverlay ? "plan-card--overlay" : ""
+      } ${isBeingDragged ? "plan-card--dragging" : ""}`}
+      data-priority={task.priority}
+      {...(isDraggingOverlay ? {} : attributes)}
+      {...(isDraggingOverlay ? {} : sortablePointerListeners)}
+      tabIndex={isDraggingOverlay ? undefined : 0}
     >
-      <div className="flex gap-1.5 p-2.5">
-        <button
-          type="button"
-          aria-label="Drag task"
-          className="flex h-6 w-6 shrink-0 cursor-grab touch-none items-center justify-center self-start rounded text-[var(--plan-muted)] opacity-0 transition-opacity hover:bg-[var(--plan-bg)] hover:text-[var(--plan-text)] active:cursor-grabbing group-hover:opacity-100"
-          {...attributes}
-          {...listeners}
-        >
-          <GripIcon />
-        </button>
+      <span className="plan-card__drag" aria-hidden="true">
+        <GripIcon />
+      </span>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label={task.completed ? "Mark incomplete" : "Mark complete"}
-              onClick={() => act({ type: "TOGGLE_COMPLETE", taskId: task.id })}
-              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-[1.5px] transition-colors ${
-                task.completed
-                  ? "border-emerald-500 bg-emerald-500 text-white"
-                  : "border-[var(--plan-border)] bg-white hover:border-emerald-400"
-              }`}
-            >
-              {task.completed ? <CheckIcon /> : null}
-            </button>
-
-            <div className="min-w-0 flex-1 self-center">
-              {editingTitle ? (
-                <input
-                  ref={titleRef}
-                  value={titleDraft}
-                  onChange={(e) => setTitleDraft(e.target.value)}
-                  onBlur={commitTitle}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") commitTitle();
-                    if (e.key === "Escape") {
-                      setTitleDraft(task.title);
-                      setEditingTitle(false);
-                    }
-                  }}
-                  className="w-full rounded-md border border-[var(--plan-border)] bg-white px-2 py-1 text-[13px] font-medium leading-5 text-[var(--plan-text)]"
-                />
-              ) : (
-                <span
-                  role="presentation"
-                  onDoubleClick={(event) => {
-                    event.stopPropagation();
-                    setEditingTitle(true);
-                  }}
-                  className={`block w-full text-left text-[13px] font-medium leading-5 ${
-                    task.completed ? "text-[var(--plan-muted)] line-through" : "text-[var(--plan-text)]"
-                  }`}
-                >
-                  {task.title}
-                </span>
-              )}
-            </div>
-
-            <div className="flex shrink-0 items-center gap-0.5 self-center">
+      <div className="plan-card__body">
+        <div className="plan-card__face">
+          <div className="plan-card__title-wrap">
+            {editingTitle ? (
+              <textarea
+                ref={titleRef}
+                value={titleDraft}
+                rows={1}
+                onChange={(e) => {
+                  setTitleDraft(e.target.value);
+                  growTitleFallback(e.currentTarget);
+                }}
+                onBlur={commitTitle}
+                onClick={(event) => event.stopPropagation()}
+                onPointerDown={stopDragActivation}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    commitTitle();
+                  }
+                  if (e.key === "Escape") {
+                    setTitleDraft(task.title);
+                    setEditingTitle(false);
+                  }
+                }}
+                className="plan-title-slot plan-title-slot--editing w-full text-[var(--plan-text)]"
+                aria-label="Task title"
+              />
+            ) : (
               <button
                 type="button"
-                aria-label={task.collapsed ? "Expand task" : "Collapse task"}
+                onClick={startTitleEdit}
+                className={`plan-title-slot hover:bg-[var(--plan-bg)]/70 w-full text-left transition-colors ${
+                  task.completed ? "text-[var(--plan-muted)] line-through" : "text-[var(--plan-text)]"
+                }`}
+              >
+                {task.title}
+              </button>
+            )}
+          </div>
+
+          <div className="plan-card__actions">
+            <button
+              type="button"
+              aria-label={task.collapsed ? "Expand task" : "Collapse task"}
+              onPointerDown={stopDragActivation}
+              onClick={(event) => {
+                event.stopPropagation();
+                toggleCollapse();
+              }}
+              className="plan-card__action plan-card__action--expand"
+            >
+              <ChevronIcon collapsed={task.collapsed} />
+            </button>
+          </div>
+
+          {task.collapsed && (notePreview || subtaskTotal > 0) ? (
+            <div className="plan-card__preview">
+              {subtaskTotal > 0 ? (
+                <span className="plan-card__subprogress" aria-label={`${subtaskDone} of ${subtaskTotal} subtasks done`}>
+                  <span className="plan-card__subprogress-bar" aria-hidden="true">
+                    <span
+                      className="plan-card__subprogress-fill"
+                      style={{ width: `${Math.round((subtaskDone / subtaskTotal) * 100)}%` }}
+                    />
+                  </span>
+                  <span aria-hidden="true">
+                    {subtaskDone}/{subtaskTotal}
+                  </span>
+                </span>
+              ) : null}
+              {notePreview ? <p className="truncate">{notePreview}</p> : null}
+            </div>
+          ) : null}
+
+          <div className="plan-card__footer">
+            <div className="flex min-w-0 items-center gap-1.5">
+              <PrioritySelect value={task.priority} onChange={onPriorityChange} />
+              {age ? (
+                <span
+                  className={`plan-card__age ${age.stale ? "plan-card__age--stale" : ""}`}
+                  title={`Added ${new Date(task.createdAt).toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                  })}`}
+                >
+                  {age.label}
+                </span>
+              ) : null}
+              {task.overdueFrom && !task.completed && !inBacklog ? (
+                <span className="plan-card__age plan-card__age--overdue" title="Slipped from an earlier day">
+                  {formatOverdueFrom(task.overdueFrom, toDayKey(new Date()))}
+                </span>
+              ) : null}
+            </div>
+            <div className="plan-card__footer-actions">
+              <button
+                type="button"
+                aria-label="Schedule task"
+                title="Schedule (move to today, tomorrow…)"
+                onPointerDown={stopDragActivation}
+                onClick={(event) => event.stopPropagation()}
+                {...({ popovertarget: scheduleId } as HTMLAttributes<HTMLButtonElement>)}
+                className="plan-card__sched-btn"
+                style={{ anchorName: scheduleAnchor } as CSSProperties}
+              >
+                <ScheduleIcon />
+              </button>
+              <button
+                type="button"
+                onPointerDown={stopDragActivation}
                 onClick={(event) => {
                   event.stopPropagation();
-                  toggleCollapse();
+                  act({ type: "TOGGLE_COMPLETE", taskId: task.id });
                 }}
-                className="flex h-6 w-6 items-center justify-center rounded text-[var(--plan-muted)] hover:bg-[var(--plan-bg)] hover:text-[var(--plan-text)]"
+                className="plan-card__done-btn"
               >
-                <ChevronIcon collapsed={task.collapsed} />
+                Mark done
               </button>
+            </div>
+          </div>
+        </div>
 
-              {confirmDelete ? (
-                <div className="flex items-center gap-0.5 rounded-lg bg-red-50 px-1 py-0.5 ring-1 ring-red-100">
-                  <button
-                    type="button"
-                    aria-label="Confirm delete task"
-                    onClick={() => act({ type: "DELETE_TASK", taskId: task.id })}
-                    className="rounded px-1.5 py-0.5 text-[11px] font-semibold text-red-600 hover:bg-red-100"
-                  >
-                    Delete
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Cancel delete task"
-                    onClick={() => setConfirmDelete(false)}
-                    className="flex h-6 w-6 items-center justify-center rounded text-[11px] text-[var(--plan-muted)] hover:bg-white"
-                  >
-                    ×
-                  </button>
-                </div>
+        {!task.collapsed ? (
+          <div className="plan-card__details">
+            <div>
+              {editingNotes ? (
+                <textarea
+                  ref={notesRef}
+                  value={notesDraft}
+                  onChange={(e) => setNotesDraft(e.target.value)}
+                  onBlur={commitNotes}
+                  onPointerDown={stopDragActivation}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  placeholder="Notes…"
+                  className="plan-notes-slot w-full resize-y text-[var(--plan-text)]"
+                />
               ) : (
                 <button
                   type="button"
-                  aria-label="Delete task"
-                  onClick={() => setConfirmDelete(true)}
-                  className="flex h-6 w-6 items-center justify-center rounded text-[var(--plan-muted)] opacity-0 transition-opacity hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
+                  onPointerDown={stopDragActivation}
+                  onClick={() => {
+                    if (shouldSkipClick()) return;
+                    setNotesDraft(task.notes);
+                    setEditingNotes(true);
+                  }}
+                  className="plan-notes-slot w-full text-left text-[var(--plan-muted)] transition-colors"
                 >
-                  ×
+                  <span className="plan-notes-slot__text">{task.notes.trim() ? task.notes : "Add notes…"}</span>
                 </button>
               )}
             </div>
-          </div>
 
-          {!task.collapsed ? (
-            <div className="border-[var(--plan-border)]/70 mt-2.5 space-y-2.5 border-t pt-2.5">
-              <div className="flex flex-wrap gap-1" role="group" aria-label="Priority">
-                {PRIORITY_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => onPriorityChange(opt.value)}
-                    className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 transition-colors ${
-                      task.priority === opt.value
-                        ? priorityActiveClass(opt.value)
-                        : "bg-white text-[var(--plan-muted)] ring-[var(--plan-border)] hover:bg-[var(--plan-bg)]"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
+            {task.subtasks.length > 0 ? (
+              <ul className="space-y-1">
+                {task.subtasks.map((sub) => (
+                  <li key={sub.id} className="plan-subtask-row">
+                    <button
+                      type="button"
+                      aria-label={sub.completed ? "Mark subtask incomplete" : "Mark subtask complete"}
+                      onPointerDown={stopDragActivation}
+                      onClick={() => act({ type: "TOGGLE_SUBTASK", taskId: task.id, subtaskId: sub.id })}
+                      className={`plan-subtask-check ${sub.completed ? "plan-subtask-check--done" : ""}`}
+                    >
+                      {sub.completed ? <SmallCheckIcon /> : null}
+                    </button>
+                    <input
+                      value={sub.title}
+                      onPointerDown={stopDragActivation}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      onChange={(e) =>
+                        act({
+                          type: "UPDATE_SUBTASK",
+                          taskId: task.id,
+                          subtaskId: sub.id,
+                          title: e.target.value,
+                        })
+                      }
+                      className={`plan-subtask-slot min-w-0 ${
+                        sub.completed ? "text-[var(--plan-muted)] line-through" : "text-[var(--plan-text)]"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      aria-label="Delete subtask"
+                      onPointerDown={stopDragActivation}
+                      onClick={() => act({ type: "DELETE_SUBTASK", taskId: task.id, subtaskId: sub.id })}
+                      className="plan-subtask-delete"
+                    >
+                      ×
+                    </button>
+                  </li>
                 ))}
-              </div>
+              </ul>
+            ) : null}
 
-              <div>
-                {editingNotes ? (
-                  <textarea
-                    ref={notesRef}
-                    value={notesDraft}
-                    onChange={(e) => setNotesDraft(e.target.value)}
-                    onBlur={commitNotes}
-                    placeholder="Notes…"
-                    rows={3}
-                    className="w-full resize-y rounded-lg border border-[var(--plan-border)] bg-[var(--plan-surface)] px-2.5 py-2 text-xs leading-relaxed text-[var(--plan-text)]"
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNotesDraft(task.notes);
-                      setEditingNotes(true);
-                    }}
-                    className="hover:ring-[var(--plan-accent)]/40 w-full rounded-lg bg-[var(--plan-surface)] px-2.5 py-2 text-left text-xs leading-relaxed text-[var(--plan-muted)] ring-1 ring-[var(--plan-border)] transition-colors"
-                  >
-                    {task.notes.trim() ? task.notes : "Add notes…"}
-                  </button>
-                )}
-              </div>
+            <form
+              onPointerDown={stopDragActivation}
+              onSubmit={(e) => {
+                e.preventDefault();
+                const title = newSubtask.trim();
+                if (!title) return;
+                act({ type: "ADD_SUBTASK", taskId: task.id, title });
+                setNewSubtask("");
+              }}
+              className="plan-subtask-row"
+            >
+              <span aria-hidden="true" className="plan-subtask-check" />
+              <input
+                value={newSubtask}
+                onChange={(e) => setNewSubtask(e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()}
+                placeholder="Add subtask…"
+                className="plan-subtask-add-slot min-w-0"
+                aria-label="Add subtask"
+              />
+              <button type="submit" className="plan-subtask-add-btn" aria-label="Add subtask">
+                +
+              </button>
+            </form>
 
-              {task.subtasks.length > 0 ? (
-                <ul className="space-y-1.5">
-                  {task.subtasks.map((sub) => (
-                    <li key={sub.id} className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        aria-label={sub.completed ? "Mark subtask incomplete" : "Mark subtask complete"}
-                        onClick={() => act({ type: "TOGGLE_SUBTASK", taskId: task.id, subtaskId: sub.id })}
-                        className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${
-                          sub.completed
-                            ? "border-emerald-500 bg-emerald-500 text-white"
-                            : "border-[var(--plan-border)] bg-white"
-                        }`}
-                      >
-                        {sub.completed ? <SmallCheckIcon /> : null}
-                      </button>
-                      <input
-                        value={sub.title}
-                        onChange={(e) =>
-                          act({
-                            type: "UPDATE_SUBTASK",
-                            taskId: task.id,
-                            subtaskId: sub.id,
-                            title: e.target.value,
-                          })
-                        }
-                        className={`min-w-0 flex-1 bg-transparent text-xs ${
-                          sub.completed ? "text-[var(--plan-muted)] line-through" : "text-[var(--plan-text)]"
-                        }`}
-                      />
-                      <button
-                        type="button"
-                        aria-label="Delete subtask"
-                        onClick={() => act({ type: "DELETE_SUBTASK", taskId: task.id, subtaskId: sub.id })}
-                        className="text-[var(--plan-muted)] hover:text-red-500"
-                      >
-                        ×
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const title = newSubtask.trim();
-                  if (!title) return;
-                  act({ type: "ADD_SUBTASK", taskId: task.id, title });
-                  setNewSubtask("");
-                }}
-                className="flex gap-1.5"
-              >
-                <input
-                  value={newSubtask}
-                  onChange={(e) => setNewSubtask(e.target.value)}
-                  placeholder="Subtask"
-                  className="min-w-0 flex-1 rounded-lg border border-[var(--plan-border)] bg-white px-2 py-1.5 text-xs"
-                />
+            <div className="plan-card__meta">
+              {inBacklog ? (
+                <span className="plan-card__meta-spacer" aria-hidden="true" />
+              ) : (
                 <button
-                  type="submit"
-                  className="rounded-lg bg-[var(--plan-accent-soft)] px-2.5 py-1.5 text-xs font-medium text-[var(--plan-accent)] hover:bg-[var(--plan-accent)] hover:text-white"
+                  type="button"
+                  onPointerDown={stopDragActivation}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    moveToBacklog();
+                  }}
+                  className="plan-card__meta-btn plan-card__meta-btn--backlog"
                 >
-                  Add
+                  Move to backlog
                 </button>
-              </form>
+              )}
+              <button
+                type="button"
+                aria-label="Delete task"
+                title="Delete (undo from the toast)"
+                onPointerDown={stopDragActivation}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  deleteTask();
+                }}
+                className="plan-card__meta-btn plan-card__meta-btn--trash"
+              >
+                <TrashIcon />
+              </button>
             </div>
-          ) : (
-            <div className="mt-1 flex items-center gap-2">
-              <span className="rounded-md bg-[var(--plan-bg)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--plan-muted)]">
-                {task.priority.toUpperCase()}
-              </span>
-              {task.notes.trim() ? (
-                <span className="truncate text-[11px] text-[var(--plan-muted)]">{task.notes}</span>
-              ) : null}
-            </div>
-          )}
-        </div>
+          </div>
+        ) : null}
+      </div>
+
+      <div
+        ref={schedulePopRef}
+        id={scheduleId}
+        popover="auto"
+        className="plan-pop"
+        onClick={(event) => event.stopPropagation()}
+        onPointerDown={stopDragActivation}
+        style={{ positionAnchor: scheduleAnchor } as CSSProperties}
+      >
+        {scheduleOptions().map((option) => (
+          <button
+            key={option.dayKey}
+            type="button"
+            className="plan-pop__item"
+            onClick={() => scheduleTo(option.dayKey)}
+          >
+            {option.label}
+          </button>
+        ))}
       </div>
     </article>
   );
+}
+
+/** Height fallback for browsers without `field-sizing: content` (see plan.css). */
+function growTitleFallback(el: HTMLTextAreaElement | null) {
+  // `window.CSS`: the bare global is shadowed by dnd-kit's `CSS` import above.
+  if (!el || (typeof window !== "undefined" && window.CSS?.supports("field-sizing", "content"))) return;
+  el.style.height = "auto";
+  el.style.height = `${el.scrollHeight}px`;
 }
 
 function GripIcon() {
@@ -325,6 +511,7 @@ function GripIcon() {
 }
 
 function ChevronIcon({ collapsed }: { collapsed: boolean }) {
+  // Collapsed → points up; expanded → points down.
   return (
     <svg
       width="14"
@@ -333,25 +520,41 @@ function ChevronIcon({ collapsed }: { collapsed: boolean }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
-      className={`transition-transform ${collapsed ? "-rotate-90" : ""}`}
       aria-hidden="true"
     >
-      <path d="M4 6l4 4 4-4" />
+      {collapsed ? <path d="M4 10l4-4 4 4" /> : <path d="M4 6l4 4 4-4" />}
     </svg>
   );
 }
 
-function CheckIcon() {
+function TrashIcon() {
   return (
-    <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M2 5l2 2 4-4" />
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M3.5 4.5h9M6 4.5V3.25A.75.75 0 0 1 6.75 2.5h2.5a.75.75 0 0 1 .75.75V4.5m1.5 0V12.5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V4.5"
+        stroke="currentColor"
+        strokeWidth="1.35"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M6.75 7v4M9.25 7v4" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ScheduleIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" aria-hidden="true">
+      <rect x="2.25" y="3.25" width="11.5" height="10.5" rx="1.5" strokeWidth="1.35" />
+      <path d="M2.25 6.5h11.5M5.5 1.75v3M10.5 1.75v3" strokeWidth="1.35" strokeLinecap="round" />
+      <path d="M6 10.25l1.5 1.5 2.75-2.75" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
 function SmallCheckIcon() {
   return (
-    <svg width="7" height="7" viewBox="0 0 8 8" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" strokeWidth="1.75">
       <path d="M1.5 4l1.5 1.5 3.5-3.5" />
     </svg>
   );

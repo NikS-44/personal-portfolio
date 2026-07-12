@@ -32,9 +32,19 @@ export function getWorkWeekDayKeys(weekStart: string): string[] {
   return [0, 1, 2, 3, 4].map((offset) => addDays(weekStart, offset));
 }
 
+/** Mon–Sun day keys for the week starting on `weekStart` (Monday). */
+export function getCalendarWeekDayKeys(weekStart: string): string[] {
+  return [0, 1, 2, 3, 4, 5, 6].map((offset) => addDays(weekStart, offset));
+}
+
 export function isWorkdayKey(key: string): boolean {
   const day = parseDayKey(key).getDay();
   return day >= 1 && day <= 5;
+}
+
+export function isWeekendKey(key: string): boolean {
+  const day = parseDayKey(key).getDay();
+  return day === 0 || day === 6;
 }
 
 /** First visible workday in the default rolling view (today, or next Mon on weekends). */
@@ -55,9 +65,12 @@ export function workdaysInRange(startKey: string, endKey: string): string[] {
   return days;
 }
 
-/** Workday to roll incomplete tasks onto (next Mon on weekends). */
-export function getRolloverTargetDay(todayKey: string): string {
-  return getRollingStartAnchor(todayKey);
+/** Upcoming Monday on or after `dayKey` (today if already Monday). */
+export function getNextMondayFrom(dayKey: string): string {
+  const day = parseDayKey(dayKey).getDay();
+  if (day === 1) return dayKey;
+  if (day === 0) return addDays(dayKey, 1);
+  return addDays(dayKey, 8 - day);
 }
 
 export function formatColumnLabel(
@@ -79,21 +92,35 @@ export function formatWeekRange(weekStart: string): string {
   return `${startFmt} – ${endFmt}`;
 }
 
-/** Move incomplete scheduled tasks forward when their day has passed; skip weekend columns. */
-export function rollOverIncompleteTasks(tasks: Task[], todayKey: string): Task[] {
-  const targetDay = getRolloverTargetDay(todayKey);
+export type TaskAge = { label: string; stale: boolean };
 
+/** Age chip for backlog cards: null under a week, then "2w", "3mo"…; stale from 3 weeks. */
+export function formatTaskAge(createdAt: string, todayKey: string): TaskAge | null {
+  const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) return null;
+
+  const days = Math.round((parseDayKey(todayKey).getTime() - parseDayKey(toDayKey(created)).getTime()) / 86_400_000);
+  if (days < 7) return null;
+
+  const label = days < 60 ? `${Math.floor(days / 7)}w` : `${Math.floor(days / 30)}mo`;
+  return { label, stale: days >= 21 };
+}
+
+/** Move incomplete past-due tasks to today, remembering where they slipped from. */
+export function rollOverIncompleteTasks(tasks: Task[], todayKey: string): Task[] {
   return tasks.map((task) => {
     if (task.completed || task.dayKey === "backlog") return task;
-
-    if (!isWorkdayKey(task.dayKey)) {
-      return { ...task, dayKey: targetDay };
+    if (task.dayKey < todayKey) {
+      return { ...task, dayKey: todayKey, overdueFrom: task.overdueFrom ?? task.dayKey };
     }
-
-    if (task.dayKey < targetDay) {
-      return { ...task, dayKey: targetDay };
-    }
-
     return task;
   });
+}
+
+/** Short label for the overdue badge: "was Tue" (or "was Jun 3" if older than a week). */
+export function formatOverdueFrom(overdueFrom: string, todayKey: string): string {
+  const from = parseDayKey(overdueFrom);
+  const days = Math.round((parseDayKey(todayKey).getTime() - from.getTime()) / 86_400_000);
+  if (days <= 6) return `was ${from.toLocaleDateString(undefined, { weekday: "short" })}`;
+  return `was ${from.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
 }

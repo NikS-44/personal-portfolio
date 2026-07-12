@@ -1,15 +1,18 @@
-import { nextSortOrderForPriority } from "./priority";
+import { toDayKey } from "./dates";
+import { nextSortOrderForPriority, sortTasksForColumn } from "./priority";
 import type { PlanState, Priority, SubTask, Task } from "./types";
 import { BACKLOG_KEY } from "./types";
 
 export type PlanAction =
   | { type: "HYDRATE"; state: PlanState }
-  | { type: "ADD_TASK"; columnKey: string; title: string }
+  | { type: "IMPORT_STATE"; state: PlanState }
+  | { type: "ADD_TASK"; columnKey: string; title: string; priority?: Priority }
   | { type: "UPDATE_TASK"; taskId: string; patch: Partial<Pick<Task, "title" | "notes" | "priority">> }
   | { type: "DELETE_TASK"; taskId: string }
   | { type: "TOGGLE_COMPLETE"; taskId: string }
   | { type: "TOGGLE_COLLAPSE"; taskId: string }
   | { type: "SET_VIEW"; fixedWeekStart: string | null }
+  | { type: "SET_MODE"; mode: PlanState["viewMode"] }
   | { type: "MOVE_TASK"; taskId: string; toColumn: string; toIndex: number }
   | { type: "RESET_COLUMN_PRIORITY_SORT"; columnKey: string }
   | { type: "ADD_SUBTASK"; taskId: string; title: string }
@@ -35,6 +38,14 @@ function reindexColumn(tasks: Task[], columnKey: string, orderedIds: string[]): 
   });
 }
 
+function arrayMoveIds(ids: string[], fromIndex: number, toIndex: number): string[] {
+  if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return ids;
+  const next = ids.slice();
+  const [item] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, item);
+  return next;
+}
+
 function markColumnManual(state: PlanState, columnKey: string): string[] {
   if (state.manualOrderColumns.includes(columnKey)) return state.manualOrderColumns;
   return [...state.manualOrderColumns, columnKey];
@@ -43,11 +54,12 @@ function markColumnManual(state: PlanState, columnKey: string): string[] {
 export function planReducer(state: PlanState, action: PlanAction): PlanState {
   switch (action.type) {
     case "HYDRATE":
+    case "IMPORT_STATE":
       return action.state;
 
     case "ADD_TASK": {
       const columnTasks = tasksInColumn(state.tasks, action.columnKey);
-      const priority: Priority = "p2";
+      const priority: Priority = action.priority ?? "p2";
       const sortOrder = state.manualOrderColumns.includes(action.columnKey)
         ? columnTasks.length
         : nextSortOrderForPriority(columnTasks, priority);
@@ -64,6 +76,7 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
         dayKey: action.columnKey,
         sortOrder,
         createdAt: new Date().toISOString(),
+        overdueFrom: null,
       };
 
       return { ...state, tasks: [...state.tasks, task] };
@@ -81,19 +94,51 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
         tasks: state.tasks.filter((t) => t.id !== action.taskId),
       };
 
-    case "TOGGLE_COMPLETE":
-      return {
-        ...state,
-        tasks: state.tasks.map((t) =>
-          t.id === action.taskId
-            ? {
-                ...t,
-                completed: !t.completed,
-                completedAt: !t.completed ? new Date().toISOString() : null,
-              }
-            : t,
-        ),
-      };
+    case "TOGGLE_COMPLETE": {
+      const task = state.tasks.find((t) => t.id === action.taskId);
+      if (!task) return state;
+
+      const completing = !task.completed;
+      if (!completing) {
+        return {
+          ...state,
+          tasks: state.tasks.map((t) => (t.id === action.taskId ? { ...t, completed: false, completedAt: null } : t)),
+        };
+      }
+
+      const fromBacklog = task.dayKey === BACKLOG_KEY;
+      const today = toDayKey(new Date());
+      const toColumn = fromBacklog ? today : task.dayKey;
+
+      let tasks = state.tasks.map((t) =>
+        t.id === action.taskId
+          ? {
+              ...t,
+              dayKey: toColumn,
+              completed: true,
+              completedAt: new Date().toISOString(),
+              overdueFrom: null,
+            }
+          : t,
+      );
+
+      if (fromBacklog) {
+        const backlogTasks = tasksInColumn(tasks, BACKLOG_KEY).sort((a, b) => a.sortOrder - b.sortOrder);
+        tasks = reindexColumn(
+          tasks,
+          BACKLOG_KEY,
+          backlogTasks.map((t) => t.id),
+        );
+
+        const todayTasks = tasksInColumn(tasks, toColumn).sort((a, b) => a.sortOrder - b.sortOrder);
+        const openIds = todayTasks.filter((t) => !t.completed).map((t) => t.id);
+        const doneIds = todayTasks.filter((t) => t.completed && t.id !== action.taskId).map((t) => t.id);
+        doneIds.push(action.taskId);
+        tasks = reindexColumn(tasks, toColumn, [...openIds, ...doneIds]);
+      }
+
+      return { ...state, tasks };
+    }
 
     case "TOGGLE_COLLAPSE":
       return {
@@ -104,38 +149,90 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
     case "SET_VIEW":
       return { ...state, fixedWeekStart: action.fixedWeekStart };
 
+    case "SET_MODE":
+      return { ...state, viewMode: action.mode };
+
     case "MOVE_TASK": {
       const task = state.tasks.find((t) => t.id === action.taskId);
       if (!task) return state;
 
       const fromColumn = task.dayKey;
       const toColumn = action.toColumn;
+      const sameColumn = fromColumn === toColumn;
+      const destWasManual = state.manualOrderColumns.includes(toColumn);
 
+      const visualOpenIds = (columnKey: string, tasks: Task[], manual: boolean, excludeId?: string) =>
+        sortTasksForColumn(
+          tasksInColumn(tasks, columnKey).filter((t) => !t.completed && t.id !== excludeId),
+          manual,
+        ).map((t) => t.id);
+
+      if (sameColumn) {
+        const prevOpenIds = visualOpenIds(toColumn, state.tasks, destWasManual);
+        const doneIds = tasksInColumn(state.tasks, toColumn)
+          .filter((t) => t.completed)
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .map((t) => t.id);
+        const fromIndex = prevOpenIds.indexOf(action.taskId);
+        if (fromIndex < 0) return state;
+
+        const toIndex = Math.max(0, Math.min(action.toIndex, prevOpenIds.length - 1));
+        const openIds = arrayMoveIds(prevOpenIds, fromIndex, toIndex);
+        if (openIds.every((id, index) => id === prevOpenIds[index])) return state;
+
+        return {
+          ...state,
+          tasks: reindexColumn(state.tasks, toColumn, [...openIds, ...doneIds]),
+          manualOrderColumns: markColumnManual(state, toColumn),
+        };
+      }
+
+      // Cross-column move: an explicit re-plan, so the overdue marker clears.
       let tasks = state.tasks.map((t) =>
-        t.id === action.taskId ? { ...t, dayKey: toColumn, sortOrder: action.toIndex } : t,
+        t.id === action.taskId
+          ? {
+              ...t,
+              dayKey: toColumn,
+              completed: false,
+              completedAt: null,
+              sortOrder: action.toIndex,
+              overdueFrom: null,
+            }
+          : t,
       );
 
-      const destTasks = tasksInColumn(tasks, toColumn).sort((a, b) => a.sortOrder - b.sortOrder);
-      const destIds = destTasks.map((t) => t.id);
-      const withoutActive = destIds.filter((id) => id !== action.taskId);
-      withoutActive.splice(action.toIndex, 0, action.taskId);
-      tasks = reindexColumn(tasks, toColumn, withoutActive);
+      // Dropping onto a specific slot is an explicit order choice → manual.
+      // Dropping onto the column shell (append) keeps priority sort when not already manual.
+      const droppedOnSlot = action.toIndex < visualOpenIds(toColumn, tasks, destWasManual, action.taskId).length;
+      const makeManual = destWasManual || droppedOnSlot;
 
-      if (fromColumn !== toColumn) {
-        const sourceTasks = tasksInColumn(tasks, fromColumn).sort((a, b) => a.sortOrder - b.sortOrder);
-        tasks = reindexColumn(
-          tasks,
-          fromColumn,
-          sourceTasks.map((t) => t.id),
-        );
+      if (makeManual) {
+        const openIds = visualOpenIds(toColumn, tasks, destWasManual, action.taskId);
+        const doneIds = tasksInColumn(tasks, toColumn)
+          .filter((t) => t.completed)
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .map((t) => t.id);
+        openIds.splice(Math.min(action.toIndex, openIds.length), 0, action.taskId);
+        tasks = reindexColumn(tasks, toColumn, [...openIds, ...doneIds]);
+      } else {
+        const peers = tasksInColumn(tasks, toColumn).filter((t) => t.id !== action.taskId);
+        const sortOrder = nextSortOrderForPriority(peers, task.priority);
+        tasks = tasks.map((t) => (t.id === action.taskId ? { ...t, sortOrder } : t));
       }
 
-      let manualOrderColumns = markColumnManual(state, toColumn);
-      if (fromColumn !== toColumn) {
-        manualOrderColumns = markColumnManual({ ...state, manualOrderColumns }, fromColumn);
-      }
+      const sourceManual = state.manualOrderColumns.includes(fromColumn);
+      const sourceOpenIds = visualOpenIds(fromColumn, tasks, sourceManual);
+      const sourceDoneIds = tasksInColumn(tasks, fromColumn)
+        .filter((t) => t.completed)
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((t) => t.id);
+      tasks = reindexColumn(tasks, fromColumn, [...sourceOpenIds, ...sourceDoneIds]);
 
-      return { ...state, tasks, manualOrderColumns };
+      return {
+        ...state,
+        tasks,
+        manualOrderColumns: makeManual ? markColumnManual(state, toColumn) : state.manualOrderColumns,
+      };
     }
 
     case "RESET_COLUMN_PRIORITY_SORT": {
