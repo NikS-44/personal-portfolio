@@ -14,7 +14,16 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useEffect, useId, useMemo, useRef, useState, type HTMLAttributes, type MouseEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type HTMLAttributes,
+  type MouseEvent,
+  type PointerEvent,
+} from "react";
 import type { Task } from "../_lib/types";
 import { BACKLOG_KEY } from "../_lib/types";
 import { usePlanBoard, type DropTarget } from "../_lib/usePlanBoard";
@@ -27,6 +36,7 @@ import TaskCard from "./TaskCard";
 import WeekSeparator from "./WeekSeparator";
 
 const BACKLOG_OPEN_KEY = "plan-backlog-open";
+const PLAN_BACKLOG_SHEET_ID = "plan-backlog-sheet";
 const MOBILE_MQ = "(max-width: 640px)";
 
 type BoardLayout = "unknown" | "mobile" | "desktop";
@@ -63,7 +73,6 @@ export default function PlanBoard() {
   const backlogPinRef = useRef<HTMLElement>(null);
   const backlogSheetRef = useRef<HTMLDialogElement>(null);
   const layoutRef = useRef<BoardLayout>("unknown");
-  const suppressSheetCloseRef = useRef(false);
   const backlogTipId = useId();
   const backlogAnchor = "--plan-backlog-menu";
 
@@ -88,12 +97,11 @@ export default function PlanBoard() {
   };
 
   const closeBacklogSheet = () => {
-    setBacklogOpenPersisted(false);
-    const dialog = backlogSheetRef.current;
-    if (dialog?.open) {
-      suppressSheetCloseRef.current = true;
-      dialog.close();
+    if (layoutRef.current === "mobile") {
+      backlogSheetRef.current?.close();
+      return;
     }
+    setBacklogOpenPersisted(false);
   };
 
   const toggleBacklog = () => {
@@ -149,17 +157,13 @@ export default function PlanBoard() {
     if (!dialog) return;
 
     if (boardLayout !== "mobile") {
-      if (dialog.open) {
-        suppressSheetCloseRef.current = true;
-        dialog.close();
-      }
+      if (dialog.open) dialog.close();
       return;
     }
 
     if (backlogOpen && !dialog.open) {
       dialog.showModal();
     } else if (!backlogOpen && dialog.open) {
-      suppressSheetCloseRef.current = true;
       dialog.close();
     }
   }, [backlogOpen, boardLayout]);
@@ -270,11 +274,17 @@ export default function PlanBoard() {
   };
 
   const onBacklogSheetClose = () => {
-    const suppressed = suppressSheetCloseRef.current;
-    suppressSheetCloseRef.current = false;
-    if (suppressed) return;
     if (layoutRef.current !== "mobile") return;
     setBacklogOpenPersisted(false);
+  };
+
+  const onBacklogSheetPointerUp = (event: PointerEvent<HTMLDialogElement>) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (!target.closest("[data-backlog-sheet-close]")) return;
+    event.preventDefault();
+    event.stopPropagation();
+    closeBacklogSheet();
   };
 
   const onBacklogSheetClick = (event: MouseEvent<HTMLDialogElement>) => {
@@ -293,6 +303,7 @@ export default function PlanBoard() {
       subtitle="Unscheduled"
       isBacklog
       onToggleCollapsed={closeBacklogSheet}
+      sheetCloseTargetId={boardLayout === "mobile" ? PLAN_BACKLOG_SHEET_ID : undefined}
       tasks={backlogTasks}
       act={act}
       draggingTaskId={draggingTaskId}
@@ -457,10 +468,12 @@ export default function PlanBoard() {
 
       {boardLayout === "mobile" ? (
         <dialog
+          id={PLAN_BACKLOG_SHEET_ID}
           ref={backlogSheetRef}
           className="plan-backlog-sheet"
           aria-label="Backlog"
           onClose={onBacklogSheetClose}
+          onPointerUp={onBacklogSheetPointerUp}
           onClick={onBacklogSheetClick}
           {...({ closedby: "any" } as HTMLAttributes<HTMLDialogElement>)}
         >

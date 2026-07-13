@@ -2,7 +2,7 @@
 
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { useEffect, useId, useRef, useState, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type HTMLAttributes, type RefObject } from "react";
 import { formatColumnLabel, isWeekendKey, toDayKey } from "../_lib/dates";
 import { parseQuickAdd } from "../_lib/quickAdd";
 import type { PlanAction } from "../_lib/planReducer";
@@ -20,6 +20,8 @@ type PlanColumnProps = {
   isToday?: boolean;
   isBacklog?: boolean;
   onToggleCollapsed?: () => void;
+  /** When set, close uses dialog command + touch-friendly handlers (mobile sheet). */
+  sheetCloseTargetId?: string;
   tasks: Task[];
   act: (action: PlanAction) => void;
   draggingTaskId: string | null;
@@ -32,6 +34,7 @@ export default function PlanColumn({
   isToday,
   isBacklog,
   onToggleCollapsed,
+  sheetCloseTargetId,
   tasks,
   act,
   draggingTaskId,
@@ -158,12 +161,22 @@ export default function PlanColumn({
               <button
                 type="button"
                 aria-label="Hide backlog"
-                title="Hide backlog"
-                onClick={(event) => {
+                data-backlog-sheet-close={sheetCloseTargetId ? "" : undefined}
+                {...(sheetCloseTargetId
+                  ? ({ commandfor: sheetCloseTargetId, command: "close" } as HTMLAttributes<HTMLButtonElement>)
+                  : {})}
+                onPointerUp={(event) => {
+                  if (!sheetCloseTargetId) return;
                   event.stopPropagation();
+                  event.preventDefault();
                   onToggleCollapsed();
                 }}
-                className="plan-sort-btn"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (sheetCloseTargetId) return;
+                  onToggleCollapsed();
+                }}
+                className={sheetCloseTargetId ? "plan-sort-btn plan-backlog-sheet-close" : "plan-sort-btn"}
               >
                 ×
               </button>
