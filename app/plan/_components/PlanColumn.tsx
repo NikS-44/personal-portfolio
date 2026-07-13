@@ -25,6 +25,9 @@ type PlanColumnProps = {
   tasks: Task[];
   act: (action: PlanAction) => void;
   draggingTaskId: string | null;
+  /** Committed column of the active drag; avoids duplicate sortable ids in preview column. */
+  draggingFromColumnKey?: string | null;
+  dragEnabled?: boolean;
 };
 
 export default function PlanColumn({
@@ -38,6 +41,8 @@ export default function PlanColumn({
   tasks,
   act,
   draggingTaskId,
+  draggingFromColumnKey = null,
+  dragEnabled = true,
 }: PlanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: columnKey,
@@ -119,9 +124,12 @@ export default function PlanColumn({
 
   return (
     <section
+      ref={setNodeRef}
       data-column-key={columnKey}
       aria-label={`${title}${subtitle ? `, ${subtitle}` : ""}`}
-      className={`plan-column flex h-full w-[17.5rem] shrink-0 flex-col overflow-hidden rounded-2xl border shadow-sm ${surfaceClass}`}
+      className={`plan-column flex h-full w-[17.5rem] shrink-0 flex-col overflow-hidden rounded-2xl border shadow-sm ${surfaceClass} ${
+        isOver ? "plan-column--over" : ""
+      }`}
     >
       <header className="shrink-0 border-b border-[var(--plan-border)] px-3.5 py-3">
         <div className="flex items-start justify-between gap-2">
@@ -188,14 +196,22 @@ export default function PlanColumn({
       <div className="plan-column-scroll relative flex min-h-0 flex-1 flex-col">
         <div className="plan-scroll-edge plan-scroll-edge--top" aria-hidden="true" />
         <div
-          ref={setNodeRef}
           className={`plan-column-scroll__body flex min-h-0 flex-1 flex-col overflow-y-auto p-2.5 transition-colors ${
             isOver ? "bg-[var(--plan-accent-soft)]/60" : ""
           }`}
         >
           <SortableContext items={openTasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
             {openTasks.map((task) => (
-              <TaskCard key={task.id} task={task} act={act} isBeingDragged={draggingTaskId === task.id} />
+              <TaskCard
+                key={task.id}
+                task={task}
+                act={act}
+                isBeingDragged={draggingTaskId === task.id}
+                disableSortable={
+                  !dragEnabled ||
+                  (draggingTaskId === task.id && draggingFromColumnKey != null && columnKey !== draggingFromColumnKey)
+                }
+              />
             ))}
           </SortableContext>
 

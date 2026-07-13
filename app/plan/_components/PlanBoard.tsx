@@ -7,6 +7,8 @@ import {
   MouseSensor,
   TouchSensor,
   closestCorners,
+  pointerWithin,
+  type CollisionDetection,
   type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
@@ -27,6 +29,7 @@ import {
 import type { Task } from "../_lib/types";
 import { BACKLOG_KEY } from "../_lib/types";
 import { usePlanBoard, type DropTarget } from "../_lib/usePlanBoard";
+import { isColumnKey } from "../_lib/planReducer";
 import { PlanIconButton } from "./PlanHint";
 import PlanColumn, { dayColumnMeta } from "./PlanColumn";
 import PlanMenu from "./PlanMenu";
@@ -38,6 +41,18 @@ import WeekSeparator from "./WeekSeparator";
 const BACKLOG_OPEN_KEY = "plan-backlog-open";
 const PLAN_BACKLOG_SHEET_ID = "plan-backlog-sheet";
 const MOBILE_MQ = "(max-width: 640px)";
+
+/** Prefer pointer hits (whole column shell); task cards win over their column container. */
+const planCollisionDetection: CollisionDetection = (args) => {
+  const activeId = args.active.id;
+  const pointerHits = pointerWithin(args).filter((hit) => hit.id !== activeId);
+  if (pointerHits.length > 0) {
+    const taskHit = pointerHits.find((hit) => !isColumnKey(String(hit.id)));
+    if (taskHit) return [taskHit];
+    return pointerHits;
+  }
+  return closestCorners(args).filter((hit) => hit.id !== activeId);
+};
 
 type BoardLayout = "unknown" | "mobile" | "desktop";
 
@@ -168,12 +183,11 @@ export default function PlanBoard() {
     }
   }, [backlogOpen, boardLayout]);
 
-  const desktopSensors = useSensors(
+  const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 160, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
-  const sensors = boardLayout === "mobile" ? [] : desktopSensors;
 
   /* ── Global keyboard shortcuts (card-level ones live in TaskCard) ── */
 
@@ -295,6 +309,9 @@ export default function PlanBoard() {
 
   const backlogTasks = displayByColumn.get(BACKLOG_KEY) ?? [];
   const backlogOpenCount = backlogTasks.filter((t) => !t.completed).length;
+  const draggingFromColumnKey = draggingTaskId
+    ? (state.tasks.find((t) => t.id === draggingTaskId)?.dayKey ?? null)
+    : null;
 
   const backlogColumn = (
     <PlanColumn
@@ -307,6 +324,8 @@ export default function PlanBoard() {
       tasks={backlogTasks}
       act={act}
       draggingTaskId={draggingTaskId}
+      draggingFromColumnKey={draggingFromColumnKey}
+      dragEnabled={boardLayout !== "mobile"}
     />
   );
 
@@ -321,13 +340,17 @@ export default function PlanBoard() {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={planCollisionDetection}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
       onDragCancel={onDragCancel}
     >
-      <main id="plan-board" tabIndex={-1} className="flex min-h-0 flex-col outline-none">
+      <main
+        id="plan-board"
+        tabIndex={-1}
+        className={`flex min-h-0 flex-col outline-none ${draggingTaskId ? "plan-board--dragging" : ""}`}
+      >
         <header className="bg-[var(--plan-surface)]/90 sticky top-0 z-20 flex shrink-0 items-center justify-between gap-4 border-b border-[var(--plan-border)] px-4 py-3 backdrop-blur-md">
           <div className="flex min-w-0 items-center gap-3">
             <PlanIconButton
@@ -455,6 +478,8 @@ export default function PlanBoard() {
                     tasks={displayByColumn.get(segment.dayKey) ?? []}
                     act={act}
                     draggingTaskId={draggingTaskId}
+                    draggingFromColumnKey={draggingFromColumnKey}
+                    dragEnabled={boardLayout !== "mobile"}
                   />
                 );
               })}

@@ -169,6 +169,16 @@
   contain-intrinsic-size: auto 17.5rem auto 36rem;
 }
 
+/* content-visibility:auto can skew dnd-kit rects for off-screen columns; force layout while dragging. */
+.plan-board--dragging .plan-column,
+.plan-board--dragging .plan-card {
+  content-visibility: visible;
+}
+
+.plan-column--over {
+  border-color: color-mix(in srgb, var(--plan-accent) 35%, var(--plan-border));
+}
+
 .plan-card {
   display: flex;
   gap: 0.125rem;
