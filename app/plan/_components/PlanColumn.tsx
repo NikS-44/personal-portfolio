@@ -2,7 +2,7 @@
 
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { useEffect, useId, useRef, useState, type HTMLAttributes, type RefObject } from "react";
+import { memo, useEffect, useId, useRef, useState, type HTMLAttributes, type RefObject } from "react";
 import { formatColumnLabel, isWeekendKey, toDayKey } from "../_lib/dates";
 import { parseQuickAdd } from "../_lib/quickAdd";
 import type { PlanAction } from "../_lib/planReducer";
@@ -25,12 +25,20 @@ type PlanColumnProps = {
   tasks: Task[];
   act: (action: PlanAction) => void;
   draggingTaskId: string | null;
-  /** Committed column of the active drag; avoids duplicate sortable ids in preview column. */
-  draggingFromColumnKey?: string | null;
   dragEnabled?: boolean;
+  boardIsDragging?: boolean;
 };
 
-export default function PlanColumn({
+/** Isolated droppable rect — isOver re-renders stay off task cards. */
+const ColumnDropZone = memo(function ColumnDropZone({ columnKey }: { columnKey: string }) {
+  const { setNodeRef } = useDroppable({
+    id: columnKey,
+    data: { type: "column", columnKey },
+  });
+  return <div ref={setNodeRef} className="plan-column__drop-zone" aria-hidden="true" />;
+});
+
+export default memo(function PlanColumn({
   columnKey,
   title,
   subtitle,
@@ -41,13 +49,9 @@ export default function PlanColumn({
   tasks,
   act,
   draggingTaskId,
-  draggingFromColumnKey = null,
   dragEnabled = true,
+  boardIsDragging = false,
 }: PlanColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: columnKey,
-    data: { type: "column", columnKey },
-  });
   const [listDraft, setListDraft] = useState("");
   const [footerDraft, setFooterDraft] = useState("");
   const [composing, setComposing] = useState(false);
@@ -58,8 +62,9 @@ export default function PlanColumn({
   const openTasks = tasks.filter((t) => !t.completed);
   const doneTasks = tasks.filter((t) => t.completed);
   const isWeekend = !isBacklog && isWeekendKey(columnKey);
-  // Expand while dragging so Sat/Sun are real hit targets (narrow dormant misses closestCorners).
-  const dormant = isWeekend && tasks.length === 0 && !composing && draggingTaskId == null;
+  // Keep compact weekend columns during drag — expanding them remeasures the whole board.
+  const dormant = isWeekend && tasks.length === 0 && !composing && !boardIsDragging;
+  const sortableOpenIds = openTasks.filter((t) => t.id !== draggingTaskId).map((t) => t.id);
 
   useEffect(() => {
     if (!composing) return;
@@ -96,13 +101,11 @@ export default function PlanColumn({
   if (dormant) {
     return (
       <section
-        ref={setNodeRef}
         data-column-key={columnKey}
         aria-label={`${title}${subtitle ? `, ${subtitle}` : ""}`}
-        className={`plan-column plan-column--weekend plan-column--dormant flex h-full shrink-0 flex-col overflow-hidden rounded-2xl border shadow-sm ${surfaceClass} ${
-          isOver ? "plan-column--dormant-over" : ""
-        }`}
+        className={`plan-column plan-column--weekend plan-column--dormant flex h-full shrink-0 flex-col overflow-hidden rounded-2xl border shadow-sm ${surfaceClass}`}
       >
+        <ColumnDropZone columnKey={columnKey} />
         <div className="plan-column-dormant">
           <div className="plan-column-dormant__label">
             <span className="plan-column-dormant__day">{title}</span>
@@ -124,13 +127,11 @@ export default function PlanColumn({
 
   return (
     <section
-      ref={setNodeRef}
       data-column-key={columnKey}
       aria-label={`${title}${subtitle ? `, ${subtitle}` : ""}`}
-      className={`plan-column flex h-full w-[17.5rem] shrink-0 flex-col overflow-hidden rounded-2xl border shadow-sm ${surfaceClass} ${
-        isOver ? "plan-column--over" : ""
-      }`}
+      className={`plan-column flex h-full w-[17.5rem] shrink-0 flex-col overflow-hidden rounded-2xl border shadow-sm ${surfaceClass}`}
     >
+      <ColumnDropZone columnKey={columnKey} />
       <header className="shrink-0 border-b border-[var(--plan-border)] px-3.5 py-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
@@ -195,22 +196,15 @@ export default function PlanColumn({
 
       <div className="plan-column-scroll relative flex min-h-0 flex-1 flex-col">
         <div className="plan-scroll-edge plan-scroll-edge--top" aria-hidden="true" />
-        <div
-          className={`plan-column-scroll__body flex min-h-0 flex-1 flex-col overflow-y-auto p-2.5 transition-colors ${
-            isOver ? "bg-[var(--plan-accent-soft)]/60" : ""
-          }`}
-        >
-          <SortableContext items={openTasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+        <div className="plan-column-scroll__body flex min-h-0 flex-1 flex-col overflow-y-auto p-2.5">
+          <SortableContext items={sortableOpenIds} strategy={verticalListSortingStrategy}>
             {openTasks.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
                 act={act}
                 isBeingDragged={draggingTaskId === task.id}
-                disableSortable={
-                  !dragEnabled ||
-                  (draggingTaskId === task.id && draggingFromColumnKey != null && columnKey !== draggingFromColumnKey)
-                }
+                dragEnabled={dragEnabled}
               />
             ))}
           </SortableContext>
@@ -280,7 +274,7 @@ export default function PlanColumn({
       </form>
     </section>
   );
-}
+});
 
 const HEAVY_DAY_THRESHOLD = 7;
 const OVERLOADED_DAY_THRESHOLD = 10;

@@ -8,9 +8,9 @@ import {
   TouchSensor,
   closestCorners,
   pointerWithin,
+  useDndMonitor,
   type CollisionDetection,
   type DragEndEvent,
-  type DragOverEvent,
   type DragStartEvent,
   useSensor,
   useSensors,
@@ -19,11 +19,11 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import {
   useEffect,
   useId,
-  useMemo,
   useRef,
   useState,
   type HTMLAttributes,
   type MouseEvent,
+  type MutableRefObject,
   type PointerEvent,
 } from "react";
 import type { Task } from "../_lib/types";
@@ -56,6 +56,59 @@ const planCollisionDetection: CollisionDetection = (args) => {
 
 type BoardLayout = "unknown" | "mobile" | "desktop";
 
+type PlanDragMonitorProps = {
+  resolveDropTarget: (taskId: string, overId: string) => DropTarget | null;
+  dropTargetRef: MutableRefObject<DropTarget | null>;
+  dropHighlightRef: MutableRefObject<string | null>;
+};
+
+const DROP_TARGET_CLASS = "plan-column--drop-target";
+
+function syncDropTargetHighlight(columnKey: string | null, prevColumnKey: string | null) {
+  if (prevColumnKey && prevColumnKey !== columnKey) {
+    document.querySelector(`[data-column-key="${CSS.escape(prevColumnKey)}"]`)?.classList.remove(DROP_TARGET_CLASS);
+  }
+  if (columnKey && columnKey !== prevColumnKey) {
+    document.querySelector(`[data-column-key="${CSS.escape(columnKey)}"]`)?.classList.add(DROP_TARGET_CLASS);
+  }
+}
+
+/** Must render inside DndContext — tracks drop target without React re-renders while dragging. */
+function PlanDragMonitor({ resolveDropTarget, dropTargetRef, dropHighlightRef }: PlanDragMonitorProps) {
+  useDndMonitor({
+    onDragMove(event) {
+      const { active, over } = event;
+      if (!over) {
+        const prev = dropHighlightRef.current;
+        dropTargetRef.current = null;
+        dropHighlightRef.current = null;
+        if (prev) syncDropTargetHighlight(null, prev);
+        return;
+      }
+      const target = resolveDropTarget(String(active.id), String(over.id));
+      if (!target) return;
+      dropTargetRef.current = target;
+      if (target.columnKey === dropHighlightRef.current) return;
+      const prev = dropHighlightRef.current;
+      dropHighlightRef.current = target.columnKey;
+      syncDropTargetHighlight(target.columnKey, prev);
+    },
+    onDragEnd() {
+      const prev = dropHighlightRef.current;
+      dropTargetRef.current = null;
+      dropHighlightRef.current = null;
+      if (prev) syncDropTargetHighlight(null, prev);
+    },
+    onDragCancel() {
+      const prev = dropHighlightRef.current;
+      dropTargetRef.current = null;
+      dropHighlightRef.current = null;
+      if (prev) syncDropTargetHighlight(null, prev);
+    },
+  });
+  return null;
+}
+
 export default function PlanBoard() {
   const {
     hydrated,
@@ -72,7 +125,7 @@ export default function PlanBoard() {
     goToToday,
     commitDrop,
     resolveDropTarget,
-    previewTasksByColumn,
+    tasksByColumn,
     toast,
     dismissToast,
     undoToast,
@@ -81,8 +134,8 @@ export default function PlanBoard() {
   } = usePlanBoard();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
-  const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
   const dropTargetRef = useRef<DropTarget | null>(null);
+  const dropHighlightRef = useRef<string | null>(null);
   const [backlogOpen, setBacklogOpen] = useState(false);
   const [boardLayout, setBoardLayout] = useState<BoardLayout>("unknown");
   const backlogPinRef = useRef<HTMLElement>(null);
@@ -93,10 +146,7 @@ export default function PlanBoard() {
 
   layoutRef.current = boardLayout;
 
-  const updateDropTarget = (target: DropTarget | null) => {
-    dropTargetRef.current = target;
-    setDropTarget(target);
-  };
+  const boardIsDragging = draggingTaskId != null;
 
   const persistBacklogOpen = (next: boolean) => {
     try {
@@ -244,29 +294,17 @@ export default function PlanBoard() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  const displayByColumn = useMemo(
-    () => previewTasksByColumn(draggingTaskId, dropTarget),
-    [previewTasksByColumn, draggingTaskId, dropTarget],
-  );
+  const displayByColumn = tasksByColumn;
 
   const onDragStart = (event: DragStartEvent) => {
     const taskId = String(event.active.id);
     const task = state.tasks.find((t) => t.id === taskId);
+    const prevHighlight = dropHighlightRef.current;
     setDraggingTaskId(taskId);
     setActiveTask(task ?? null);
-    updateDropTarget(null);
-  };
-
-  const onDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-    const target = resolveDropTarget(String(active.id), String(over.id));
-    if (!target) return;
-    const prev = dropTargetRef.current;
-    if (prev && prev.columnKey === target.columnKey && prev.index === target.index) {
-      return;
-    }
-    updateDropTarget(target);
+    dropTargetRef.current = null;
+    dropHighlightRef.current = null;
+    if (prevHighlight) syncDropTargetHighlight(null, prevHighlight);
   };
 
   const onDragEnd = (event: DragEndEvent) => {
@@ -276,7 +314,8 @@ export default function PlanBoard() {
       dropTargetRef.current ?? (over && over.id !== active.id ? resolveDropTarget(taskId, String(over.id)) : null);
     setActiveTask(null);
     setDraggingTaskId(null);
-    updateDropTarget(null);
+    dropTargetRef.current = null;
+    dropHighlightRef.current = null;
     if (!target) return;
     commitDrop(taskId, target);
   };
@@ -284,7 +323,8 @@ export default function PlanBoard() {
   const onDragCancel = () => {
     setActiveTask(null);
     setDraggingTaskId(null);
-    updateDropTarget(null);
+    dropTargetRef.current = null;
+    dropHighlightRef.current = null;
   };
 
   const onBacklogSheetClose = () => {
@@ -309,9 +349,6 @@ export default function PlanBoard() {
 
   const backlogTasks = displayByColumn.get(BACKLOG_KEY) ?? [];
   const backlogOpenCount = backlogTasks.filter((t) => !t.completed).length;
-  const draggingFromColumnKey = draggingTaskId
-    ? (state.tasks.find((t) => t.id === draggingTaskId)?.dayKey ?? null)
-    : null;
 
   const backlogColumn = (
     <PlanColumn
@@ -324,8 +361,8 @@ export default function PlanBoard() {
       tasks={backlogTasks}
       act={act}
       draggingTaskId={draggingTaskId}
-      draggingFromColumnKey={draggingFromColumnKey}
       dragEnabled={boardLayout !== "mobile"}
+      boardIsDragging={boardIsDragging}
     />
   );
 
@@ -342,14 +379,18 @@ export default function PlanBoard() {
       sensors={sensors}
       collisionDetection={planCollisionDetection}
       onDragStart={onDragStart}
-      onDragOver={onDragOver}
       onDragEnd={onDragEnd}
       onDragCancel={onDragCancel}
     >
+      <PlanDragMonitor
+        resolveDropTarget={resolveDropTarget}
+        dropTargetRef={dropTargetRef}
+        dropHighlightRef={dropHighlightRef}
+      />
       <main
         id="plan-board"
         tabIndex={-1}
-        className={`flex min-h-0 flex-col outline-none ${draggingTaskId ? "plan-board--dragging" : ""}`}
+        className={`flex min-h-0 flex-col outline-none${boardIsDragging ? "plan-board--dragging" : ""}`}
       >
         <header className="bg-[var(--plan-surface)]/90 sticky top-0 z-20 flex shrink-0 items-center justify-between gap-4 border-b border-[var(--plan-border)] px-4 py-3 backdrop-blur-md">
           <div className="flex min-w-0 items-center gap-3">
@@ -478,8 +519,8 @@ export default function PlanBoard() {
                     tasks={displayByColumn.get(segment.dayKey) ?? []}
                     act={act}
                     draggingTaskId={draggingTaskId}
-                    draggingFromColumnKey={draggingFromColumnKey}
                     dragEnabled={boardLayout !== "mobile"}
+                    boardIsDragging={boardIsDragging}
                   />
                 );
               })}

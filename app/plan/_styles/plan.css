@@ -164,19 +164,28 @@
 /* ── Performance: column & card containment (Kanban reflow isolation) ── */
 
 .plan-column {
+  position: relative;
   content-visibility: auto;
   /* Placeholder size while offscreen; height comes from flex stretch, not dvh. */
   contain-intrinsic-size: auto 17.5rem auto 36rem;
 }
 
-/* content-visibility:auto can skew dnd-kit rects for off-screen columns; force layout while dragging. */
+.plan-column__drop-zone {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.plan-column--drop-target {
+  outline: 2px solid color-mix(in srgb, var(--plan-accent) 55%, transparent);
+  outline-offset: -2px;
+}
+
+/* content-visibility:auto skews dnd-kit rects; force layout only while dragging (class toggled on drag start/end). */
 .plan-board--dragging .plan-column,
 .plan-board--dragging .plan-card {
   content-visibility: visible;
-}
-
-.plan-column--over {
-  border-color: color-mix(in srgb, var(--plan-accent) 35%, var(--plan-border));
 }
 
 .plan-card {

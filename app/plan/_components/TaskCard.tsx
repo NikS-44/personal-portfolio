@@ -15,8 +15,7 @@ type TaskCardProps = {
   act: (action: PlanAction) => void;
   isDraggingOverlay?: boolean;
   isBeingDragged?: boolean;
-  /** Cross-column drag preview ghost — must not register a second sortable id. */
-  disableSortable?: boolean;
+  dragEnabled?: boolean;
 };
 
 export default function TaskCard({
@@ -24,11 +23,11 @@ export default function TaskCard({
   act,
   isDraggingOverlay = false,
   isBeingDragged = false,
-  disableSortable = false,
+  dragEnabled = true,
 }: TaskCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
-    disabled: isDraggingOverlay || disableSortable,
+    disabled: isDraggingOverlay || !dragEnabled,
     data: { type: "task", columnKey: task.dayKey },
   });
 
