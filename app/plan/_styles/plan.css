@@ -1215,6 +1215,16 @@
   color: var(--plan-muted);
 }
 
+.plan-pop__version {
+  margin: 0;
+  padding: 0.35rem 0.55rem 0.15rem;
+  font-size: 0.625rem;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--plan-muted) 75%, transparent);
+  text-align: right;
+}
+
 /* ── Toast (undo affordance) ── */
 
 .plan-toast {

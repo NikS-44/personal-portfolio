@@ -8,6 +8,7 @@ import { isLocalOnlyMode } from "../_lib/localMode";
 import { parseBackup, serializeBackup } from "../_lib/storage";
 import type { SyncStatus } from "../_lib/sync";
 import type { PlanState } from "../_lib/types";
+import { PLAN_APP_VERSION } from "../_lib/version";
 
 type PlanMenuProps = {
   state: PlanState;
@@ -90,6 +91,7 @@ export default function PlanMenu({ state, act, notify, syncStatus }: PlanMenuPro
           {isLocalOnlyMode() ? "Local only — data stays in this browser" : SYNC_LABEL[syncStatus]}
         </p>
         <p className="plan-pop__note">Quick add: !p1 sets priority, @tue schedules</p>
+        <p className="plan-pop__version">v{PLAN_APP_VERSION}</p>
       </div>
 
       <input
