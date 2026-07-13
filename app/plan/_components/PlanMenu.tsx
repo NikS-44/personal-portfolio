@@ -4,6 +4,7 @@ import { useId, useRef } from "react";
 import type { CSSProperties, HTMLAttributes } from "react";
 import { toDayKey } from "../_lib/dates";
 import type { HistoryAction } from "../_lib/history";
+import { isLocalOnlyMode } from "../_lib/localMode";
 import { parseBackup, serializeBackup } from "../_lib/storage";
 import type { SyncStatus } from "../_lib/sync";
 import type { PlanState } from "../_lib/types";
@@ -85,7 +86,9 @@ export default function PlanMenu({ state, act, notify, syncStatus }: PlanMenuPro
         >
           Import backup…
         </button>
-        <p className="plan-pop__note">{SYNC_LABEL[syncStatus]}</p>
+        <p className="plan-pop__note">
+          {isLocalOnlyMode() ? "Local only — data stays in this browser" : SYNC_LABEL[syncStatus]}
+        </p>
         <p className="plan-pop__note">Quick add: !p1 sets priority, @tue schedules</p>
       </div>
 

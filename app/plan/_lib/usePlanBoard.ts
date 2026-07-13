@@ -16,6 +16,7 @@ import { createHistory, historyReducer, type HistoryAction } from "./history";
 import { sortTasksForColumn } from "./priority";
 import { isColumnKey } from "./planReducer";
 import { applyDragPreview, type DropTarget } from "./dragPreview";
+import { isLocalOnlyMode } from "./localMode";
 import { createInitialState, loadPlanState, savePlanState } from "./storage";
 import { fetchRemoteState, mergeWithRemote, pushRemoteState, type SyncStatus } from "./sync";
 import { planRevision } from "./taskMerge";
@@ -67,6 +68,12 @@ export function usePlanBoard() {
   useEffect(() => {
     const local = loadPlanState();
     dispatch({ type: "HYDRATE", state: local });
+
+    if (isLocalOnlyMode()) {
+      setSyncStatus("off");
+      setHydrated(true);
+      return;
+    }
 
     let cancelled = false;
 

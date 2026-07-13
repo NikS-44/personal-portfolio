@@ -1418,6 +1418,53 @@
   opacity: 0.6;
 }
 
+.plan-unlock__divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block: 0.25rem;
+  color: var(--plan-muted);
+  font-size: 0.75rem;
+}
+
+.plan-unlock__divider::before,
+.plan-unlock__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--plan-border);
+}
+
+.plan-unlock__local {
+  height: 2.25rem;
+  border: 1px solid var(--plan-border);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--plan-text);
+  background: var(--plan-elevated);
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.plan-unlock__local:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--plan-accent) 35%, var(--plan-border));
+  background: var(--plan-surface);
+}
+
+.plan-unlock__local:disabled {
+  opacity: 0.6;
+}
+
+.plan-unlock__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--plan-muted);
+  text-align: center;
+}
+
 .plan-title-slot {
   box-sizing: border-box;
   display: block;

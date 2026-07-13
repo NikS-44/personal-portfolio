@@ -3,7 +3,8 @@ import "./_styles/plan.css";
 
 /**
  * Auth: `middleware.ts` gates /plan behind `PLANNER_SECRET` (Vercel env) via
- * the `plan-key` cookie; /plan/unlock sets it. Unset secret = open (local dev).
+ * the `plan-key` cookie; /plan/unlock sets it. Local-only mode (`plan-local`
+ * cookie) opens the board without a key. Unset secret = open (local dev).
  */
 export const metadata: Metadata = {
   title: "Weekly plan",
