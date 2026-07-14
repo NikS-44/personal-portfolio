@@ -30,6 +30,7 @@ import type { Task } from "../_lib/types";
 import { BACKLOG_KEY } from "../_lib/types";
 import { usePlanBoard, type DropTarget } from "../_lib/usePlanBoard";
 import { isColumnKey } from "../_lib/planReducer";
+import { clearDropIndicator, dropTargetsEqual, syncDropIndicator } from "../_lib/dropIndicator";
 import { PlanIconButton } from "./PlanHint";
 import PlanColumn, { dayColumnMeta } from "./PlanColumn";
 import PlanMenu from "./PlanMenu";
@@ -60,6 +61,7 @@ type PlanDragMonitorProps = {
   resolveDropTarget: (taskId: string, overId: string) => DropTarget | null;
   dropTargetRef: MutableRefObject<DropTarget | null>;
   dropHighlightRef: MutableRefObject<string | null>;
+  dropIndicatorRef: MutableRefObject<DropTarget | null>;
 };
 
 const DROP_TARGET_CLASS = "plan-column--drop-target";
@@ -73,37 +75,52 @@ function syncDropTargetHighlight(columnKey: string | null, prevColumnKey: string
   }
 }
 
+function clearDragChrome(dropHighlightRef: MutableRefObject<string | null>) {
+  const prevColumn = dropHighlightRef.current;
+  dropHighlightRef.current = null;
+  if (prevColumn) syncDropTargetHighlight(null, prevColumn);
+  clearDropIndicator();
+}
+
 /** Must render inside DndContext — tracks drop target without React re-renders while dragging. */
-function PlanDragMonitor({ resolveDropTarget, dropTargetRef, dropHighlightRef }: PlanDragMonitorProps) {
+function PlanDragMonitor({
+  resolveDropTarget,
+  dropTargetRef,
+  dropHighlightRef,
+  dropIndicatorRef,
+}: PlanDragMonitorProps) {
   useDndMonitor({
     onDragMove(event) {
       const { active, over } = event;
       if (!over) {
-        const prev = dropHighlightRef.current;
         dropTargetRef.current = null;
-        dropHighlightRef.current = null;
-        if (prev) syncDropTargetHighlight(null, prev);
+        dropIndicatorRef.current = null;
+        clearDragChrome(dropHighlightRef);
         return;
       }
       const target = resolveDropTarget(String(active.id), String(over.id));
       if (!target) return;
       dropTargetRef.current = target;
+
+      if (!dropTargetsEqual(target, dropIndicatorRef.current)) {
+        dropIndicatorRef.current = target;
+        syncDropIndicator(target);
+      }
+
       if (target.columnKey === dropHighlightRef.current) return;
-      const prev = dropHighlightRef.current;
+      const prevColumn = dropHighlightRef.current;
       dropHighlightRef.current = target.columnKey;
-      syncDropTargetHighlight(target.columnKey, prev);
+      syncDropTargetHighlight(target.columnKey, prevColumn);
     },
     onDragEnd() {
-      const prev = dropHighlightRef.current;
       dropTargetRef.current = null;
-      dropHighlightRef.current = null;
-      if (prev) syncDropTargetHighlight(null, prev);
+      dropIndicatorRef.current = null;
+      clearDragChrome(dropHighlightRef);
     },
     onDragCancel() {
-      const prev = dropHighlightRef.current;
       dropTargetRef.current = null;
-      dropHighlightRef.current = null;
-      if (prev) syncDropTargetHighlight(null, prev);
+      dropIndicatorRef.current = null;
+      clearDragChrome(dropHighlightRef);
     },
   });
   return null;
@@ -136,6 +153,7 @@ export default function PlanBoard() {
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const dropTargetRef = useRef<DropTarget | null>(null);
   const dropHighlightRef = useRef<string | null>(null);
+  const dropIndicatorRef = useRef<DropTarget | null>(null);
   const [backlogOpen, setBacklogOpen] = useState(false);
   const [boardLayout, setBoardLayout] = useState<BoardLayout>("unknown");
   const backlogPinRef = useRef<HTMLElement>(null);
@@ -304,6 +322,8 @@ export default function PlanBoard() {
     setActiveTask(task ?? null);
     dropTargetRef.current = null;
     dropHighlightRef.current = null;
+    dropIndicatorRef.current = null;
+    clearDropIndicator();
     if (prevHighlight) syncDropTargetHighlight(null, prevHighlight);
   };
 
@@ -316,6 +336,8 @@ export default function PlanBoard() {
     setDraggingTaskId(null);
     dropTargetRef.current = null;
     dropHighlightRef.current = null;
+    dropIndicatorRef.current = null;
+    clearDropIndicator();
     if (!target) return;
     commitDrop(taskId, target);
   };
@@ -325,6 +347,8 @@ export default function PlanBoard() {
     setDraggingTaskId(null);
     dropTargetRef.current = null;
     dropHighlightRef.current = null;
+    dropIndicatorRef.current = null;
+    clearDropIndicator();
   };
 
   const onBacklogSheetClose = () => {
@@ -386,11 +410,18 @@ export default function PlanBoard() {
         resolveDropTarget={resolveDropTarget}
         dropTargetRef={dropTargetRef}
         dropHighlightRef={dropHighlightRef}
+        dropIndicatorRef={dropIndicatorRef}
       />
       <main
         id="plan-board"
         tabIndex={-1}
-        className={`flex min-h-0 flex-col outline-none${boardIsDragging ? "plan-board--dragging" : ""}`}
+        className={[
+          "flex min-h-0 flex-col outline-none",
+          boardIsDragging && "plan-board--dragging",
+          viewMode === "today" && "plan-board--today-view",
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         <header className="bg-[var(--plan-surface)]/90 sticky top-0 z-20 flex shrink-0 items-center justify-between gap-4 border-b border-[var(--plan-border)] px-4 py-3 backdrop-blur-md">
           <div className="flex min-w-0 items-center gap-3">

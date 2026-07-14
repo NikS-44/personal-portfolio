@@ -40,6 +40,7 @@ export default function TaskCard({
   const notesRef = useRef<HTMLTextAreaElement>(null);
   const schedulePopRef = useRef<HTMLDivElement>(null);
   const skipClickRef = useRef(false);
+  const skipNotesBlurCommitRef = useRef(false);
   const scheduleId = useId();
   const scheduleAnchor = `--plan-sched-${task.id}`;
   const inBacklog = task.dayKey === BACKLOG_KEY;
@@ -50,7 +51,12 @@ export default function TaskCard({
   }, [editingTitle]);
 
   useEffect(() => {
-    if (editingNotes) notesRef.current?.focus();
+    if (!editingNotes) return;
+    const el = notesRef.current;
+    if (!el) return;
+    el.focus();
+    const end = el.value.length;
+    el.setSelectionRange(end, end);
   }, [editingNotes]);
 
   useEffect(() => {
@@ -83,8 +89,18 @@ export default function TaskCard({
   };
 
   const commitNotes = () => {
+    if (skipNotesBlurCommitRef.current) {
+      skipNotesBlurCommitRef.current = false;
+      return;
+    }
     setEditingNotes(false);
     if (notesDraft !== task.notes) act({ type: "UPDATE_TASK", taskId: task.id, patch: { notes: notesDraft } });
+  };
+
+  const cancelNotesEdit = () => {
+    skipNotesBlurCommitRef.current = true;
+    setEditingNotes(false);
+    setNotesDraft(task.notes);
   };
 
   const onPriorityChange = (priority: Task["priority"]) => {
@@ -291,7 +307,7 @@ export default function TaskCard({
                   </span>
                 </span>
               ) : null}
-              {notePreview ? <p className="truncate">{notePreview}</p> : null}
+              {notePreview ? <p className="plan-card__preview-notes">{notePreview}</p> : null}
             </div>
           ) : null}
 
@@ -351,33 +367,57 @@ export default function TaskCard({
           >
             <div>
               {editingNotes ? (
-                <textarea
-                  ref={notesRef}
-                  value={notesDraft}
-                  onChange={(e) => setNotesDraft(e.target.value)}
-                  onBlur={commitNotes}
-                  onClick={(event) => event.stopPropagation()}
-                  onPointerDown={stopDragActivation}
-                  onKeyDown={(e) => e.stopPropagation()}
-                  placeholder="Notes…"
-                  className="plan-notes-slot w-full resize-y text-[var(--plan-text)]"
-                />
-              ) : (
-                <div className="plan-notes-slot plan-notes-slot--idle">
-                  <button
-                    type="button"
+                <div className="plan-notes-edit">
+                  <textarea
+                    ref={notesRef}
+                    value={notesDraft}
+                    onChange={(e) => setNotesDraft(e.target.value)}
+                    onBlur={commitNotes}
+                    onClick={(event) => event.stopPropagation()}
                     onPointerDown={stopDragActivation}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      if (shouldSkipClick()) return;
-                      setNotesDraft(task.notes);
-                      setEditingNotes(true);
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        cancelNotesEdit();
+                      }
+                      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                        e.preventDefault();
+                        commitNotes();
+                      }
                     }}
-                    className="plan-notes-slot__hit text-[var(--plan-muted)]"
-                  >
-                    <span className="plan-notes-slot__text">{task.notes.trim() ? task.notes : "Add notes…"}</span>
-                  </button>
+                    placeholder="Notes…"
+                    className="plan-notes-slot w-full resize-y text-[var(--plan-text)]"
+                    aria-label="Notes"
+                  />
+                  <div className="plan-notes-edit__actions">
+                    <button
+                      type="button"
+                      onPointerDown={(event) => event.preventDefault()}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        commitNotes();
+                      }}
+                      className="plan-notes-save-btn"
+                    >
+                      Save
+                    </button>
+                  </div>
                 </div>
+              ) : (
+                <button
+                  type="button"
+                  onPointerDown={stopDragActivation}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (shouldSkipClick()) return;
+                    setNotesDraft(task.notes);
+                    setEditingNotes(true);
+                  }}
+                  className="plan-notes-slot plan-notes-slot--idle text-[var(--plan-muted)]"
+                >
+                  <span className="plan-notes-slot__text">{task.notes.trim() ? task.notes : "Add notes…"}</span>
+                </button>
               )}
             </div>
 
@@ -495,7 +535,7 @@ export default function TaskCard({
         ref={schedulePopRef}
         id={scheduleId}
         popover="auto"
-        className="plan-pop"
+        className={`plan-pop plan-pop--end ${task.collapsed ? "" : "plan-pop--up"}`}
         onClick={(event) => event.stopPropagation()}
         onPointerDown={stopDragActivation}
         style={{ positionAnchor: scheduleAnchor } as CSSProperties}

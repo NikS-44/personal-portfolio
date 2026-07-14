@@ -865,7 +865,7 @@
 
 .plan-priority-select:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--plan-accent) 55%, transparent);
-  outline-offset: 1pddx;
+  outline-offset: 1px;
 }
 
 @supports (appearance: base-select) {
@@ -1079,6 +1079,15 @@
   min-width: 0;
 }
 
+.plan-card__preview-notes {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
 .plan-card__subprogress {
   display: inline-flex;
   flex-shrink: 0;
@@ -1183,6 +1192,17 @@
 .plan-pop--end {
   left: anchor(right);
   translate: -100% 0;
+}
+
+/* Opens above anchor — use when dropdown would cover content below (e.g. schedule on expanded cards). */
+.plan-pop--up {
+  top: anchor(top);
+  translate: -50% calc(-100% - 0.375rem);
+}
+
+.plan-pop--end.plan-pop--up {
+  left: anchor(right);
+  translate: -100% calc(-100% - 0.375rem);
 }
 
 @supports not (anchor-name: --x) {
@@ -1359,7 +1379,7 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--plan-accent) 30%, transparent);
 }
 
-/* ── Today focus view ── */
+/* ── Today focus view (spacious on desktop; mobile stays compact in @media below) ── */
 
 .plan-board-scroll__body--today {
   justify-content: center;
@@ -1367,6 +1387,111 @@
 
 .plan-board-scroll__body--today .plan-column {
   width: min(26rem, 100%);
+}
+
+@media (min-width: 641px) {
+  .plan-board--today-view .plan-board-scroll__body--today {
+    padding: 1.25rem 2rem 1.5rem;
+  }
+
+  .plan-board--today-view .plan-board-scroll__body--today .plan-column {
+    width: min(36rem, 100%);
+  }
+
+  .plan-board--today-view .plan-column-scroll__body {
+    --plan-list-gap: 0.75rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .plan-board--today-view .plan-column > header {
+    padding: 1rem 1.25rem;
+  }
+
+  .plan-board--today-view .plan-card {
+    padding: 0.75rem 0.875rem 0.75rem 0.625rem;
+    gap: 0.375rem;
+  }
+
+  .plan-board--today-view .plan-card__face {
+    row-gap: 0.5rem;
+  }
+
+  .plan-board--today-view .plan-card__preview {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+  }
+
+  .plan-board--today-view .plan-card__preview-notes {
+    -webkit-line-clamp: 3;
+  }
+
+  .plan-board--today-view .plan-card__action {
+    height: 2rem;
+    width: 2rem;
+    border-radius: 0.375rem;
+  }
+
+  .plan-board--today-view .plan-card__sched-btn {
+    height: 2rem;
+    width: 2rem;
+    border-radius: 0.375rem;
+  }
+
+  .plan-board--today-view .plan-card__done-btn {
+    height: 2rem;
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    font-size: 0.75rem;
+    border-radius: 0.375rem;
+  }
+
+  .plan-board--today-view .plan-priority-select {
+    height: 1.75rem;
+    min-width: 3rem;
+    padding-right: 1.25rem;
+    font-size: 0.6875rem;
+    line-height: 1.75rem;
+  }
+
+  .plan-board--today-view .plan-priority-select__trigger {
+    height: 1.75rem;
+    min-width: 3rem;
+    padding: 0 0.5rem 0 0.5rem;
+    font-size: 0.6875rem;
+  }
+
+  .plan-board--today-view .plan-priority-select::picker(select) {
+    min-width: 7rem;
+    padding: 0.35rem;
+    margin-top: 0.375rem;
+  }
+
+  .plan-board--today-view .plan-priority-select option {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.75rem;
+  }
+
+  .plan-board--today-view .plan-pop {
+    min-width: 11.5rem;
+    padding: 0.375rem;
+  }
+
+  .plan-board--today-view .plan-pop__item {
+    padding: 0.55rem 0.65rem;
+    font-size: 0.8125rem;
+  }
+
+  .plan-board--today-view .plan-title-slot {
+    font-size: 0.9375rem;
+    line-height: 1.35;
+  }
+
+  .plan-board--today-view .plan-column-scroll__body > form {
+    margin-top: 0.25rem;
+  }
 }
 
 /* ── Unlock page ── */
@@ -1549,35 +1674,25 @@ textarea.plan-title-slot {
 .plan-notes-slot--idle {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
   justify-content: flex-start;
-  overflow: hidden;
-}
-
-.plan-notes-slot--idle:hover {
-  border-color: color-mix(in srgb, var(--plan-accent) 40%, transparent);
-}
-
-.plan-notes-slot__hit {
-  display: block;
-  flex: 1;
+  align-items: stretch;
   width: 100%;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 0.125rem;
-  background: transparent;
-  font: inherit;
-  font-size: inherit;
-  line-height: inherit;
+  overflow: hidden;
   text-align: left;
   cursor: pointer;
   appearance: none;
 }
 
-.plan-notes-slot__hit:hover {
+button.plan-notes-slot--idle {
+  color: var(--plan-muted);
+}
+
+button.plan-notes-slot--idle:hover {
   color: var(--plan-text);
+}
+
+.plan-notes-slot--idle:hover {
+  border-color: color-mix(in srgb, var(--plan-accent) 40%, transparent);
 }
 
 .plan-notes-slot__text {
@@ -1593,6 +1708,34 @@ textarea.plan-notes-slot {
   overflow: auto;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+}
+
+.plan-notes-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.plan-notes-edit__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.plan-notes-save-btn {
+  height: 1.5rem;
+  padding: 0 0.625rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: var(--plan-accent);
+  font-size: 0.6875rem;
+  font-weight: 650;
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.12s ease;
+}
+
+.plan-notes-save-btn:hover {
+  opacity: 0.9;
 }
 
 .plan-subtask-row {
@@ -1753,6 +1896,16 @@ textarea.plan-notes-slot {
   font-size: 0.875rem;
   line-height: var(--plan-title-line);
   appearance: none;
+}
+
+.plan-drop-indicator {
+  height: 2px;
+  margin: 0.1875rem 0;
+  border-radius: 1px;
+  background: var(--plan-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--plan-accent) 35%, transparent);
+  pointer-events: none;
+  flex-shrink: 0;
 }
 
 .plan-drop-placeholder {
