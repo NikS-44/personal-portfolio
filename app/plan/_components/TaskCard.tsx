@@ -344,7 +344,11 @@ export default function TaskCard({
         </div>
 
         {!task.collapsed ? (
-          <div className="plan-card__details">
+          <div
+            className="plan-card__details"
+            onClick={(event) => event.stopPropagation()}
+            onPointerDown={stopDragActivation}
+          >
             <div>
               {editingNotes ? (
                 <textarea
@@ -352,6 +356,7 @@ export default function TaskCard({
                   value={notesDraft}
                   onChange={(e) => setNotesDraft(e.target.value)}
                   onBlur={commitNotes}
+                  onClick={(event) => event.stopPropagation()}
                   onPointerDown={stopDragActivation}
                   onKeyDown={(e) => e.stopPropagation()}
                   placeholder="Notes…"
@@ -384,7 +389,10 @@ export default function TaskCard({
                       type="button"
                       aria-label={sub.completed ? "Mark subtask incomplete" : "Mark subtask complete"}
                       onPointerDown={stopDragActivation}
-                      onClick={() => act({ type: "TOGGLE_SUBTASK", taskId: task.id, subtaskId: sub.id })}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act({ type: "TOGGLE_SUBTASK", taskId: task.id, subtaskId: sub.id });
+                      }}
                       className={`plan-subtask-check ${sub.completed ? "plan-subtask-check--done" : ""}`}
                     >
                       {sub.completed ? <SmallCheckIcon /> : null}
@@ -411,7 +419,10 @@ export default function TaskCard({
                       type="button"
                       aria-label="Delete subtask"
                       onPointerDown={stopDragActivation}
-                      onClick={() => act({ type: "DELETE_SUBTASK", taskId: task.id, subtaskId: sub.id })}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act({ type: "DELETE_SUBTASK", taskId: task.id, subtaskId: sub.id });
+                      }}
                       className="plan-subtask-delete"
                     >
                       ×
