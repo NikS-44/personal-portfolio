@@ -54,6 +54,8 @@ export function usePlanBoard() {
   const toastIdRef = useRef(0);
   const historyRef = useRef(history);
   historyRef.current = history;
+  const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingPushStateRef = useRef<PlanState | null>(null);
 
   const setSyncStatus = useCallback((next: SyncStatus) => {
     syncStatusRef.current = next;
@@ -109,27 +111,60 @@ export function usePlanBoard() {
     savePlanState(state);
   }, [state, hydrated]);
 
+  const runRemotePush = useCallback(
+    async (stateToPush: PlanState, keepalive = false) => {
+      pendingPushStateRef.current = null;
+      const result = await pushRemoteState(stateToPush, keepalive);
+      if (!result) {
+        if (!keepalive) setSyncStatus("error");
+        return;
+      }
+      if (keepalive) return;
+
+      const next = withRollover(result.state, todayKey);
+      if (planRevision(next) !== planRevision(stateToPush) || next.tasks.length !== stateToPush.tasks.length) {
+        dispatch({ type: "HYDRATE", state: next });
+      }
+      savePlanState(next, result.updatedAt);
+      setSyncStatus("synced");
+    },
+    [todayKey, setSyncStatus],
+  );
+
   /* ── Push local edits; pull+merge when the tab refocuses ── */
 
   useEffect(() => {
     if (!hydrated || !syncEnabledRef.current || !allowPushRef.current) return;
     setSyncStatus("pending");
-    const timer = setTimeout(async () => {
-      const result = await pushRemoteState(state);
-      if (!result) {
-        setSyncStatus("error");
-        return;
-      }
-      const next = withRollover(result.state, todayKey);
-      // Only hydrate if server merge changed something vs what we sent.
-      if (planRevision(next) !== planRevision(state) || next.tasks.length !== state.tasks.length) {
-        dispatch({ type: "HYDRATE", state: next });
-      }
-      savePlanState(next, result.updatedAt);
-      setSyncStatus("synced");
+    pendingPushStateRef.current = state;
+    if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
+    pushTimerRef.current = setTimeout(() => {
+      pushTimerRef.current = null;
+      void runRemotePush(state);
     }, SYNC_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [state, hydrated, todayKey, setSyncStatus]);
+    return () => {
+      if (pushTimerRef.current) {
+        clearTimeout(pushTimerRef.current);
+        pushTimerRef.current = null;
+      }
+    };
+  }, [state, hydrated, runRemotePush, setSyncStatus]);
+
+  useEffect(() => {
+    const flushPendingPush = () => {
+      if (!syncEnabledRef.current || !allowPushRef.current) return;
+      const pending = pendingPushStateRef.current;
+      if (!pending) return;
+      if (pushTimerRef.current) {
+        clearTimeout(pushTimerRef.current);
+        pushTimerRef.current = null;
+      }
+      void runRemotePush(pending, true);
+    };
+
+    window.addEventListener("pagehide", flushPendingPush);
+    return () => window.removeEventListener("pagehide", flushPendingPush);
+  }, [runRemotePush]);
 
   useEffect(() => {
     if (!hydrated) return;

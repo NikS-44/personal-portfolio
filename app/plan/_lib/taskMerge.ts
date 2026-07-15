@@ -22,9 +22,27 @@ function toRecordMap(state: PlanState): Map<string, SyncTaskRecord> {
   return map;
 }
 
+/** Prefer completion when timestamps conflict — rollover must not erase a remote done state. */
+function mergeLiveTasks(local: Task, remote: Task): Task {
+  if (local.completed === remote.completed) {
+    return local.updatedAt >= remote.updatedAt ? local : remote;
+  }
+
+  const completed = local.completed ? local : remote;
+  const incomplete = local.completed ? remote : local;
+
+  // Incomplete wins only when strictly newer (explicit undo or post-completion edit).
+  if (incomplete.updatedAt > completed.updatedAt) return incomplete;
+  return completed;
+}
+
 function pickRecord(a: SyncTaskRecord | undefined, b: SyncTaskRecord | undefined): SyncTaskRecord | undefined {
   if (!a) return b;
   if (!b) return a;
+  if (a.kind === "live" && b.kind === "live") {
+    const task = mergeLiveTasks(a.task, b.task);
+    return { kind: "live", task };
+  }
   return recordTime(a) >= recordTime(b) ? a : b;
 }
 

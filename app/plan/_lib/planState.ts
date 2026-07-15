@@ -39,7 +39,7 @@ export function sanitizeTask(raw: unknown): Task | null {
     notes: typeof t.notes === "string" ? t.notes : "",
     priority: PRIORITIES.includes(t.priority as Priority) ? (t.priority as Priority) : "p2",
     completed: Boolean(t.completed),
-    completedAt: typeof t.completedAt === "string" ? t.completedAt : null,
+    completedAt: typeof t.completedAt === "string" ? t.completedAt : Boolean(t.completed) ? updatedAt : null,
     subtasks,
     collapsed: t.collapsed !== false,
     dayKey: t.dayKey === BACKLOG_KEY || /^\d{4}-\d{2}-\d{2}$/.test(t.dayKey) ? t.dayKey : BACKLOG_KEY,

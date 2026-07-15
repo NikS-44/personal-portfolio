@@ -36,14 +36,16 @@ export async function fetchRemoteState(): Promise<FetchRemoteResult> {
 
 /**
  * Push local; server merges with KV and returns the merged snapshot.
+ * `keepalive` allows the request to finish during page unload.
  */
-export async function pushRemoteState(state: PlanState): Promise<RemoteSnapshot | null> {
+export async function pushRemoteState(state: PlanState, keepalive = false): Promise<RemoteSnapshot | null> {
   try {
     const updatedAt = planRevision(state);
     const res = await fetch("/api/plan-state", {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ state, updatedAt }),
+      keepalive,
     });
     if (!res.ok) return null;
     if (res.status === 204) return { state, updatedAt };

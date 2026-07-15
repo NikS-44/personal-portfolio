@@ -1,4 +1,3 @@
-import { rollOverIncompleteTasks, toDayKey } from "./dates";
 import { createInitialState, sanitizePlanState } from "./planState";
 import { prunePlanState } from "./prune";
 import type { PlanState } from "./types";
@@ -19,8 +18,7 @@ export function loadPlanState(): PlanState {
     const state = sanitizePlanState(JSON.parse(raw));
     if (!state) return createInitialState();
 
-    const pruned = prunePlanState(state);
-    return { ...pruned, tasks: rollOverIncompleteTasks(pruned.tasks, toDayKey(new Date())) };
+    return prunePlanState(state);
   } catch {
     return createInitialState();
   }
