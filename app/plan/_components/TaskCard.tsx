@@ -95,6 +95,8 @@ export default function TaskCard({
     }
     setEditingNotes(false);
     if (notesDraft !== task.notes) act({ type: "UPDATE_TASK", taskId: task.id, patch: { notes: notesDraft } });
+    // Blur is followed by the same pointer click on the card — don't collapse on that click.
+    skipClickRef.current = true;
   };
 
   const cancelNotesEdit = () => {
@@ -160,6 +162,7 @@ export default function TaskCard({
   const handleCardClick = (event: React.MouseEvent<HTMLElement>) => {
     if (isDraggingOverlay) return;
     if (shouldSkipClick()) return;
+    if (editingNotes) return;
     const target = event.target as HTMLElement;
     if (target.closest("button, input, textarea, select, a, form, dialog")) return;
     toggleCollapse();
