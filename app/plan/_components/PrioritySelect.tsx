@@ -14,6 +14,7 @@ export default function PrioritySelect({ value, onChange }: PrioritySelectProps)
   // Customizable <select> allows a <button> trigger; React's HTML nest check does not.
   // Only inject the trigger after we know the browser opts into appearance: base-select.
   const [useBaseSelect, setUseBaseSelect] = useState(false);
+  const label = PRIORITY_OPTIONS.find((opt) => opt.value === value)?.label ?? value.toUpperCase();
 
   useEffect(() => {
     setUseBaseSelect(typeof CSS !== "undefined" && CSS.supports("appearance", "base-select"));
@@ -31,7 +32,7 @@ export default function PrioritySelect({ value, onChange }: PrioritySelectProps)
     >
       {useBaseSelect ? (
         <button type="button" className="plan-priority-select__trigger">
-          <selectedcontent />
+          <span className="plan-priority-select__label">{label}</span>
           <span className="plan-priority-select__caret" aria-hidden="true">
             <CaretDownIcon />
           </span>
