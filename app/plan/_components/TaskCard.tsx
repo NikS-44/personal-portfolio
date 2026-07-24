@@ -72,6 +72,13 @@ export default function TaskCard({
   const stopDragActivation = (event: React.SyntheticEvent) => {
     event.stopPropagation();
   };
+  // dnd-kit's MouseSensor/TouchSensor activate on native mousedown/touchstart, not
+  // pointerdown — stopping only pointerdown still lets the drag arm during text selection.
+  const dragGuardProps = {
+    onPointerDown: stopDragActivation,
+    onMouseDown: stopDragActivation,
+    onTouchStart: stopDragActivation,
+  };
 
   const style = isDraggingOverlay
     ? undefined
@@ -252,7 +259,7 @@ export default function TaskCard({
                 onChange={(e) => setTitleDraft(e.target.value)}
                 onBlur={commitTitle}
                 onClick={(event) => event.stopPropagation()}
-                onPointerDown={stopDragActivation}
+                {...dragGuardProps}
                 onKeyDown={(e) => {
                   e.stopPropagation();
                   if (e.key === "Enter") {
@@ -284,7 +291,7 @@ export default function TaskCard({
             <button
               type="button"
               aria-label={task.collapsed ? "Expand task" : "Collapse task"}
-              onPointerDown={stopDragActivation}
+              {...dragGuardProps}
               onClick={(event) => {
                 event.stopPropagation();
                 toggleCollapse();
@@ -339,7 +346,7 @@ export default function TaskCard({
                 type="button"
                 aria-label="Schedule task"
                 title="Schedule (move to today, tomorrow…)"
-                onPointerDown={stopDragActivation}
+                {...dragGuardProps}
                 onClick={(event) => event.stopPropagation()}
                 {...({ popovertarget: scheduleId } as HTMLAttributes<HTMLButtonElement>)}
                 className="plan-card__sched-btn"
@@ -349,7 +356,7 @@ export default function TaskCard({
               </button>
               <button
                 type="button"
-                onPointerDown={stopDragActivation}
+                {...dragGuardProps}
                 onClick={(event) => {
                   event.stopPropagation();
                   act({ type: "TOGGLE_COMPLETE", taskId: task.id });
@@ -363,11 +370,7 @@ export default function TaskCard({
         </div>
 
         {!task.collapsed ? (
-          <div
-            className="plan-card__details"
-            onClick={(event) => event.stopPropagation()}
-            onPointerDown={stopDragActivation}
-          >
+          <div className="plan-card__details" onClick={(event) => event.stopPropagation()} {...dragGuardProps}>
             <div>
               {editingNotes ? (
                 <div className="plan-notes-edit">
@@ -377,7 +380,7 @@ export default function TaskCard({
                     onChange={(e) => setNotesDraft(e.target.value)}
                     onBlur={commitNotes}
                     onClick={(event) => event.stopPropagation()}
-                    onPointerDown={stopDragActivation}
+                    {...dragGuardProps}
                     onKeyDown={(e) => {
                       e.stopPropagation();
                       if (e.key === "Escape") {
@@ -410,7 +413,7 @@ export default function TaskCard({
               ) : (
                 <button
                   type="button"
-                  onPointerDown={stopDragActivation}
+                  {...dragGuardProps}
                   onClick={(event) => {
                     event.stopPropagation();
                     if (shouldSkipClick()) return;
@@ -431,7 +434,7 @@ export default function TaskCard({
                     <button
                       type="button"
                       aria-label={sub.completed ? "Mark subtask incomplete" : "Mark subtask complete"}
-                      onPointerDown={stopDragActivation}
+                      {...dragGuardProps}
                       onClick={(event) => {
                         event.stopPropagation();
                         act({ type: "TOGGLE_SUBTASK", taskId: task.id, subtaskId: sub.id });
@@ -443,7 +446,7 @@ export default function TaskCard({
                     <textarea
                       value={sub.title}
                       rows={1}
-                      onPointerDown={stopDragActivation}
+                      {...dragGuardProps}
                       onKeyDown={(e) => e.stopPropagation()}
                       onChange={(e) =>
                         act({
@@ -461,7 +464,7 @@ export default function TaskCard({
                     <button
                       type="button"
                       aria-label="Delete subtask"
-                      onPointerDown={stopDragActivation}
+                      {...dragGuardProps}
                       onClick={(event) => {
                         event.stopPropagation();
                         act({ type: "DELETE_SUBTASK", taskId: task.id, subtaskId: sub.id });
@@ -476,7 +479,7 @@ export default function TaskCard({
             ) : null}
 
             <form
-              onPointerDown={stopDragActivation}
+              {...dragGuardProps}
               onSubmit={(e) => {
                 e.preventDefault();
                 const title = newSubtask.trim();
@@ -506,7 +509,7 @@ export default function TaskCard({
               ) : (
                 <button
                   type="button"
-                  onPointerDown={stopDragActivation}
+                  {...dragGuardProps}
                   onClick={(event) => {
                     event.stopPropagation();
                     moveToBacklog();
@@ -520,7 +523,7 @@ export default function TaskCard({
                 type="button"
                 aria-label="Delete task"
                 title="Delete (undo from the toast)"
-                onPointerDown={stopDragActivation}
+                {...dragGuardProps}
                 onClick={(event) => {
                   event.stopPropagation();
                   deleteTask();
@@ -540,7 +543,7 @@ export default function TaskCard({
         popover="auto"
         className={`plan-pop plan-pop--end ${task.collapsed ? "" : "plan-pop--up"}`}
         onClick={(event) => event.stopPropagation()}
-        onPointerDown={stopDragActivation}
+        {...dragGuardProps}
         style={{ positionAnchor: scheduleAnchor } as CSSProperties}
       >
         {scheduleOptions().map((option) => (
