@@ -51,8 +51,6 @@ const steps = [
   },
 ];
 
-const mascotPoses = ["wave", "happy", "wrench", "flex", "thinking", "celebrate", "done", "proud", "winking", "napping"];
-
 export default function UpkeepaPage() {
   return (
     <>
@@ -183,20 +181,6 @@ export default function UpkeepaPage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ── Meet Upkeepa ─────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-5xl px-5 py-16 text-center sm:py-20">
-        <h2 className="text-3xl font-bold tracking-tight text-[#23362C]">Meet Upkeepa</h2>
-        <p className="mx-auto mt-3 max-w-xl text-[#4B6557]">
-          Part house, part handy little buddy. Upkeepa reacts to your day — waving you in, flexing on a streak, napping
-          when there’s nothing left to do.
-        </p>
-        <div className="mt-10 flex flex-wrap items-end justify-center gap-x-4 gap-y-6">
-          {mascotPoses.map((pose, i) => (
-            <Mascot key={pose} pose={pose} size={i % 3 === 0 ? 92 : 74} className="opacity-95" />
-          ))}
         </div>
       </section>
 

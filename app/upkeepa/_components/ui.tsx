@@ -17,8 +17,8 @@ export const upkeepa = {
   page: "#F4FAF6",
 };
 
-// App Store link — swap in the real URL once the listing is live.
-export const APP_STORE_URL = "https://apps.apple.com/app/upkeepa";
+// App Store link.
+export const APP_STORE_URL = "https://apps.apple.com/us/app/upkeepa/id6761312689";
 export const SUPPORT_EMAIL = "upkeepa@nshah.org";
 
 export function Mascot({
