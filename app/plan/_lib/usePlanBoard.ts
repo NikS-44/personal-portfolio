@@ -12,6 +12,7 @@ import {
   prevWeekStart,
 } from "./boardView";
 import { formatWeekRange, getWeekStart, parseDayKey, rollOverIncompleteTasks, toDayKey } from "./dates";
+import { buildColumnBlocks, type ColumnBlock } from "./groups";
 import { createHistory, historyReducer, type HistoryAction } from "./history";
 import { sortTasksForColumn } from "./priority";
 import { isColumnKey } from "./planReducer";
@@ -25,6 +26,21 @@ import type { PlanState, Task, ViewMode } from "./types";
 import { BACKLOG_KEY } from "./types";
 
 export type { DropTarget };
+
+const GROUP_DROPPABLE_PREFIX = "group::";
+
+/** Droppable id for a group's block in one column; must round-trip through `parseGroupDroppableId`. */
+export function groupDroppableId(columnKey: string, groupId: string): string {
+  return `${GROUP_DROPPABLE_PREFIX}${columnKey}::${groupId}`;
+}
+
+function parseGroupDroppableId(id: string): { columnKey: string; groupId: string } | null {
+  if (!id.startsWith(GROUP_DROPPABLE_PREFIX)) return null;
+  const rest = id.slice(GROUP_DROPPABLE_PREFIX.length);
+  const split = rest.indexOf("::");
+  if (split < 0) return null;
+  return { columnKey: rest.slice(0, split), groupId: rest.slice(split + 2) };
+}
 
 export type PlanToastData = {
   id: number;
@@ -267,10 +283,10 @@ export function usePlanBoard() {
     for (const key of columns) {
       const manual = state.manualOrderColumns.includes(key);
       const tasks = state.tasks.filter((t) => t.dayKey === key);
-      map.set(key, sortTasksForColumn(tasks, manual));
+      map.set(key, sortTasksForColumn(tasks, manual, state.groups));
     }
     return map;
-  }, [state.tasks, state.manualOrderColumns, visibleDayKeys]);
+  }, [state.tasks, state.manualOrderColumns, state.groups, visibleDayKeys]);
 
   const setMode = useCallback((mode: ViewMode) => {
     allowPushRef.current = true;
@@ -312,14 +328,26 @@ export function usePlanBoard() {
       const openIdsForColumn = (columnKey: string) =>
         (tasksByColumn.get(columnKey) ?? []).filter((t) => !t.completed).map((t) => t.id);
 
+      // Hovering the block itself (header or padding, not a card): append inside that group.
+      const blockTarget = parseGroupDroppableId(overId);
+      if (blockTarget) {
+        const openTasks = (tasksByColumn.get(blockTarget.columnKey) ?? []).filter((t) => !t.completed);
+        const lastInGroup = openTasks.reduce(
+          (last, t, i) => (t.groupId === blockTarget.groupId && t.id !== taskId ? i : last),
+          -1,
+        );
+        const index = lastInGroup >= 0 ? lastInGroup : openTasks.length;
+        return { columnKey: blockTarget.columnKey, index, groupId: blockTarget.groupId };
+      }
+
       if (isColumnKey(overId)) {
         const openIds = openIdsForColumn(overId);
         const fromIndex = openIds.indexOf(taskId);
         // Column shell: append (arrayMove to end when same column, insert at end when cross).
         if (fromIndex >= 0) {
-          return { columnKey: overId, index: Math.max(openIds.length - 1, 0) };
+          return { columnKey: overId, index: Math.max(openIds.length - 1, 0), groupId: null };
         }
-        return { columnKey: overId, index: openIds.length };
+        return { columnKey: overId, index: openIds.length, groupId: null };
       }
 
       if (overId === taskId) return null;
@@ -327,13 +355,16 @@ export function usePlanBoard() {
       const overTask = state.tasks.find((t) => t.id === overId);
       if (!overTask || overTask.completed) return null;
 
+      // The hovered card decides membership — that is what disambiguates a block boundary,
+      // where "last slot inside the block" and "first loose slot after it" share an index.
+      const groupId = overTask.groupId;
       const openIds = openIdsForColumn(overTask.dayKey);
       const index = openIds.indexOf(overId);
       if (index < 0) {
-        return { columnKey: overTask.dayKey, index: Math.max(openIds.length - 1, 0) };
+        return { columnKey: overTask.dayKey, index: Math.max(openIds.length - 1, 0), groupId };
       }
 
-      return { columnKey: overTask.dayKey, index };
+      return { columnKey: overTask.dayKey, index, groupId };
     },
     [state.tasks, tasksByColumn],
   );
@@ -348,9 +379,20 @@ export function usePlanBoard() {
 
   const commitDrop = useCallback(
     (taskId: string, target: DropTarget) => {
-      act({ type: "MOVE_TASK", taskId, toColumn: target.columnKey, toIndex: target.index });
+      act({
+        type: "MOVE_TASK",
+        taskId,
+        toColumn: target.columnKey,
+        toIndex: target.index,
+        groupId: target.groupId,
+      });
     },
     [act],
+  );
+
+  const blocksForColumn = useCallback(
+    (tasks: Task[]): ColumnBlock[] => buildColumnBlocks(tasks, state.groups),
+    [state.groups],
   );
 
   return {
@@ -359,6 +401,7 @@ export function usePlanBoard() {
     todayKey,
     boardSegments,
     tasksByColumn,
+    blocksForColumn,
     headerLabel,
     isRolling: isRollingView(state.fixedWeekStart),
     viewMode: state.viewMode,

@@ -1,6 +1,8 @@
+import { resolveMembership } from "./groups";
 import type { Task } from "./types";
 
-export type DropTarget = { columnKey: string; index: number };
+/** `groupId` is positional — the block under the pointer, or `null` for a loose slot. */
+export type DropTarget = { columnKey: string; index: number; groupId?: string | null };
 
 function findTaskColumn(tasksByColumn: Map<string, Task[]>, taskId: string): { task: Task; columnKey: string } | null {
   const entries = Array.from(tasksByColumn.entries());
@@ -28,6 +30,7 @@ export function applyDragPreview(
   }
 
   const { task: active } = located;
+  const allTasks = Array.from(tasksByColumn.values()).flat();
   const next = new Map<string, Task[]>();
   Array.from(tasksByColumn.entries()).forEach(([key, tasks]) => {
     next.set(
@@ -44,6 +47,7 @@ export function applyDragPreview(
     dayKey: preview.columnKey,
     completed: false,
     completedAt: null,
+    groupId: resolveMembership(allTasks, active, preview.columnKey, preview.groupId),
   };
 
   const insertAt = Math.max(0, Math.min(preview.index, open.length));

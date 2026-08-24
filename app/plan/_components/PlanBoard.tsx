@@ -43,13 +43,23 @@ const BACKLOG_OPEN_KEY = "plan-backlog-open";
 const PLAN_BACKLOG_SHEET_ID = "plan-backlog-sheet";
 const MOBILE_MQ = "(max-width: 640px)";
 
-/** Prefer pointer hits (whole column shell); task cards win over their column container. */
+const GROUP_HIT_PREFIX = "group::";
+
+/**
+ * Prefer pointer hits (whole column shell). Precedence is card > group block > column, so
+ * hovering a card inside a block still resolves to that card's slot, and the block only
+ * wins on its own padding or header.
+ */
 const planCollisionDetection: CollisionDetection = (args) => {
   const activeId = args.active.id;
   const pointerHits = pointerWithin(args).filter((hit) => hit.id !== activeId);
   if (pointerHits.length > 0) {
-    const taskHit = pointerHits.find((hit) => !isColumnKey(String(hit.id)));
+    const taskHit = pointerHits.find(
+      (hit) => !isColumnKey(String(hit.id)) && !String(hit.id).startsWith(GROUP_HIT_PREFIX),
+    );
     if (taskHit) return [taskHit];
+    const groupHit = pointerHits.find((hit) => String(hit.id).startsWith(GROUP_HIT_PREFIX));
+    if (groupHit) return [groupHit];
     return pointerHits;
   }
   return closestCorners(args).filter((hit) => hit.id !== activeId);
@@ -383,6 +393,7 @@ export default function PlanBoard() {
       onToggleCollapsed={closeBacklogSheet}
       sheetCloseTargetId={boardLayout === "mobile" ? PLAN_BACKLOG_SHEET_ID : undefined}
       tasks={backlogTasks}
+      groups={state.groups}
       act={act}
       draggingTaskId={draggingTaskId}
       dragEnabled={boardLayout !== "mobile"}
@@ -548,6 +559,7 @@ export default function PlanBoard() {
                     subtitle={meta.subtitle}
                     isToday={meta.isToday && viewMode !== "today"}
                     tasks={displayByColumn.get(segment.dayKey) ?? []}
+                    groups={state.groups}
                     act={act}
                     draggingTaskId={draggingTaskId}
                     dragEnabled={boardLayout !== "mobile"}
@@ -582,7 +594,7 @@ export default function PlanBoard() {
       <DragOverlay dropAnimation={null}>
         {activeTask ? (
           <div className="w-[17.5rem] rotate-1 scale-[1.02] opacity-95">
-            <TaskCard task={activeTask} act={act} isDraggingOverlay />
+            <TaskCard task={activeTask} act={act} groups={state.groups} isDraggingOverlay />
           </div>
         ) : null}
       </DragOverlay>

@@ -1,6 +1,7 @@
 import { toDayKey } from "./dates";
+import { nextGroupColor, resolveMembership } from "./groups";
 import { nextSortOrderForPriority, sortTasksForColumn } from "./priority";
-import type { PlanState, Priority, SubTask, Task } from "./types";
+import type { PlanGroup, PlanState, Priority, SubTask, Task } from "./types";
 import { BACKLOG_KEY } from "./types";
 
 export type PlanAction =
@@ -13,7 +14,16 @@ export type PlanAction =
   | { type: "TOGGLE_COLLAPSE"; taskId: string }
   | { type: "SET_VIEW"; fixedWeekStart: string | null }
   | { type: "SET_MODE"; mode: PlanState["viewMode"] }
-  | { type: "MOVE_TASK"; taskId: string; toColumn: string; toIndex: number }
+  /**
+   * `groupId` is the *positional* group under the pointer, not the decision:
+   * `undefined` = no drag context, a string = that block, `null` = a loose slot.
+   * The guardrail in `resolveMembership` turns that into the actual membership.
+   */
+  | { type: "MOVE_TASK"; taskId: string; toColumn: string; toIndex: number; groupId?: string | null }
+  | { type: "ADD_GROUP"; name: string; taskId?: string }
+  | { type: "UPDATE_GROUP"; groupId: string; patch: Partial<Pick<PlanGroup, "name" | "priority" | "color">> }
+  | { type: "DELETE_GROUP"; groupId: string }
+  | { type: "SET_TASK_GROUP"; taskId: string; groupId: string | null }
   | { type: "RESET_COLUMN_PRIORITY_SORT"; columnKey: string }
   | { type: "ADD_SUBTASK"; taskId: string; title: string }
   | { type: "UPDATE_SUBTASK"; taskId: string; subtaskId: string; title: string }
@@ -92,6 +102,7 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
         createdAt: ts,
         updatedAt: ts,
         overdueFrom: null,
+        groupId: null,
       };
 
       const graveyard = { ...state.graveyard };
@@ -185,6 +196,8 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
       const toColumn = action.toColumn;
       const sameColumn = fromColumn === toColumn;
       const destWasManual = state.manualOrderColumns.includes(toColumn);
+      const groupId = resolveMembership(state.tasks, task, toColumn, action.groupId);
+      const groupChanged = groupId !== task.groupId;
 
       const visualOpenIds = (columnKey: string, tasks: Task[], manual: boolean, excludeId?: string) =>
         sortTasksForColumn(
@@ -193,8 +206,11 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
         ).map((t) => t.id);
 
       if (sameColumn) {
-        const prevOpenIds = visualOpenIds(toColumn, state.tasks, destWasManual);
-        const doneIds = tasksInColumn(state.tasks, toColumn)
+        const withGroup = groupChanged
+          ? state.tasks.map((t) => (t.id === action.taskId ? touchTask(t, { groupId }) : t))
+          : state.tasks;
+        const prevOpenIds = visualOpenIds(toColumn, withGroup, destWasManual);
+        const doneIds = tasksInColumn(withGroup, toColumn)
           .filter((t) => t.completed)
           .sort((a, b) => a.sortOrder - b.sortOrder)
           .map((t) => t.id);
@@ -203,12 +219,12 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
 
         const toIndex = Math.max(0, Math.min(action.toIndex, prevOpenIds.length - 1));
         const openIds = arrayMoveIds(prevOpenIds, fromIndex, toIndex);
-        if (openIds.every((id, index) => id === prevOpenIds[index])) return state;
+        if (!groupChanged && openIds.every((id, index) => id === prevOpenIds[index])) return state;
 
         return touchMeta(
           {
             ...state,
-            tasks: reindexColumn(state.tasks, toColumn, [...openIds, ...doneIds]),
+            tasks: reindexColumn(withGroup, toColumn, [...openIds, ...doneIds]),
             manualOrderColumns: markColumnManual(state, toColumn),
           },
           {},
@@ -223,6 +239,7 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
               completedAt: null,
               sortOrder: action.toIndex,
               overdueFrom: null,
+              groupId,
             })
           : t,
       );
@@ -260,6 +277,62 @@ export function planReducer(state: PlanState, action: PlanAction): PlanState {
         },
         {},
       );
+    }
+
+    case "ADD_GROUP": {
+      const ts = nowIso();
+      const group: PlanGroup = {
+        id: newId(),
+        name: action.name.trim() || "Untitled group",
+        priority: "p2",
+        color: nextGroupColor(state.groups),
+        createdAt: ts,
+        updatedAt: ts,
+      };
+
+      const groupGraveyard = { ...state.groupGraveyard };
+      delete groupGraveyard[group.id];
+
+      return {
+        ...state,
+        groups: [...state.groups, group],
+        groupGraveyard,
+        tasks: action.taskId
+          ? state.tasks.map((t) => (t.id === action.taskId ? touchTask(t, { groupId: group.id }) : t))
+          : state.tasks,
+      };
+    }
+
+    case "UPDATE_GROUP": {
+      const existing = state.groups.find((g) => g.id === action.groupId);
+      if (!existing) return state;
+      const name = action.patch.name !== undefined ? action.patch.name.trim() || existing.name : existing.name;
+      return {
+        ...state,
+        groups: state.groups.map((g) =>
+          g.id === action.groupId ? { ...g, ...action.patch, name, updatedAt: nowIso() } : g,
+        ),
+      };
+    }
+
+    case "DELETE_GROUP": {
+      const existing = state.groups.find((g) => g.id === action.groupId);
+      if (!existing) return state;
+      return {
+        ...state,
+        groups: state.groups.filter((g) => g.id !== action.groupId),
+        groupGraveyard: { ...state.groupGraveyard, [action.groupId]: nowIso() },
+        tasks: state.tasks.map((t) => (t.groupId === action.groupId ? touchTask(t, { groupId: null }) : t)),
+      };
+    }
+
+    case "SET_TASK_GROUP": {
+      const task = state.tasks.find((t) => t.id === action.taskId);
+      if (!task || task.groupId === action.groupId) return state;
+      return {
+        ...state,
+        tasks: state.tasks.map((t) => (t.id === action.taskId ? touchTask(t, { groupId: action.groupId }) : t)),
+      };
     }
 
     case "RESET_COLUMN_PRIORITY_SORT": {

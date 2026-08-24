@@ -5,7 +5,7 @@ import type { PlanState } from "./types";
 const STORAGE_KEY = "plan-board-v2";
 const UPDATED_AT_KEY = "plan-board-updated-at-v2";
 
-export { createInitialState, sanitizePlanState, sanitizeTask, sanitizeGraveyard } from "./planState";
+export { createInitialState, sanitizePlanState, sanitizeTask, sanitizeGroup, sanitizeGraveyard } from "./planState";
 export { prunePlanState, COMPLETED_RETENTION_MONTHS } from "./prune";
 
 export function loadPlanState(): PlanState {

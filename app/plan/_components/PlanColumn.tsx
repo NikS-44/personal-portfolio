@@ -7,11 +7,13 @@ import { formatColumnLabel, isWeekendKey, toDayKey } from "../_lib/dates";
 import { parseQuickAdd } from "../_lib/quickAdd";
 import type { PlanAction } from "../_lib/planReducer";
 import { isPriorityOrdered } from "../_lib/priority";
+import { buildColumnBlocks, groupsById } from "../_lib/groups";
 import { BACKLOG_KEY } from "../_lib/types";
-import type { Task } from "../_lib/types";
+import type { PlanGroup, Task } from "../_lib/types";
 import CompletedTaskRow from "./CompletedTaskRow";
 import { PlanIconButton } from "./PlanHint";
 import TaskCard from "./TaskCard";
+import TaskGroupBlock from "./TaskGroupBlock";
 
 type PlanColumnProps = {
   columnKey: string;
@@ -23,6 +25,7 @@ type PlanColumnProps = {
   /** When set, close uses dialog command + touch-friendly handlers (mobile sheet). */
   sheetCloseTargetId?: string;
   tasks: Task[];
+  groups: PlanGroup[];
   act: (action: PlanAction) => void;
   draggingTaskId: string | null;
   dragEnabled?: boolean;
@@ -47,6 +50,7 @@ export default memo(function PlanColumn({
   onToggleCollapsed,
   sheetCloseTargetId,
   tasks,
+  groups,
   act,
   draggingTaskId,
   dragEnabled = true,
@@ -61,6 +65,9 @@ export default memo(function PlanColumn({
   const sortAnchor = `--plan-sort-${columnKey}`;
   const openTasks = tasks.filter((t) => !t.completed);
   const doneTasks = tasks.filter((t) => t.completed);
+  const groupLookup = groupsById(groups);
+  // Blocks are derived from the already-sorted list, which the column sort keeps contiguous.
+  const blocks = buildColumnBlocks(openTasks, groups);
   const isWeekend = !isBacklog && isWeekendKey(columnKey);
   // Keep compact weekend columns during drag — expanding them remeasures the whole board.
   const dormant = isWeekend && tasks.length === 0 && !composing && !boardIsDragging;
@@ -153,7 +160,7 @@ export default memo(function PlanColumn({
             >
               {openTasks.length}
             </span>
-            {openTasks.length >= 2 && !isPriorityOrdered(openTasks) ? (
+            {openTasks.length >= 2 && !isPriorityOrdered(openTasks, groups) ? (
               <PlanIconButton
                 label="Sort by priority"
                 hint="Sort by priority"
@@ -198,15 +205,37 @@ export default memo(function PlanColumn({
         <div className="plan-scroll-edge plan-scroll-edge--top" aria-hidden="true" />
         <div className="plan-column-scroll__body flex min-h-0 flex-1 flex-col overflow-y-auto p-2.5">
           <SortableContext items={sortableOpenIds} strategy={verticalListSortingStrategy}>
-            {openTasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                act={act}
-                isBeingDragged={draggingTaskId === task.id}
-                dragEnabled={dragEnabled}
-              />
-            ))}
+            {blocks.map((block) =>
+              block.kind === "task" ? (
+                <TaskCard
+                  key={block.task.id}
+                  task={block.task}
+                  act={act}
+                  groups={groups}
+                  isBeingDragged={draggingTaskId === block.task.id}
+                  dragEnabled={dragEnabled}
+                />
+              ) : (
+                <TaskGroupBlock
+                  key={block.group.id}
+                  group={block.group}
+                  columnKey={columnKey}
+                  taskCount={block.tasks.length}
+                  act={act}
+                >
+                  {block.tasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      act={act}
+                      groups={groups}
+                      isBeingDragged={draggingTaskId === task.id}
+                      dragEnabled={dragEnabled}
+                    />
+                  ))}
+                </TaskGroupBlock>
+              ),
+            )}
           </SortableContext>
 
           <form
@@ -252,7 +281,7 @@ export default memo(function PlanColumn({
                 <ul className="plan-done-section__list">
                   {doneTasks.map((task) => (
                     <li key={task.id}>
-                      <CompletedTaskRow task={task} act={act} />
+                      <CompletedTaskRow task={task} act={act} group={groupLookup.get(task.groupId ?? "") ?? null} />
                     </li>
                   ))}
                 </ul>

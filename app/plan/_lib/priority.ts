@@ -1,4 +1,4 @@
-import type { Priority, Task } from "./types";
+import type { PlanGroup, Priority, Task } from "./types";
 
 const PRIORITY_RANK: Record<Priority, number> = {
   p0: 0,
@@ -13,22 +13,75 @@ export function compareByPriority(a: Task, b: Task): number {
   return a.sortOrder - b.sortOrder;
 }
 
-/** True when open tasks are already in non-decreasing priority order (p0→p3). */
-export function isPriorityOrdered(tasks: Task[]): boolean {
-  for (let i = 1; i < tasks.length; i += 1) {
-    if (PRIORITY_RANK[tasks[i].priority] < PRIORITY_RANK[tasks[i - 1].priority]) {
-      return false;
-    }
-  }
-  return true;
+function groupMap(groups: PlanGroup[]): Map<string, PlanGroup> {
+  return new Map(groups.map((g) => [g.id, g]));
 }
 
-export function sortTasksForColumn(tasks: Task[], manualOrder: boolean): Task[] {
-  const list = [...tasks];
-  if (manualOrder) {
-    return list.sort((a, b) => a.sortOrder - b.sortOrder);
+/** Group a task actually belongs to; a dangling id reads as ungrouped. */
+function resolveGroup(task: Task, byId: Map<string, PlanGroup>): PlanGroup | null {
+  if (!task.groupId) return null;
+  return byId.get(task.groupId) ?? null;
+}
+
+/**
+ * Lowest sortOrder among a block's open tasks in this column — for a loose task, its own.
+ * Sorting on the anchor before any per-task key is what keeps a group's tasks contiguous
+ * without a normalization pass, and what lets a whole block be dragged as a unit.
+ */
+function blockAnchors(tasks: Task[], byId: Map<string, PlanGroup>): Map<string, number> {
+  const anchors = new Map<string, number>();
+  for (const task of tasks) {
+    const group = resolveGroup(task, byId);
+    if (!group) continue;
+    const current = anchors.get(group.id);
+    if (current === undefined || task.sortOrder < current) anchors.set(group.id, task.sortOrder);
   }
-  return list.sort(compareByPriority);
+  return anchors;
+}
+
+function anchorOf(task: Task, byId: Map<string, PlanGroup>, anchors: Map<string, number>): number {
+  const group = resolveGroup(task, byId);
+  if (!group) return task.sortOrder;
+  return anchors.get(group.id) ?? task.sortOrder;
+}
+
+/** Priority that positions the task's block: the group's, else the task's own. */
+function blockPriority(task: Task, byId: Map<string, PlanGroup>): Priority {
+  return resolveGroup(task, byId)?.priority ?? task.priority;
+}
+
+function comparePrioritySorted(byId: Map<string, PlanGroup>, anchors: Map<string, number>) {
+  return (a: Task, b: Task): number => {
+    const bp = PRIORITY_RANK[blockPriority(a, byId)] - PRIORITY_RANK[blockPriority(b, byId)];
+    if (bp !== 0) return bp;
+    const anchor = anchorOf(a, byId, anchors) - anchorOf(b, byId, anchors);
+    if (anchor !== 0) return anchor;
+    return compareByPriority(a, b);
+  };
+}
+
+/** Manual columns ignore group priority exactly as they already ignore task priority. */
+function compareManual(byId: Map<string, PlanGroup>, anchors: Map<string, number>) {
+  return (a: Task, b: Task): number => {
+    const anchor = anchorOf(a, byId, anchors) - anchorOf(b, byId, anchors);
+    if (anchor !== 0) return anchor;
+    return a.sortOrder - b.sortOrder;
+  };
+}
+
+/** True when open tasks are already in the order the priority sort would produce. */
+export function isPriorityOrdered(tasks: Task[], groups: PlanGroup[] = []): boolean {
+  const sorted = sortTasksForColumn(tasks, false, groups);
+  return sorted.every((task, index) => task.id === tasks[index].id);
+}
+
+export function sortTasksForColumn(tasks: Task[], manualOrder: boolean, groups: PlanGroup[] = []): Task[] {
+  const byId = groupMap(groups);
+  const anchors = blockAnchors(
+    tasks.filter((t) => !t.completed),
+    byId,
+  );
+  return [...tasks].sort(manualOrder ? compareManual(byId, anchors) : comparePrioritySorted(byId, anchors));
 }
 
 /** Themed fg/bg pair for a priority; flips with the board's light/dark palette. */

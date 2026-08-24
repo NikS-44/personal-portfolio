@@ -5,7 +5,7 @@ const DROP_INDICATOR_ID = "plan-drop-indicator";
 export function dropTargetsEqual(a: DropTarget | null, b: DropTarget | null): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
-  return a.columnKey === b.columnKey && a.index === b.index;
+  return a.columnKey === b.columnKey && a.index === b.index && (a.groupId ?? null) === (b.groupId ?? null);
 }
 
 export function clearDropIndicator(): void {

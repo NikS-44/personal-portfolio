@@ -1,25 +1,63 @@
+import { reconcileGroupIds } from "./groups";
 import { createInitialState, sanitizePlanState } from "./planState";
 import { prunePlanState } from "./prune";
-import type { PlanGraveyard, PlanState, Task } from "./types";
+import type { PlanGraveyard, PlanGroup, PlanState, Task } from "./types";
 
-export type SyncTaskRecord = { kind: "live"; task: Task } | { kind: "tombstone"; id: string; deletedAt: string };
+/** Anything sync merges per-id: a task or a group. */
+type Syncable = { id: string; updatedAt: string };
 
-function recordTime(record: SyncTaskRecord): string {
-  return record.kind === "live" ? record.task.updatedAt : record.deletedAt;
+export type SyncRecord<T extends Syncable> =
+  | { kind: "live"; entity: T }
+  | { kind: "tombstone"; id: string; deletedAt: string };
+
+export type SyncTaskRecord = SyncRecord<Task>;
+
+function recordTime<T extends Syncable>(record: SyncRecord<T>): string {
+  return record.kind === "live" ? record.entity.updatedAt : record.deletedAt;
 }
 
-function toRecordMap(state: PlanState): Map<string, SyncTaskRecord> {
-  const map = new Map<string, SyncTaskRecord>();
-  for (const [id, deletedAt] of Object.entries(state.graveyard)) {
+function toRecordMap<T extends Syncable>(entities: T[], graveyard: PlanGraveyard): Map<string, SyncRecord<T>> {
+  const map = new Map<string, SyncRecord<T>>();
+  for (const [id, deletedAt] of Object.entries(graveyard)) {
     map.set(id, { kind: "tombstone", id, deletedAt });
   }
-  for (const task of state.tasks) {
-    const existing = map.get(task.id);
-    if (!existing || task.updatedAt >= recordTime(existing)) {
-      map.set(task.id, { kind: "live", task });
+  for (const entity of entities) {
+    const existing = map.get(entity.id);
+    if (!existing || entity.updatedAt >= recordTime(existing)) {
+      map.set(entity.id, { kind: "live", entity });
     }
   }
   return map;
+}
+
+/**
+ * Per-id LWW with delete tombstones, shared by tasks and groups.
+ * `resolveLive` lets tasks apply their completion-wins rule; groups use plain LWW.
+ */
+function mergeById<T extends Syncable>(
+  local: { entities: T[]; graveyard: PlanGraveyard },
+  remote: { entities: T[]; graveyard: PlanGraveyard },
+  resolveLive: (a: T, b: T) => T,
+): { entities: T[]; graveyard: PlanGraveyard } {
+  const localMap = toRecordMap(local.entities, local.graveyard);
+  const remoteMap = toRecordMap(remote.entities, remote.graveyard);
+  const ids = Array.from(new Set([...Array.from(localMap.keys()), ...Array.from(remoteMap.keys())]));
+
+  const entities: T[] = [];
+  const graveyard: PlanGraveyard = {};
+
+  for (const id of ids) {
+    const winner = pickRecord(localMap.get(id), remoteMap.get(id), resolveLive);
+    if (!winner) continue;
+    if (winner.kind === "tombstone") graveyard[id] = winner.deletedAt;
+    else entities.push(winner.entity);
+  }
+
+  return { entities, graveyard };
+}
+
+function newerWins<T extends Syncable>(a: T, b: T): T {
+  return a.updatedAt >= b.updatedAt ? a : b;
 }
 
 /** Prefer completion when timestamps conflict — rollover must not erase a remote done state. */
@@ -36,12 +74,15 @@ function mergeLiveTasks(local: Task, remote: Task): Task {
   return completed;
 }
 
-function pickRecord(a: SyncTaskRecord | undefined, b: SyncTaskRecord | undefined): SyncTaskRecord | undefined {
+function pickRecord<T extends Syncable>(
+  a: SyncRecord<T> | undefined,
+  b: SyncRecord<T> | undefined,
+  resolveLive: (x: T, y: T) => T,
+): SyncRecord<T> | undefined {
   if (!a) return b;
   if (!b) return a;
   if (a.kind === "live" && b.kind === "live") {
-    const task = mergeLiveTasks(a.task, b.task);
-    return { kind: "live", task };
+    return { kind: "live", entity: resolveLive(a.entity, b.entity) };
   }
   return recordTime(a) >= recordTime(b) ? a : b;
 }
@@ -52,31 +93,33 @@ function pickRecord(a: SyncTaskRecord | undefined, b: SyncTaskRecord | undefined
  * Applies completed-task retention after merge.
  */
 export function mergePlanStates(local: PlanState, remote: PlanState, now: Date = new Date()): PlanState {
-  const localMap = toRecordMap(local);
-  const remoteMap = toRecordMap(remote);
-  const ids = Array.from(new Set([...Array.from(localMap.keys()), ...Array.from(remoteMap.keys())]));
+  const { entities: tasks, graveyard } = mergeById<Task>(
+    { entities: local.tasks, graveyard: local.graveyard },
+    { entities: remote.tasks, graveyard: remote.graveyard },
+    mergeLiveTasks,
+  );
 
-  const tasks: Task[] = [];
-  const graveyard: PlanGraveyard = {};
-
-  for (const id of ids) {
-    const winner = pickRecord(localMap.get(id), remoteMap.get(id));
-    if (!winner) continue;
-    if (winner.kind === "tombstone") graveyard[id] = winner.deletedAt;
-    else tasks.push(winner.task);
-  }
+  const { entities: groups, graveyard: groupGraveyard } = mergeById<PlanGroup>(
+    { entities: local.groups, graveyard: local.groupGraveyard },
+    { entities: remote.groups, graveyard: remote.groupGraveyard },
+    newerWins,
+  );
 
   const metaSource = remote.metaUpdatedAt > local.metaUpdatedAt ? remote : local;
 
+  // Groups are never pruned or garbage-collected: an empty group here may still hold
+  // tasks on a peer that has not synced yet.
   return prunePlanState(
-    {
+    reconcileGroupIds({
       tasks,
       graveyard,
+      groups,
+      groupGraveyard,
       fixedWeekStart: metaSource.fixedWeekStart,
       manualOrderColumns: metaSource.manualOrderColumns,
       viewMode: metaSource.viewMode,
       metaUpdatedAt: metaSource.metaUpdatedAt,
-    },
+    }),
     now,
   );
 }
@@ -88,6 +131,12 @@ export function planRevision(state: PlanState): string {
     if (task.updatedAt > max) max = task.updatedAt;
   }
   for (const deletedAt of Object.values(state.graveyard)) {
+    if (deletedAt > max) max = deletedAt;
+  }
+  for (const group of state.groups) {
+    if (group.updatedAt > max) max = group.updatedAt;
+  }
+  for (const deletedAt of Object.values(state.groupGraveyard)) {
     if (deletedAt > max) max = deletedAt;
   }
   return max;

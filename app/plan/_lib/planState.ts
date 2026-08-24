@@ -1,5 +1,6 @@
-import type { PlanGraveyard, PlanState, Priority, SubTask, Task } from "./types";
-import { BACKLOG_KEY } from "./types";
+import { reconcileGroupIds } from "./groups";
+import type { GroupColor, PlanGraveyard, PlanGroup, PlanState, Priority, SubTask, Task } from "./types";
+import { BACKLOG_KEY, GROUP_COLORS } from "./types";
 
 const PRIORITIES: Priority[] = ["p0", "p1", "p2", "p3"];
 
@@ -12,6 +13,8 @@ export function createInitialState(): PlanState {
   return {
     tasks: [],
     graveyard: {},
+    groups: [],
+    groupGraveyard: {},
     fixedWeekStart: null,
     manualOrderColumns: [],
     viewMode: "week",
@@ -47,6 +50,24 @@ export function sanitizeTask(raw: unknown): Task | null {
     createdAt,
     updatedAt,
     overdueFrom: typeof t.overdueFrom === "string" ? t.overdueFrom : null,
+    groupId: typeof t.groupId === "string" && t.groupId.length > 0 ? t.groupId : null,
+  };
+}
+
+export function sanitizeGroup(raw: unknown): PlanGroup | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const g = raw as Partial<PlanGroup>;
+  if (typeof g.id !== "string" || g.id.length === 0) return null;
+
+  const createdAt = typeof g.createdAt === "string" ? g.createdAt : nowIso();
+
+  return {
+    id: g.id,
+    name: typeof g.name === "string" && g.name.trim().length > 0 ? g.name : "Untitled group",
+    priority: PRIORITIES.includes(g.priority as Priority) ? (g.priority as Priority) : "p2",
+    color: GROUP_COLORS.includes(g.color as GroupColor) ? (g.color as GroupColor) : GROUP_COLORS[0],
+    createdAt,
+    updatedAt: typeof g.updatedAt === "string" ? g.updatedAt : createdAt,
   };
 }
 
@@ -64,7 +85,7 @@ export function sanitizeGraveyard(raw: unknown): PlanGraveyard {
  */
 export function sanitizePlanState(raw: unknown): PlanState | null {
   if (typeof raw !== "object" || raw === null) return null;
-  const parsed = raw as Partial<PlanState> & { tasks?: unknown };
+  const parsed = raw as Partial<PlanState> & { tasks?: unknown; groups?: unknown };
   if (!Array.isArray(parsed.tasks)) return null;
 
   const tasks: Task[] = [];
@@ -78,14 +99,24 @@ export function sanitizePlanState(raw: unknown): PlanState | null {
       ? parsed.metaUpdatedAt
       : tasks.reduce((max, t) => (t.updatedAt > max ? t.updatedAt : max), "1970-01-01T00:00:00.000Z");
 
-  return {
+  const groups: PlanGroup[] = [];
+  if (Array.isArray(parsed.groups)) {
+    for (const value of parsed.groups) {
+      const group = sanitizeGroup(value);
+      if (group) groups.push(group);
+    }
+  }
+
+  return reconcileGroupIds({
     tasks,
     graveyard: sanitizeGraveyard(parsed.graveyard),
+    groups,
+    groupGraveyard: sanitizeGraveyard(parsed.groupGraveyard),
     fixedWeekStart: typeof parsed.fixedWeekStart === "string" ? parsed.fixedWeekStart : null,
     manualOrderColumns: Array.isArray(parsed.manualOrderColumns)
       ? parsed.manualOrderColumns.filter((k): k is string => typeof k === "string")
       : [],
     viewMode: parsed.viewMode === "today" ? "today" : "week",
     metaUpdatedAt,
-  };
+  });
 }

@@ -5,14 +5,16 @@ import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useId, useRef, useState, type CSSProperties, type HTMLAttributes } from "react";
 import { addDays, formatOverdueFrom, formatTaskAge, nextWorkday, parseDayKey, toDayKey } from "../_lib/dates";
 import type { PlanAction } from "../_lib/planReducer";
-import type { Priority } from "../_lib/types";
+import type { PlanGroup, Priority } from "../_lib/types";
 import { BACKLOG_KEY } from "../_lib/types";
 import type { Task } from "../_lib/types";
 import PrioritySelect from "./PrioritySelect";
+import TaskGroupMenu from "./TaskGroupMenu";
 
 type TaskCardProps = {
   task: Task;
   act: (action: PlanAction) => void;
+  groups?: PlanGroup[];
   isDraggingOverlay?: boolean;
   isBeingDragged?: boolean;
   dragEnabled?: boolean;
@@ -21,6 +23,7 @@ type TaskCardProps = {
 export default function TaskCard({
   task,
   act,
+  groups = [],
   isDraggingOverlay = false,
   isBeingDragged = false,
   dragEnabled = true,
@@ -504,6 +507,7 @@ export default function TaskCard({
             </form>
 
             <div className="plan-card__meta">
+              <TaskGroupMenu task={task} groups={groups} act={act} dragGuardProps={dragGuardProps} />
               {inBacklog ? (
                 <span className="plan-card__meta-spacer" aria-hidden="true" />
               ) : (
