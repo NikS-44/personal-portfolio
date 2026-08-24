@@ -21,6 +21,14 @@ function upcomingWeekday(todayKey: string, weekday: string): string {
 }
 
 /**
+ * Drop an inline `!p0`–`!p3` token from a draft. Used when the priority picker is given an
+ * explicit value, so the chip stays the single source of truth instead of fighting the token.
+ */
+export function stripPriorityToken(raw: string): string {
+  return raw.replace(PRIORITY_TOKEN, " ").replace(/\s+/g, " ").trim();
+}
+
+/**
  * Inline tokens for the add-task fields: `!p0`–`!p3` set priority,
  * `@today` / `@tomorrow` / `@mon`…`@sun` / `@backlog` pick the column.
  * Tokens are stripped from the title; the rest is left as typed.

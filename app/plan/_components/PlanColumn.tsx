@@ -2,14 +2,24 @@
 
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { memo, useEffect, useId, useRef, useState, type HTMLAttributes, type RefObject } from "react";
+import {
+  memo,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type CSSProperties,
+  type HTMLAttributes,
+  type RefObject,
+} from "react";
 import { formatColumnLabel, isWeekendKey, toDayKey } from "../_lib/dates";
-import { parseQuickAdd } from "../_lib/quickAdd";
+import { parseQuickAdd, stripPriorityToken } from "../_lib/quickAdd";
 import type { PlanAction } from "../_lib/planReducer";
 import { isPriorityOrdered } from "../_lib/priority";
 import { buildColumnBlocks, groupsById } from "../_lib/groups";
 import { BACKLOG_KEY } from "../_lib/types";
-import type { PlanGroup, Task } from "../_lib/types";
+import type { PlanGroup, Priority, Task } from "../_lib/types";
+import { PRIORITY_OPTIONS } from "../_lib/types";
 import CompletedTaskRow from "./CompletedTaskRow";
 import { PlanIconButton } from "./PlanHint";
 import TaskCard from "./TaskCard";
@@ -57,7 +67,9 @@ export default memo(function PlanColumn({
   boardIsDragging = false,
 }: PlanColumnProps) {
   const [listDraft, setListDraft] = useState("");
+  const [listPriority, setListPriority] = useState<Priority>("p2");
   const [footerDraft, setFooterDraft] = useState("");
+  const [footerPriority, setFooterPriority] = useState<Priority>("p2");
   const [composing, setComposing] = useState(false);
   const [doneOpen, setDoneOpen] = useState(true);
   const composeInputRef = useRef<HTMLInputElement>(null);
@@ -82,14 +94,15 @@ export default memo(function PlanColumn({
     if (tasks.length > 0 && composing) setComposing(false);
   }, [tasks.length, composing]);
 
-  const addTask = (raw: string, clear: () => void) => {
+  // A typed `!pN` token wins over the picker: it is the more specific, more recent intent.
+  const addTask = (raw: string, picked: Priority, clear: () => void) => {
     if (!raw.trim()) return;
     const parsed = parseQuickAdd(raw, toDayKey(new Date()));
     act({
       type: "ADD_TASK",
       columnKey: parsed.dayKey ?? columnKey,
       title: parsed.title,
-      priority: parsed.priority,
+      priority: parsed.priority ?? picked,
     });
     clear();
     setComposing(false);
@@ -241,12 +254,17 @@ export default memo(function PlanColumn({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              addTask(listDraft, () => setListDraft(""));
+              addTask(listDraft, listPriority, () => {
+                setListDraft("");
+                setListPriority("p2");
+              });
             }}
           >
             <AddTaskField
               value={listDraft}
               onChange={setListDraft}
+              priority={listPriority}
+              onPriorityChange={setListPriority}
               placeholder="Add a task…"
               ariaLabel="Add a task in list"
               inputRef={composing ? composeInputRef : undefined}
@@ -295,11 +313,21 @@ export default memo(function PlanColumn({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          addTask(footerDraft, () => setFooterDraft(""));
+          addTask(footerDraft, footerPriority, () => {
+            setFooterDraft("");
+            setFooterPriority("p2");
+          });
         }}
         className="shrink-0 border-t border-[var(--plan-border)] bg-[var(--plan-footer-veil)] p-2.5 backdrop-blur-sm"
       >
-        <AddTaskField value={footerDraft} onChange={setFooterDraft} placeholder="Add a task…" ariaLabel="Add a task" />
+        <AddTaskField
+          value={footerDraft}
+          onChange={setFooterDraft}
+          priority={footerPriority}
+          onPriorityChange={setFooterPriority}
+          placeholder="Add a task…"
+          ariaLabel="Add a task"
+        />
       </form>
     </section>
   );
@@ -368,6 +396,8 @@ export function isBacklogColumn(columnKey: string): boolean {
 function AddTaskField({
   value,
   onChange,
+  priority,
+  onPriorityChange,
   placeholder,
   ariaLabel,
   inputRef,
@@ -375,13 +405,31 @@ function AddTaskField({
 }: {
   value: string;
   onChange: (value: string) => void;
+  priority: Priority;
+  onPriorityChange: (priority: Priority) => void;
   placeholder: string;
   ariaLabel: string;
   inputRef?: RefObject<HTMLInputElement>;
   onBlurEmpty?: () => void;
 }) {
+  const popId = useId();
+  const anchorName = `--plan-add-priority-${popId.replace(/[^a-zA-Z0-9]/g, "")}`;
+  const popRef = useRef<HTMLDivElement>(null);
+
+  // A typed token mirrors straight into the chip, so the two inputs never disagree on screen.
+  const typed = parseQuickAdd(value, toDayKey(new Date())).priority;
+  const effective = typed ?? priority;
+
+  const pick = (next: Priority) => {
+    onPriorityChange(next);
+    // Drop any typed token, otherwise it would keep overriding the explicit pick.
+    if (typed) onChange(stripPriorityToken(value));
+    popRef.current?.hidePopover();
+    inputRef?.current?.focus();
+  };
+
   return (
-    <label className="plan-add-task-field cursor-text">
+    <label className="plan-add-task-field cursor-text" data-has-value={value.trim().length > 0}>
       <span className="shrink-0 text-sm font-medium text-[var(--plan-accent)]" aria-hidden="true">
         +
       </span>
@@ -397,6 +445,39 @@ function AddTaskField({
         title="Quick add: !p0–!p3 sets priority, @today/@tue/@backlog picks the day"
         className="min-w-0 flex-1 text-[var(--plan-text)] placeholder:text-[var(--plan-muted)]"
       />
+
+      <button
+        type="button"
+        className={`plan-add-priority plan-tone--${effective}`}
+        aria-label={`Priority ${effective.toUpperCase()}${typed ? " (from text)" : ""}`}
+        title="Set priority for this task"
+        {...({ popovertarget: popId } as HTMLAttributes<HTMLButtonElement>)}
+        style={{ anchorName } as CSSProperties}
+      >
+        {effective.toUpperCase()}
+      </button>
+
+      <div
+        ref={popRef}
+        id={popId}
+        popover="auto"
+        className="plan-pop plan-pop--end plan-add-priority-pop"
+        style={{ positionAnchor: anchorName } as CSSProperties}
+      >
+        {PRIORITY_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            aria-pressed={effective === opt.value}
+            className={`plan-add-priority-pop__item plan-tone--${opt.value} ${
+              effective === opt.value ? "plan-add-priority-pop__item--active" : ""
+            }`}
+            onClick={() => pick(opt.value)}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
     </label>
   );
 }
