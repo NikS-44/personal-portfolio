@@ -1,5 +1,6 @@
 import type { StaticImageData } from "next/image";
 
+import samsaraTableThumbnail from "@/app/assets/samsara-table-filtering-thumbnail.jpg";
 import globalNavThumbnail from "@/app/assets/global-nav-thumbnail.webp";
 import newTopNav from "@/app/assets/new-top-nav.gif";
 import latencyThumbnail from "@/app/assets/latency-thumbnail.webp";
@@ -15,19 +16,38 @@ import BL460 from "@/app/assets/BL460.webp";
 import superdomeX from "@/app/assets/superdomex.webp";
 import superdomeXThumbnail from "@/app/assets/superdomex-thumbnail.webp";
 
+export type ProjectImageDetails = {
+  kind?: "image";
+  image: StaticImageData;
+  title: string;
+  altText: string;
+  width: number;
+  height: number;
+};
+
+export type ProjectVideoDetails = {
+  kind: "video";
+  src: string;
+  poster?: StaticImageData;
+  title: string;
+  altText: string;
+  width: number;
+  height: number;
+};
+
+export type ProjectDetails = ProjectImageDetails | ProjectVideoDetails;
+
+export function isProjectVideoDetails(details: ProjectDetails): details is ProjectVideoDetails {
+  return details.kind === "video";
+}
+
 export interface Project {
   id: string;
   title: string;
   description: string;
   /** Omit for work that can't be shown. The card still carries the story. */
   thumbnail?: StaticImageData;
-  details?: {
-    image: StaticImageData;
-    title: string;
-    altText: string;
-    width: number;
-    height: number;
-  };
+  details?: ProjectDetails;
 }
 
 export interface Role {
@@ -84,6 +104,24 @@ export const ROLES: Role[] = [
       "Dark Mode",
       "CI/CD",
       "Mentorship",
+    ],
+    projects: [
+      {
+        id: "samsara-table-filtering",
+        title: "Table and filtering",
+        description:
+          "Designed and shipped the company-wide table and filtering system that replaced four separate legacy implementations. One place to fix things instead of four, with better responsiveness and accessibility.",
+        thumbnail: samsaraTableThumbnail,
+        details: {
+          kind: "video",
+          src: "/demos/samsara-table-filtering.mp4",
+          poster: samsaraTableThumbnail,
+          title: "Table and filtering, in use",
+          altText: "Screen recording of Samsara's table and filtering system: sorting, filters, and row actions",
+          width: 1731,
+          height: 1080,
+        },
+      },
     ],
   },
   {

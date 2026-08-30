@@ -1,7 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useId, useRef } from "react";
 import Image from "next/image";
-import type { Project } from "@/app/components/homepage/_data/experience";
+import { isProjectVideoDetails, type Project } from "@/app/components/homepage/_data/experience";
 
 interface ProjectModalProps {
   project: Project | null;
@@ -93,15 +93,31 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
           {details && (
             <div className="min-h-0 flex-1 overflow-y-auto bg-ground p-4 sm:p-6">
-              <Image
-                src={details.image}
-                alt={details.altText}
-                width={details.width}
-                height={details.height}
-                className="mx-auto h-auto w-auto max-w-full rounded-sm border border-rule object-contain"
-                style={{ maxHeight: "min(52vh, 30rem)" }}
-                unoptimized={details.image.src.endsWith(".gif")}
-              />
+              {isProjectVideoDetails(details) ? (
+                <video
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster={details.poster?.src}
+                  width={details.width}
+                  height={details.height}
+                  aria-label={details.altText}
+                  className="mx-auto h-auto w-auto max-w-full rounded-sm border border-rule object-contain"
+                  style={{ maxHeight: "min(52vh, 30rem)" }}
+                >
+                  <source src={details.src} type="video/mp4" />
+                </video>
+              ) : (
+                <Image
+                  src={details.image}
+                  alt={details.altText}
+                  width={details.width}
+                  height={details.height}
+                  className="mx-auto h-auto w-auto max-w-full rounded-sm border border-rule object-contain"
+                  style={{ maxHeight: "min(52vh, 30rem)" }}
+                  unoptimized={details.image.src.endsWith(".gif")}
+                />
+              )}
               <p className="t-mono mt-3 text-center text-xs text-ink-3">{details.title}</p>
             </div>
           )}
