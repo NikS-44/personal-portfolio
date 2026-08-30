@@ -70,7 +70,6 @@ export const ROLES: Role[] = [
       "Built our next-gen frontend infrastructure so feature teams can build and ship independently, including the testing framework and the intra-package router. Testing runs on MSW, screenshot testing and Vite browser testing, behind coverage guardrails that enforce themselves, partly so AI agents can't do the wrong thing.",
       "Worked with product teams to get them moved over, and wrote AI migration guides that carried 101 pages onto the new table and filter components without me touching each one.",
       "Mentored an engineering intern through shipping app-wide dark mode. That meant rewriting our global CSS onto color tokens and working out theme switching that doesn't fall apart on maps, popovers and portals.",
-      "Set up visual regression testing and got Storybook current, so component changes stop quietly breaking things downstream.",
       "Sped up our TypeScript tooling, added strict import rules, and cut bundle size.",
     ],
     skills: [

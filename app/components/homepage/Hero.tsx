@@ -42,7 +42,9 @@ export default function Hero() {
               <p className="mt-6 max-w-[54ch] text-pretty leading-[1.7] text-ink-2">
                 I spent ten years designing server hardware before I moved to the frontend. I wanted to be closer to the
                 people using what I build, instead of sitting a few layers underneath them. Now I work on design
-                systems: components, tokens, and mostly the plumbing that gets teams to actually adopt them.
+                systems, focused on delivering a high quality system all the way from primitives to layout templates. My
+                goal is to build ours so precisely that our developers and AI get the benefits of an accessible,
+                responsive, and performant UI right out of the box.
               </p>
             </Reveal>
 
