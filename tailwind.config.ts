@@ -129,6 +129,43 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
         darkTeal: "var(--dark-teal)",
+        ground: {
+          DEFAULT: "var(--ground)",
+          2: "var(--ground-2)",
+          3: "var(--ground-3)",
+        },
+        rule: {
+          DEFAULT: "var(--rule)",
+          strong: "var(--rule-strong)",
+        },
+        ink: {
+          DEFAULT: "var(--ink)",
+          2: "var(--ink-2)",
+          3: "var(--ink-3)",
+        },
+        copper: {
+          DEFAULT: "var(--copper)",
+          2: "var(--copper-2)",
+          dim: "var(--copper-dim)",
+        },
+        flux: {
+          DEFAULT: "var(--flux)",
+          dim: "var(--flux-dim)",
+        },
+      },
+      keyframes: {
+        fadeUp: {
+          from: { opacity: "0", transform: "translateY(10px) scale(0.99)" },
+          to: { opacity: "1", transform: "none" },
+        },
+      },
+      animation: {
+        fadeUp: "fadeUp 0.24s cubic-bezier(0.16, 1, 0.3, 1)",
+      },
+      fontFamily: {
+        display: ["var(--font-display)", "Helvetica Neue", "Arial", "sans-serif"],
+        body: ["var(--font-body)", "Georgia", "serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
     },
   },

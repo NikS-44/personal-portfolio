@@ -1,3 +1,0 @@
-# Terminal
-
-Coming soon...

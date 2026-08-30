@@ -2,96 +2,128 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────────────────────────────
+   "Bench": the palette of a well-lit electronics bench.
+   A green-black ground (unlit instrument panel), warm copper as the
+   primary accent (the material of the hardware years), pale flux-mint
+   as the cool counterweight. Two accents, warm and cool, because the
+   whole page is about working at both ends of the stack.
+   ───────────────────────────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ground: #0e1315;
+  --ground-2: #131a1c;
+  --ground-3: #182124;
+  --rule: #253032;
+  --rule-strong: #33413f;
+
+  --ink: #e9eeec;
+  --ink-2: #97a5a2;
+  --ink-3: #7c8c89;
+
+  --copper: #d08650;
+  --copper-2: #e2a172;
+  --copper-dim: #6d4529;
+
+  --flux: #7ed8c3;
+  --flux-dim: #2c554d;
+
+  /* Legacy tokens still referenced by /plan, /ecard and the tool pages. */
+  --background: #0e1315;
+  --foreground: #e9eeec;
   --dark-teal: #0e313e;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--ink);
+  background: var(--ground);
+  font-family: var(--font-body), Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
+.bench-ground {
+  background-color: var(--ground);
+}
+
+/* ── Type roles ──────────────────────────────────────────────────────
+   Display is Archivo. The `wdth` axis does the drafting work: labels
+   run condensed and tracked-out like title-block lettering, headings
+   run normal-width, heavy and tight.
+   ──────────────────────────────────────────────────────────────────── */
+@layer components {
+  .t-display {
+    font-family: var(--font-display), "Helvetica Neue", Arial, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.032em;
+    line-height: 0.94;
+  }
+
+  .t-heading {
+    font-family: var(--font-display), "Helvetica Neue", Arial, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.018em;
+    line-height: 1.12;
+  }
+
+  /* Title-block lettering: condensed, uppercase, widely tracked. */
+  .t-label {
+    font-family: var(--font-display), "Helvetica Neue", Arial, sans-serif;
+    font-variation-settings: "wdth" 84;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.6875rem;
+    line-height: 1.2;
+  }
+
+  .t-mono {
+    font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+  }
+}
+
+/* ── Focus ───────────────────────────────────────────────────────────
+   One ring, everywhere, in flux-mint so it never collides with a
+   copper hover state.
+   ──────────────────────────────────────────────────────────────────── */
+@layer base {
+  :where(a, button, select, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--flux);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
+/* ── Reveal on scroll ────────────────────────────────────────────────
+   `.reveal` is the *pre*-animation state and is only applied by JS
+   (see useIntersectionObserver). Without JS, nothing is ever hidden.
+   ──────────────────────────────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.reveal-in {
+  animation: reveal 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Utilities ───────────────────────────────────────────────────────── */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
-}
 
-.background-element {
-  background: linear-gradient(
-    to bottom,
-    var(--dark-teal) 10%,
-    /* Dark teal starts at the top */ #000 90% /* Black dominates the bottom */
-  );
-}
-
-@layer base {
-  a,
-  button,
-  select {
-    @apply outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400;
+  .text-pretty {
+    text-wrap: pretty;
   }
-}
-
-.background-stencil {
-  background-color: transparent;
-  background-image: url("assets/bg-image.png");
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: bottom;
-  position: absolute;
-  top: 50px;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  opacity: 7%;
-}
-
-/* globals.css or equivalent */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-in {
-  animation: fadeInUp 0.6s ease forwards;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-dialog::backdrop {
-  background: transparent;
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
-}
-
-:root:has(.no-doc-scroll) {
-  overflow: hidden;
-}
-
-.list-disclosure-closed {
-  list-style-type: disclosure-closed;
 }
 
 .no-scrollbar {
@@ -101,6 +133,18 @@ dialog::backdrop {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Hairline grid, used behind the hero at very low opacity. A drafting
+   sheet, not a decoration. */
+.sheet-grid {
+  background-image: linear-gradient(to right, var(--rule) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--rule) 1px, transparent 1px);
+  background-size: 96px 96px;
+}
+
+.list-disclosure-closed {
+  list-style-type: disclosure-closed;
 }
 
 .height-calc-size-auto {
@@ -113,4 +157,24 @@ dialog::backdrop {
   overflow: hidden;
   height: 0;
   visibility: hidden;
+}
+
+/* ── Motion preferences ──────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

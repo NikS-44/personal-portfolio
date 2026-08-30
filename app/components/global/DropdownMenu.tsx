@@ -1,11 +1,11 @@
 "use client";
-import { useEffect, useRef } from "react";
+import Link from "next/link";
+import { useEffect, useId, useRef } from "react";
 
 interface DropdownItem {
   id: number;
   name: string;
   href: string;
-  description?: string;
 }
 
 interface DropdownMenuProps {
@@ -13,61 +13,76 @@ interface DropdownMenuProps {
   items: DropdownItem[];
   isOpen: boolean;
   onToggle: () => void;
+  onClose: () => void;
 }
 
-const DropdownMenu = ({ title, items, isOpen, onToggle }: DropdownMenuProps) => {
-  const dropdownRef = useRef<HTMLDivElement>(null);
+export default function DropdownMenu({ title, items, isOpen, onToggle, onClose }: DropdownMenuProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        onToggle();
-      }
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!wrapperRef.current?.contains(event.target as Node)) onClose();
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      onClose();
+      triggerRef.current?.focus();
     };
 
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, onToggle]);
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   return (
-    <div ref={dropdownRef} className="relative">
+    <div ref={wrapperRef} className="relative">
       <button
+        ref={triggerRef}
+        type="button"
         onClick={onToggle}
-        className="flex items-center space-x-1 transition-colors duration-300 hover:text-cyan-400"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+        aria-controls={menuId}
+        className="flex items-center gap-1.5 py-1 transition-colors hover:text-copper aria-expanded:text-copper"
       >
-        <span>{title}</span>
+        {title}
         <svg
-          className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          aria-hidden
+          viewBox="0 0 16 16"
+          className={`h-3 w-3 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
           fill="none"
           stroke="currentColor"
-          viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path d="M3.5 6L8 10.5 12.5 6" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
 
       {isOpen && (
-        <div className="absolute left-1/2 top-full z-10 mt-4 w-fit -translate-x-1/2 rounded-md border border-solid border-cyan-950 bg-neutral-900 shadow-lg">
-          <div className="py-1">
-            {items.map((item) => (
-              <a
-                key={item.id}
-                href={item.href}
-                className="block px-8 py-2 text-base hover:bg-neutral-700"
-                onClick={() => onToggle()}
-              >
-                <div className="text-center font-medium">{item.name}</div>
-                {item.description && <div className="text-xs text-gray-400">{item.description}</div>}
-              </a>
-            ))}
-          </div>
+        <div
+          id={menuId}
+          role="menu"
+          className="absolute right-0 top-full z-20 mt-3 min-w-[13rem] overflow-hidden rounded-sm border border-rule-strong bg-ground-2 py-1 shadow-2xl shadow-black/40"
+        >
+          {items.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              role="menuitem"
+              onClick={onClose}
+              className="block px-4 py-2.5 text-sm text-ink-2 transition-colors hover:bg-ground-3 hover:text-ink"
+            >
+              {item.name}
+            </Link>
+          ))}
         </div>
       )}
     </div>
   );
-};
-
-export default DropdownMenu;
+}

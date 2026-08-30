@@ -1,86 +1,61 @@
 "use client";
-import { useState } from "react";
-import DropdownMenu from "./DropdownMenu";
-import HomeIcon from "@/app/components/icons/HomeIcon";
 import Link from "next/link";
+import { useCallback, useState } from "react";
+import DropdownMenu from "./DropdownMenu";
 import GitHubIcon from "@/app/components/icons/GithubIcon";
 
-const Header = () => {
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+const PLAYGROUND = [
+  { id: 1, name: "LinkedIn search tool", href: "/projects/linkedin" },
+  { id: 2, name: "Cover letter generator", href: "/projects/cover-letter" },
+  { id: 3, name: "Planner", href: "/plan" },
+];
 
-  const personal = [
-    {
-      id: 1,
-      name: "About Me",
-      href: "/",
-    },
-    {
-      id: 2,
-      name: "My Work",
-      href: "/#resume",
-    },
-  ];
-
-  const creations = [
-    {
-      id: 1,
-      name: "Articles",
-      href: "/articles",
-    },
-    {
-      id: 2,
-      name: "LinkedIn Search Tool",
-      href: "/projects/linkedin",
-    },
-    {
-      id: 3,
-      name: "Cover Letter Generator",
-      href: "/projects/cover-letter",
-    },
-    {
-      id: 4,
-      name: "Planner",
-      href: "/plan",
-    },
-  ];
-
-  const toggleMenu = (menuName: string) => {
-    setActiveMenu(activeMenu === menuName ? null : menuName);
-  };
+export default function Header() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const close = useCallback(() => setMenuOpen(false), []);
 
   return (
-    <header className="fixed z-50 flex w-full justify-center py-3 text-white">
-      <nav className="flex w-fit items-center gap-2 space-x-6 text-nowrap rounded-lg border border-solid border-cyan-950 bg-neutral-900 px-4 py-3 shadow-xl">
+    <header className="bg-ground/85 fixed inset-x-0 top-0 z-50 border-b border-rule backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-6 px-6 sm:px-8">
         <Link
           href="/"
-          className="mr-2 flex items-center gap-2 border-gray-300 transition-colors duration-300 hover:text-cyan-400 hover:underline hover:underline-offset-4"
+          className="t-label flex items-center gap-2.5 text-ink transition-colors hover:text-copper"
+          aria-label="Nik Shah, home"
         >
-          <HomeIcon />
+          <span
+            aria-hidden
+            className="grid h-6 w-6 place-items-center rounded-sm bg-copper text-[0.625rem] font-bold text-[#1a0f06]"
+          >
+            NS
+          </span>
+          <span className="hidden sm:inline">Nik Shah</span>
         </Link>
-        <DropdownMenu
-          title="About"
-          items={personal}
-          isOpen={activeMenu === "projects"}
-          onToggle={() => toggleMenu("projects")}
-        />
-        <DropdownMenu
-          title="Playground"
-          items={creations}
-          isOpen={activeMenu === "playground"}
-          onToggle={() => toggleMenu("playground")}
-        />
-        <a
-          className="mr-2 flex items-center gap-2 border-gray-300 transition-colors duration-300 hover:text-cyan-400"
-          href="https://github.com/NikS-44/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <GitHubIcon />
-          <span className="hidden sm:inline">GitHub</span>
-        </a>
-      </nav>
+
+        <nav aria-label="Main" className="flex items-center gap-5 font-display text-sm font-medium text-ink-2 sm:gap-7">
+          <Link href="/#experience" className="py-1 transition-colors hover:text-copper">
+            Work
+          </Link>
+          <Link href="/upkeepa" className="py-1 transition-colors hover:text-copper">
+            Upkeepa
+          </Link>
+          <DropdownMenu
+            title="Playground"
+            items={PLAYGROUND}
+            isOpen={menuOpen}
+            onToggle={() => setMenuOpen((open) => !open)}
+            onClose={close}
+          />
+          <a
+            href="https://github.com/NikS-44/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 py-1 transition-colors hover:text-copper"
+          >
+            <GitHubIcon />
+            <span className="sr-only">GitHub</span>
+          </a>
+        </nav>
+      </div>
     </header>
   );
-};
-
-export default Header;
+}
