@@ -24,7 +24,7 @@ export default function Header() {
         >
           <span
             aria-hidden
-            className="grid h-6 w-6 place-items-center rounded-sm bg-copper text-[0.625rem] font-bold text-[#1a0f06]"
+            className="grid h-6 w-6 place-items-center rounded-sm bg-copper text-[0.625rem] font-bold tracking-normal text-[#1a0f06]"
           >
             NS
           </span>
