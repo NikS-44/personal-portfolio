@@ -81,7 +81,7 @@ export default function DropdownMenu({ title, items, isOpen, onToggle, onClose }
         <div
           id={menuId}
           role="menu"
-          className="absolute right-0 top-full z-20 mt-3 min-w-[14.5rem] overflow-hidden rounded-sm border border-rule-strong bg-ground-2 py-1 shadow-2xl shadow-black/40"
+          className="fixed inset-x-3 top-[3.75rem] z-20 overflow-hidden rounded-sm border border-rule-strong bg-ground-2 py-1 shadow-2xl shadow-black/40 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-3 sm:min-w-[14.5rem]"
         >
           {items.map((item) => {
             const content = (

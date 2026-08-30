@@ -25,26 +25,45 @@ export default function Hero() {
       />
 
       <div className="relative mx-auto max-w-6xl px-6 pb-16 pt-24 sm:px-8 sm:pb-20 sm:pt-28 lg:pb-24 lg:pt-32">
-        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-14">
-          <div>
-            <Reveal>
-              <h1>
-                <span className="t-display block text-balance text-[clamp(1.9rem,4.2vw,3.15rem)] text-ink">
-                  I build design systems.
-                </span>
-                <span className="mt-3 block text-balance font-body text-[clamp(1.05rem,2.1vw,1.5rem)] italic leading-[1.35] text-ink-2">
-                  I used to build the hardware they run on.
-                </span>
-              </h1>
-            </Reveal>
+        {/* Three cells so the portrait can sit between the headline and the
+            copy on small screens, and beside both of them from lg up. */}
+        <div className="grid gap-x-0 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-x-14">
+          <Reveal className="order-1 lg:col-start-1 lg:row-start-1 lg:self-end">
+            <h1>
+              <span className="block font-display text-base font-semibold tracking-tight text-copper sm:text-lg">
+                Hi, I&apos;m Nik.
+              </span>
+              <span className="t-display mt-2.5 block text-balance text-[clamp(1.9rem,4.2vw,3.15rem)] text-ink">
+                I build design systems.
+              </span>
+              <span className="mt-3 block text-balance font-body text-[clamp(1.05rem,2.1vw,1.5rem)] italic leading-[1.35] text-ink-2">
+                I used to build the hardware they run on.
+              </span>
+            </h1>
+          </Reveal>
 
+          <Reveal delay={100} className="order-2 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center">
+            <div className="mx-auto mt-8 w-[62%] max-w-[13rem] sm:w-[13rem] lg:mx-0 lg:mt-0 lg:w-[15rem] lg:max-w-none">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-rule-strong bg-ground-2">
+                <Image
+                  src={portrait}
+                  alt="Nik Shah"
+                  fill
+                  sizes="(min-width: 1024px) 17vw, (min-width: 640px) 28vw, 62vw"
+                  className="object-cover object-top"
+                  priority
+                />
+              </div>
+            </div>
+          </Reveal>
+
+          <div className="order-3 mt-8 lg:col-start-1 lg:row-start-2 lg:mt-6">
             <Reveal delay={80}>
-              <p className="mt-6 max-w-[54ch] text-pretty leading-[1.7] text-ink-2">
-                I spent ten years designing server hardware before I moved to the frontend. I wanted to be closer to the
-                people using what I build, instead of sitting a few layers underneath them. Now I work on design
-                systems, focused on delivering a high quality system all the way from primitives to layout templates. My
-                goal is to build ours so precisely that our developers and AI get the benefits of an accessible,
-                responsive, and performant UI right out of the box.
+              <p className="max-w-[54ch] text-pretty leading-[1.7] text-ink-2">
+                I came to the frontend after ten years in server hardware, wanting to work closer to the people using
+                what I make. Now I work on design systems, from primitives up to layout templates. My systems make
+                accessible, responsive, performant UI the default, and make shipping bad user experiences take real
+                effort, whether you are a developer or an AI agent.
               </p>
             </Reveal>
 
@@ -71,21 +90,6 @@ export default function Hero() {
               </div>
             </Reveal>
           </div>
-
-          <Reveal delay={100}>
-            <div className="w-[11rem] sm:w-[13rem] lg:w-[15rem]">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-rule-strong bg-ground-2">
-                <Image
-                  src={portrait}
-                  alt="Nik Shah"
-                  fill
-                  sizes="(min-width: 1024px) 17vw, (min-width: 640px) 28vw, 46vw"
-                  className="object-cover object-top"
-                  priority
-                />
-              </div>
-            </div>
-          </Reveal>
         </div>
 
         {/* What I'm on right now. The only place two things get equal billing. */}
