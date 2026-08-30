@@ -4,15 +4,30 @@ import { useCallback, useState } from "react";
 import DropdownMenu from "./DropdownMenu";
 import GitHubIcon from "@/app/components/icons/GithubIcon";
 
+const APPS = [
+  { id: "upkeepa", name: "Upkeepa", href: "/upkeepa", detail: "iOS planner" },
+  {
+    id: "criticfinder",
+    name: "CriticFinder",
+    href: "https://criticfinder.com",
+    detail: "criticfinder.com",
+    external: true,
+    status: "wip" as const,
+  },
+];
+
 const PLAYGROUND = [
   { id: 1, name: "LinkedIn search tool", href: "/projects/linkedin" },
   { id: 2, name: "Cover letter generator", href: "/projects/cover-letter" },
   { id: 3, name: "Planner", href: "/plan" },
 ];
 
+type MenuId = "apps" | "playground";
+
 export default function Header() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const close = useCallback(() => setMenuOpen(false), []);
+  const [openMenu, setOpenMenu] = useState<MenuId | null>(null);
+  const close = useCallback(() => setOpenMenu(null), []);
+  const toggle = (id: MenuId) => () => setOpenMenu((current) => (current === id ? null : id));
 
   return (
     <header className="bg-ground/85 fixed inset-x-0 top-0 z-50 border-b border-rule backdrop-blur-md">
@@ -35,14 +50,18 @@ export default function Header() {
           <Link href="/#experience" className="py-1 transition-colors hover:text-copper">
             Work
           </Link>
-          <Link href="/upkeepa" className="py-1 transition-colors hover:text-copper">
-            Upkeepa
-          </Link>
+          <DropdownMenu
+            title="Apps"
+            items={APPS}
+            isOpen={openMenu === "apps"}
+            onToggle={toggle("apps")}
+            onClose={close}
+          />
           <DropdownMenu
             title="Playground"
             items={PLAYGROUND}
-            isOpen={menuOpen}
-            onToggle={() => setMenuOpen((open) => !open)}
+            isOpen={openMenu === "playground"}
+            onToggle={toggle("playground")}
             onClose={close}
           />
           <a

@@ -2,10 +2,14 @@
 import Link from "next/link";
 import { useEffect, useId, useRef } from "react";
 
-interface DropdownItem {
-  id: number;
+export interface DropdownItem {
+  id: number | string;
   name: string;
   href: string;
+  external?: boolean;
+  /** Shown as a title-block stamp, e.g. work still being laid out. */
+  status?: "wip";
+  detail?: string;
 }
 
 interface DropdownMenuProps {
@@ -14,6 +18,15 @@ interface DropdownMenuProps {
   isOpen: boolean;
   onToggle: () => void;
   onClose: () => void;
+}
+
+function WipStamp() {
+  return (
+    <span className="t-label inline-flex items-center gap-1.5 rounded-sm border border-dashed border-copper-dim px-1.5 py-0.5 text-[0.5625rem] tracking-[0.14em] text-copper">
+      <span aria-hidden className="h-1 w-1 rounded-full bg-copper" />
+      WIP
+    </span>
+  );
 }
 
 export default function DropdownMenu({ title, items, isOpen, onToggle, onClose }: DropdownMenuProps) {
@@ -68,19 +81,53 @@ export default function DropdownMenu({ title, items, isOpen, onToggle, onClose }
         <div
           id={menuId}
           role="menu"
-          className="absolute right-0 top-full z-20 mt-3 min-w-[13rem] overflow-hidden rounded-sm border border-rule-strong bg-ground-2 py-1 shadow-2xl shadow-black/40"
+          className="absolute right-0 top-full z-20 mt-3 min-w-[14.5rem] overflow-hidden rounded-sm border border-rule-strong bg-ground-2 py-1 shadow-2xl shadow-black/40"
         >
-          {items.map((item) => (
-            <Link
-              key={item.id}
-              href={item.href}
-              role="menuitem"
-              onClick={onClose}
-              className="block px-4 py-2.5 text-sm text-ink-2 transition-colors hover:bg-ground-3 hover:text-ink"
-            >
-              {item.name}
-            </Link>
-          ))}
+          {items.map((item) => {
+            const content = (
+              <>
+                <span className="flex items-center justify-between gap-3">
+                  <span className="text-sm text-ink-2 group-hover:text-ink">{item.name}</span>
+                  {item.status === "wip" && <WipStamp />}
+                </span>
+                {item.detail && <span className="t-mono mt-0.5 block text-[0.6875rem] text-ink-3">{item.detail}</span>}
+              </>
+            );
+
+            const className =
+              "group block px-4 transition-colors hover:bg-ground-3 " +
+              (item.detail || item.status ? "py-3" : "py-2.5");
+
+            if (item.external) {
+              return (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  role="menuitem"
+                  onClick={onClose}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={item.status === "wip" ? `${item.name}, work in progress` : undefined}
+                  className={className}
+                >
+                  {content}
+                </a>
+              );
+            }
+
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                role="menuitem"
+                onClick={onClose}
+                aria-label={item.status === "wip" ? `${item.name}, work in progress` : undefined}
+                className={className}
+              >
+                {content}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
