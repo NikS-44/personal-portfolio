@@ -6,6 +6,7 @@ import GitHubIcon from "@/app/components/icons/GithubIcon";
 
 const APPS = [
   { id: "upkeepa", name: "Upkeepa", href: "/upkeepa", detail: "iOS planner" },
+  { id: "betterboard", name: "BetterBoard", href: "/betterboard", detail: "iOS keyboard" },
   {
     id: "criticfinder",
     name: "CriticFinder",
