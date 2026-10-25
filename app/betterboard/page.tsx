@@ -1,19 +1,29 @@
 import Link from "next/link";
 import { AppIcon, AppStoreBadge, BetterBoardFooter, BetterBoardNav, Screenshot, betterboard } from "./_components/ui";
 
-/** Add a capture here and it appears in the gallery. */
-const SCREENS = [
-  {
-    src: "/betterboard/screens/home.png",
-    alt: "The BetterBoard app showing keyboard status, the privacy promise, a test field and Typing Lab",
-    caption: "Set it up, try it out, and see what the keyboard has learned.",
+/** Add a capture here and it appears on the page. */
+const SCREENS = {
+  keyboard: {
+    src: "/betterboard/screens/keyboard.png",
+    alt: "The BetterBoard keyboard, showing the action row, suggestion bar and number hints on the top-row keys",
+    caption: "Clipboard, Saved and Write sit above the suggestions. Numbers live on the top row.",
   },
-  {
+  privacy: {
     src: "/betterboard/screens/privacy.png",
     alt: "BetterBoard's privacy screen: on this device only, no network access, no account and no tracking",
     caption: "On-device only. No account, no analytics, no network calls.",
   },
-];
+  welcome: {
+    src: "/betterboard/screens/welcome.png",
+    alt: "BetterBoard's welcome screen introducing accurate taps, clipboard and saved text, and Write",
+    caption: "What you get, in one screen.",
+  },
+  home: {
+    src: "/betterboard/screens/home.png",
+    alt: "The BetterBoard app showing keyboard status, a test field and Typing Lab",
+    caption: "Try the keyboard and see what it has learned.",
+  },
+};
 
 const FEATURES = [
   {
@@ -117,7 +127,7 @@ export default function BetterBoardPage() {
           </div>
 
           <div className="betterboard-rise">
-            <Screenshot {...SCREENS[0]} priority />
+            <Screenshot {...SCREENS.keyboard} priority />
           </div>
         </div>
       </section>
@@ -161,7 +171,7 @@ export default function BetterBoardPage() {
               </Link>
             </div>
 
-            <Screenshot {...SCREENS[1]} />
+            <Screenshot {...SCREENS.privacy} />
           </div>
         </div>
       </section>
@@ -190,6 +200,22 @@ export default function BetterBoardPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* ── Gallery ────────────────────────────────────────────────────── */}
+      <section className="border-t bg-white" style={{ borderColor: betterboard.border }}>
+        <div className="mx-auto max-w-5xl px-5 py-16 sm:py-20">
+          <h2
+            className="text-balance text-3xl font-extrabold tracking-tight sm:text-4xl"
+            style={{ color: betterboard.ink }}
+          >
+            A look around
+          </h2>
+          <div className="mt-10 flex flex-wrap justify-center gap-10 sm:justify-start">
+            <Screenshot {...SCREENS.welcome} />
+            <Screenshot {...SCREENS.home} />
+          </div>
+        </div>
       </section>
 
       {/* ── Getting started ────────────────────────────────────────────── */}
